@@ -1,0 +1,8 @@
+export const MAX_FILE_SIZE = 1 * 1024 * 1024
+
+export const PAGINATION = {
+  MESSAGES_PAGE_SIZE: 50,
+  MEMBERS_PAGE_SIZE: 30,
+  TRIPS_PAGE_SIZE: 20,
+  INVITES_PAGE_SIZE: 20,
+} as const

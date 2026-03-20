@@ -1,14 +1,68 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
+import { RouterProvider, createRouter } from "@tanstack/react-router"
+import { routeTree } from "./routeTree.gen"
+import { ConvexReactClient } from "convex/react"
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"
+import { ENV } from "varlock/env"
+import { authClient } from "./lib/auth-client"
+import { OnboardingProvider } from "./modules/onboarding/context/onboarding-provider"
+import { AuthenticationProvider } from "./modules/auth/context/auth-provider"
+import { NetworkModal } from "./components/network-modal"
+import { ThemeProvider } from "./components/theme-provider"
+import { NuqsAdapter } from "nuqs/adapters/react"
+import { Provider } from "jotai"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
+import { Toaster } from "@/components/ui/sonner"
 import "./index.css"
-import App from "./App.tsx"
-import { ThemeProvider } from "@/components/theme-provider.tsx"
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ThemeProvider>
-      <App />
-    </ThemeProvider>
-  </StrictMode>
-)
+const router = createRouter({
+  routeTree,
+  defaultPreload: "intent",
+  scrollRestoration: true,
+})
+
+const convex = new ConvexReactClient(ENV.VITE_CONVEX_URL, {
+  expectAuth: true,
+  unsavedChangesWarning: false,
+})
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: typeof router
+  }
+}
+
+const rootElement = document.getElementById("root")!
+
+document.addEventListener("contextmenu", (e) => e.preventDefault())
+
+if (!rootElement.innerHTML) {
+  const root = createRoot(rootElement)
+
+  root.render(
+    <StrictMode>
+      <NuqsAdapter>
+        <Provider>
+          <TooltipProvider>
+            <ThemeProvider>
+              <OnboardingProvider>
+                <ConvexBetterAuthProvider
+                  client={convex}
+                  authClient={authClient}
+                >
+                  <AuthenticationProvider>
+                    <RouterProvider router={router} />
+                    <NetworkModal />
+                    <Toaster />
+                  </AuthenticationProvider>
+                </ConvexBetterAuthProvider>
+              </OnboardingProvider>
+            </ThemeProvider>
+          </TooltipProvider>
+        </Provider>
+      </NuqsAdapter>
+    </StrictMode>
+  )
+}

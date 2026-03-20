@@ -1,13 +1,33 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
   ],
   "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@backend/api": [
+        "./convex/_generated/api"
+      ],
+      "@backend/dataModel": [
+        "./convex/_generated/dataModel"
+      ],
+      "@backend/authDataModel": [
+        "./convex/betterAuth/_generated/dataModel"
+      ],
+      "@backend/types": [
+        "./convex/types"
+      ]
     }
   }
 }

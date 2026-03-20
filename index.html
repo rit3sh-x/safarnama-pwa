@@ -1,13 +1,89 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vite-app</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <script>
+    (function () {
+      var d = document.documentElement
+      var theme = localStorage.getItem("theme")
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+      var resolved = theme === "dark" || theme === "light" ? theme : prefersDark ? "dark" : "light"
+      d.classList.add(resolved)
+      d.style.colorScheme = resolved
+    })()
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+  <title>Safarnama</title>
+  <meta name="description" content="Modern trips for modern people" />
+  <meta name="application-name" content="Safarnama" />
+
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Safarnama" />
+  <meta name="format-detection" content="telephone=no" />
+
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon-120.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png" />
+
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="/splash/iphone-14-pro-max-430x932.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="/splash/iphone-14-pro-393x852.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="/splash/iphone-14-390x844.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+    href="/splash/iphone-x-375x812.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="/splash/iphone-xr-414x896.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="/splash/ipad-768x1024.png" />
+  <link rel="apple-touch-startup-image"
+    media="screen and (device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+    href="/splash/ipad-pro-1024x1366.png" />
+
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="google" content="notranslate" />
+
+  <meta name="msapplication-TileImage" content="/icons/icon-144.png" />
+  <meta name="msapplication-config" content="/browserconfig.xml" />
+
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://safarnama.app" />
+  <meta property="og:title" content="Safarnama" />
+  <meta property="og:description" content="Modern trips for modern people" />
+  <meta property="og:image" content="/og-image.png" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Safarnama" />
+  <meta name="twitter:description" content="Modern trips for modern people" />
+  <meta name="twitter:image" content="/og-image.png" />
+
+  <link rel="preconnect" href="%VITE_CONVEX_URL%" />
+  <link rel="dns-prefetch" href="%VITE_CONVEX_URL%" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
