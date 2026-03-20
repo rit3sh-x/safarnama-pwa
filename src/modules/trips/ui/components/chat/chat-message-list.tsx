@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useCallback, useMemo, useRef } from "react"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { InfiniteScrollTrigger } from "@/components/infinite-scroll-trigger"
@@ -40,9 +40,6 @@ export function ChatMessageList({
   onImageClick,
 }: ChatMessageListProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
-  const bottomRef = useRef<HTMLDivElement>(null)
-  const prevMessageCountRef = useRef(0)
-  const isNearBottomRef = useRef(true)
 
   const messageMap = useMemo(() => {
     const map = new Map<string, ChatMessage>()
@@ -67,95 +64,74 @@ export function ChatMessageList({
     return groups
   }, [messages])
 
-  const handleScroll = useCallback(() => {
+  const scrollToBottom = useCallback((smooth = true) => {
     const el = scrollRef.current
     if (!el) return
-    const threshold = 100
-    isNearBottomRef.current =
-      el.scrollHeight - el.scrollTop - el.clientHeight < threshold
+    el.scrollTo({ top: 0, behavior: smooth ? "smooth" : "instant" })
   }, [])
-
-  const scrollToBottom = useCallback((smooth = true) => {
-    bottomRef.current?.scrollIntoView({
-      behavior: smooth ? "smooth" : "instant",
-    })
-  }, [])
-
-  useEffect(() => {
-    const prevCount = prevMessageCountRef.current
-    const newCount = messages.length
-    prevMessageCountRef.current = newCount
-
-    if (prevCount === 0 && newCount > 0) {
-      requestAnimationFrame(() => scrollToBottom(false))
-    } else if (newCount > prevCount && isNearBottomRef.current) {
-      requestAnimationFrame(() => scrollToBottom(true))
-    }
-  }, [messages.length, scrollToBottom])
 
   return (
     <>
       <div
         ref={scrollRef}
-        onScroll={handleScroll}
-        className="min-h-0 flex-1 overflow-y-auto"
+        className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto"
       >
-        {canLoadMore && (
-          <InfiniteScrollTrigger
-            canLoadMore={canLoadMore}
-            isLoadingMore={isLoading}
-            onLoadMore={onLoadMore}
-            loadMoreText="Load earlier messages"
-          />
-        )}
+        <div>
+          {canLoadMore && (
+            <InfiniteScrollTrigger
+              canLoadMore={canLoadMore}
+              isLoadingMore={isLoading}
+              onLoadMore={onLoadMore}
+              loadMoreText="Load earlier messages"
+            />
+          )}
 
-        {isLoading && messages.length === 0 && <MessageListSkeleton />}
+          {isLoading && messages.length === 0 && <MessageListSkeleton />}
 
-        {!isLoading && messages.length === 0 && <EmptyChat />}
+          {!isLoading && messages.length === 0 && <EmptyChat />}
 
-        <div className="pb-4">
-          {groupedMessages.map((group) => (
-            <div key={group.date}>
-              <div className="my-4 flex justify-center">
-                <span className="rounded-lg bg-muted/80 px-3 py-1 text-xs font-semibold text-muted-foreground shadow-sm">
-                  {group.date}
-                </span>
+          <div className="pb-4">
+            {groupedMessages.map((group) => (
+              <div key={group.date}>
+                <div className="my-4 flex justify-center">
+                  <span className="rounded-lg bg-muted/80 px-3 py-1 text-xs font-semibold text-muted-foreground shadow-sm">
+                    {group.date}
+                  </span>
+                </div>
+
+                {group.messages.map((msg, i) => {
+                  const prev = group.messages[i - 1]
+                  const isGrouped = !!prev && isSameGroup(prev, msg)
+                  const isOwn = msg.senderId === currentUserId
+                  const showAvatar = !isGrouped
+                  const replyMsg = msg.replyToId
+                    ? (messageMap.get(msg.replyToId) ?? null)
+                    : null
+
+                  return (
+                    <MessageBubble
+                      key={msg._id}
+                      message={msg}
+                      isOwn={isOwn}
+                      isGrouped={isGrouped}
+                      showAvatar={showAvatar}
+                      currentUserId={currentUserId}
+                      isAdmin={isAdmin}
+                      replyMessage={replyMsg}
+                      searchQuery={searchQuery}
+                      onReply={() => onReply(msg)}
+                      onEdit={() => onEdit(msg)}
+                      onDelete={() => onDelete(msg)}
+                      onPin={() => onPin(msg._id)}
+                      onReaction={(emoji) => onReaction(msg._id, emoji)}
+                      onImageClick={onImageClick}
+                    />
+                  )
+                })}
               </div>
-
-              {group.messages.map((msg, i) => {
-                const prev = group.messages[i - 1]
-                const isGrouped = !!prev && isSameGroup(prev, msg)
-                const isOwn = msg.senderId === currentUserId
-                const showAvatar = !isGrouped
-                const replyMsg = msg.replyToId
-                  ? (messageMap.get(msg.replyToId) ?? null)
-                  : null
-
-                return (
-                  <MessageBubble
-                    key={msg._id}
-                    message={msg}
-                    isOwn={isOwn}
-                    isGrouped={isGrouped}
-                    showAvatar={showAvatar}
-                    currentUserId={currentUserId}
-                    isAdmin={isAdmin}
-                    replyMessage={replyMsg}
-                    searchQuery={searchQuery}
-                    onReply={() => onReply(msg)}
-                    onEdit={() => onEdit(msg)}
-                    onDelete={() => onDelete(msg)}
-                    onPin={() => onPin(msg._id)}
-                    onReaction={(emoji) => onReaction(msg._id, emoji)}
-                    onImageClick={onImageClick}
-                  />
-                )
-              })}
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-
-        <div ref={bottomRef} />
       </div>
 
       <ScrollToBottomButton

@@ -32,9 +32,14 @@ import type { Id } from "@backend/dataModel"
 interface TripChatViewProps {
   tripId: TripId
   isPanel?: boolean
+  onGroupPress?: () => void
 }
 
-export function TripChatView({ tripId, isPanel = false }: TripChatViewProps) {
+export function TripChatView({
+  tripId,
+  isPanel = false,
+  onGroupPress,
+}: TripChatViewProps) {
   const router = useRouter()
   const { user } = useAuthenticatedUser()
   const selectedTrip = useAtomValue(selectedTripAtom)
@@ -109,10 +114,10 @@ export function TripChatView({ tripId, isPanel = false }: TripChatViewProps) {
   )
 
   const handleSendImage = useCallback(
-    (url: string) => {
+    (url: string, caption?: string) => {
       sendMessage({
         tripId,
-        content: "📷 Photo",
+        content: caption || "📷 Photo",
         attachmentUrl: url,
         attachmentType: "image",
       })
@@ -182,11 +187,13 @@ export function TripChatView({ tripId, isPanel = false }: TripChatViewProps) {
           logo={selectedTrip?.logo ?? undefined}
           showBack={false}
           onBack={() => router.history.back()}
-          onGroupPress={() =>
-            router.navigate({
-              to: "/trips/$tripId/info",
-              params: { tripId },
-            })
+          onGroupPress={
+            onGroupPress ??
+            (() =>
+              router.navigate({
+                to: "/trips/$tripId/info",
+                params: { tripId },
+              }))
           }
           onSearchPress={() => setShowSearch((v) => !v)}
           onInvitePress={() => setShowInvite(true)}

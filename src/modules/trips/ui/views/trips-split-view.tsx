@@ -1,11 +1,21 @@
-import { useAtomValue } from "jotai"
-import { selectedTripAtom } from "../../atoms"
+import { useEffect } from "react"
+import { useAtom, useAtomValue } from "jotai"
+import { selectedTripAtom, tripPanelViewAtom } from "../../atoms"
 import { TripsView } from "./trip-list-view"
 import { TripChatView } from "./trip-chat-view"
+import { TripInfoView } from "./trip-info-view"
+import { TripExpenseView } from "@/modules/expense/ui/views/trip-expense-view"
 import { MessageSquare } from "lucide-react"
+import type { TripPanelView } from "../../types"
+import type { Id } from "@backend/dataModel"
 
 export function TripsSplitView() {
   const selectedTrip = useAtomValue(selectedTripAtom)
+  const [panelView, setPanelView] = useAtom(tripPanelViewAtom)
+
+  useEffect(() => {
+    setPanelView("chat")
+  }, [selectedTrip?.tripId, setPanelView])
 
   return (
     <div className="grid h-full md:grid-cols-[3fr_5fr] lg:grid-cols-[1fr_2fr] xl:grid-cols-[1fr_3fr] 2xl:grid-cols-[1fr_4fr]">
@@ -15,13 +25,46 @@ export function TripsSplitView() {
 
       <div className="overflow-hidden">
         {selectedTrip ? (
-          <TripChatView tripId={selectedTrip.tripId} isPanel />
+          <TripPanel
+            tripId={selectedTrip.tripId}
+            view={panelView}
+            onViewChange={setPanelView}
+          />
         ) : (
           <EmptyChatPanel />
         )}
       </div>
     </div>
   )
+}
+
+function TripPanel({
+  tripId,
+  view,
+  onViewChange,
+}: {
+  tripId: Id<"trip">
+  view: TripPanelView
+  onViewChange: (view: TripPanelView) => void
+}) {
+  switch (view) {
+    case "info":
+      return (
+        <TripInfoView tripId={tripId} onBack={() => onViewChange("chat")} />
+      )
+    case "expenses":
+      return (
+        <TripExpenseView tripId={tripId} onBack={() => onViewChange("chat")} />
+      )
+    case "chat":
+      return (
+        <TripChatView
+          tripId={tripId}
+          isPanel
+          onGroupPress={() => onViewChange("info")}
+        />
+      )
+  }
 }
 
 function EmptyChatPanel() {

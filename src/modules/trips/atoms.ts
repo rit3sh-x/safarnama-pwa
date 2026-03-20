@@ -1,5 +1,5 @@
 import { atom } from "jotai"
-import type { NavOption, SelectedTrip } from "./types"
+import type { NavOption, SelectedTrip, TripPanelView } from "./types"
 
 export const searchMapAtom = atom<Record<NavOption, string | undefined>>({
   trips: undefined,
@@ -9,3 +9,4 @@ export const searchMapAtom = atom<Record<NavOption, string | undefined>>({
 export const navOptionsAtom = atom<NavOption>("trips")
 
 export const selectedTripAtom = atom<SelectedTrip | null>(null)
+export const tripPanelViewAtom = atom<TripPanelView>("chat")

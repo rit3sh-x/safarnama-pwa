@@ -19,9 +19,7 @@ export function ScrollToBottomButton({
 
     const check = () => {
       const threshold = 200
-      const isNearBottom =
-        el.scrollHeight - el.scrollTop - el.clientHeight < threshold
-      setVisible(!isNearBottom)
+      setVisible(Math.abs(el.scrollTop) > threshold)
     }
 
     el.addEventListener("scroll", check, { passive: true })

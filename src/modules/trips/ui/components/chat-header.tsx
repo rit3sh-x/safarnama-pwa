@@ -3,6 +3,8 @@ import {
   SearchIcon,
   UserPlusIcon,
   MoreVerticalIcon,
+  InfoIcon,
+  WalletIcon,
 } from "lucide-react"
 import { getInitials, stringToHex } from "@/lib/utils"
 import type { Id } from "@backend/dataModel"
@@ -13,6 +15,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useSetAtom } from "jotai"
+import { tripPanelViewAtom } from "../../atoms"
 
 interface ChatHeaderProps {
   name: string
@@ -37,6 +41,7 @@ export function ChatHeader({
 }: ChatHeaderProps) {
   const initials = getInitials(name)
   const bgColor = stringToHex(tripId)
+  const setPanelView = useSetAtom(tripPanelViewAtom)
 
   return (
     <div className="border-b bg-card">
@@ -55,7 +60,7 @@ export function ChatHeader({
 
         <button
           onClick={onGroupPress}
-          className="flex flex-1 items-center gap-3 pr-2 text-left"
+          className="flex flex-1 cursor-pointer items-center gap-3 overflow-hidden rounded-full p-1 pr-2 text-left hover:bg-muted"
         >
           <div className="h-10 w-10 overflow-hidden rounded-full">
             {logo ? (
@@ -89,12 +94,20 @@ export function ChatHeader({
           >
             <MoreVerticalIcon className="h-5 w-5 text-foreground" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={4}>
+          <DropdownMenuContent align="end" sideOffset={4} className={"w-64"}>
+            <DropdownMenuItem onClick={() => setPanelView("info")}>
+              <InfoIcon className="size-4" />
+              Trip Info
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setPanelView("expenses")}>
+              <WalletIcon className="size-4" />
+              Expenses
+            </DropdownMenuItem>
             {onSearchPress && (
               <DropdownMenuItem onClick={onSearchPress}>
                 <SearchIcon className="size-4" />
                 Search Messages
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="ml-auto text-[10px] text-muted-foreground">
                   Ctrl+Shift+F
                 </span>
               </DropdownMenuItem>

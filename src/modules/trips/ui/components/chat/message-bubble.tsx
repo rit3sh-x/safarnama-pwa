@@ -79,13 +79,19 @@ export function MessageBubble({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger className="select-text">
+      <ContextMenuTrigger
+        className={cn(
+          "select-text",
+          message.reactions.length > 0 && "relative z-10"
+        )}
+      >
         <div
           id={`msg-${message._id}`}
           className={cn(
-            "group/msg flex items-end gap-2 px-3 @lg:px-5",
+            "group/msg relative flex items-end gap-2 px-3 @lg:px-5",
             isOwn ? "flex-row-reverse" : "flex-row",
-            isGrouped ? "mt-0.5" : "mt-3"
+            isGrouped ? "mt-0.5" : "mt-3",
+            message.reactions.length > 0 && "mb-2"
           )}
         >
           {!isOwn && (
@@ -126,7 +132,7 @@ export function MessageBubble({
 
             <div
               className={cn(
-                "overflow-hidden rounded-2xl px-2.5 py-1.5",
+                "relative z-0 overflow-hidden rounded-2xl px-2.5 py-1.5",
                 isOwn
                   ? cn(
                       "bg-primary text-primary-foreground",
@@ -300,7 +306,7 @@ function ReactionRow({
   return (
     <div
       className={cn(
-        "relative z-20 -mt-1 flex flex-wrap gap-1 px-1 pb-1",
+        "relative z-20 -mt-0.5 flex flex-wrap gap-1 px-1 pb-1",
         isOwn ? "justify-end" : "justify-start"
       )}
     >

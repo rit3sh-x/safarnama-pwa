@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { TripInfoView } from "@/modules/trips/ui/views/trip-info-view"
 
 export const Route = createFileRoute("/(custom)/trips/$tripId/info")({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <div>Hello "/src/app/(custom)/trips/tripId/info"!</div>
+  const { tripId } = Route.useParams()
+  return <TripInfoView tripId={tripId} />
 }

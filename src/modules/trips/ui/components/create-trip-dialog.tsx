@@ -227,7 +227,7 @@ export function CreateTripDialog({
                   image={cropSrc}
                   crop={crop}
                   zoom={zoom}
-                  aspect={16 / 9}
+                  aspect={1}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onCropComplete={onCropComplete}

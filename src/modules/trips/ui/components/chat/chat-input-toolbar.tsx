@@ -16,11 +16,12 @@ import {
   Loader2Icon,
 } from "lucide-react"
 import { EmojiPicker } from "./emoji-picker"
+import { ImagePreviewDrawer } from "./image-preview-drawer"
 import type { ChatMessage } from "./types"
 
 interface ChatInputToolbarProps {
   onSend: (text: string) => void
-  onSendImage: (url: string) => void
+  onSendImage: (url: string, caption?: string) => void
   replyTo: ChatMessage | null
   editingMessage: ChatMessage | null
   isUploading: boolean
@@ -41,6 +42,7 @@ export function ChatInputToolbar({
 }: ChatInputToolbarProps) {
   const [composeText, setComposeText] = useState("")
   const [editDrafts, setEditDrafts] = useState<Record<string, string>>({})
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -153,14 +155,21 @@ export function ChatInputToolbar({
   )
 
   const handleFileSelect = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
       if (!file) return
       e.target.value = ""
+      setPendingImageFile(file)
+    },
+    []
+  )
 
+  const handleImageSend = useCallback(
+    async (file: File, caption: string) => {
       const result = await onUploadFile(file)
       if (result?.url) {
-        onSendImage(result.url)
+        onSendImage(result.url, caption || undefined)
+        setPendingImageFile(null)
       }
     },
     [onUploadFile, onSendImage]
@@ -217,7 +226,7 @@ export function ChatInputToolbar({
         </div>
       )}
 
-      {isUploading && (
+      {isUploading && !pendingImageFile && (
         <div className="flex items-center justify-center gap-2 border-b border-border bg-muted/50 px-4 py-2">
           <Loader2Icon className="size-4 animate-spin text-primary" />
           <span className="text-xs text-muted-foreground">
@@ -272,6 +281,13 @@ export function ChatInputToolbar({
           <SendHorizontalIcon className="size-5" />
         </Button>
       </div>
+
+      <ImagePreviewDrawer
+        file={pendingImageFile}
+        isUploading={isUploading}
+        onSend={handleImageSend}
+        onClose={() => setPendingImageFile(null)}
+      />
     </div>
   )
 }

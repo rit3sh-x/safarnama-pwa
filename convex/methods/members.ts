@@ -9,6 +9,47 @@ import { components } from "../_generated/api"
 import type { Doc } from "../betterAuth/_generated/dataModel"
 import { paginationOptsValidator, type PaginationResult } from "convex/server"
 
+export const listAll = query({
+  args: {
+    tripId: v.id("trip"),
+  },
+  handler: async (ctx, { tripId }) => {
+    const { trip } = await requireTripMember(ctx, tripId)
+
+    const memberships: Doc<"member">[] = await ctx.runQuery(
+      components.betterAuth.methods.orgs.listOrgMemberIds,
+      { organizationId: trip.orgId }
+    )
+
+    const userIds = memberships.map((m) => m.userId)
+
+    const users: PaginationResult<Doc<"user">> = await ctx.runQuery(
+      components.betterAuth.adapter.findMany,
+      {
+        model: "user",
+        where: [
+          {
+            field: "_id",
+            value: userIds,
+            operator: "in",
+          },
+        ],
+        paginationOpts: {
+          cursor: null,
+          numItems: userIds.length,
+        },
+      }
+    )
+
+    return users.page
+      .filter((u) => u.username)
+      .map((u) => ({
+        userId: u._id,
+        username: u.username as string,
+      }))
+  },
+})
+
 export const list = query({
   args: {
     tripId: v.id("trip"),
@@ -51,7 +92,7 @@ export const list = query({
     )
 
     return {
-      ...memberships,
+      ...users,
       page: users.page
         .filter((u) => Boolean(u.username))
         .map((u) => ({
