@@ -1,6 +1,7 @@
 import { PAGINATION } from "@/lib/constants"
 import { api } from "@backend/api"
-import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
+import { useMutation, usePaginatedQuery } from "convex/react"
+import { useQuery } from "convex-helpers/react/cache"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
 import { useSearchParams } from "./use-search-params"
@@ -23,9 +24,14 @@ export function useTrips(active = true) {
 }
 
 export const useTripDetails = (tripId: Id<"trip">) => {
-  return useQuery(api.methods.trips.get, {
+  const data = useQuery(api.methods.trips.get, {
     tripId,
   })
+
+  return {
+    trip: data,
+    isLoading: data === undefined,
+  }
 }
 
 export function usePublicTrips(active = true) {
@@ -94,6 +100,37 @@ export const useRemoveTrip = () => {
       await removeTrip(args)
     } catch {
       console.error("Failed to remove trip")
+    } finally {
+      setIsPending(false)
+    }
+  }
+
+  return { mutate, isPending }
+}
+
+export const useTripItinerary = (tripId: Id<"trip">) => {
+  const itinerary = useQuery(api.methods.trips.getItinerary, {
+    tripId,
+  })
+
+  return {
+    itinerary,
+    isLoading: itinerary === undefined,
+  }
+}
+
+export const useGenerateItinerary = () => {
+  const [isPending, setIsPending] = useState(false)
+  const removeTrip = useMutation(api.methods.trips.generateItinerary)
+
+  const mutate = async (
+    args: FunctionArgs<typeof api.methods.trips.generateItinerary>
+  ) => {
+    setIsPending(true)
+    try {
+      await removeTrip(args)
+    } catch {
+      console.error("Failed to generate itinerary")
     } finally {
       setIsPending(false)
     }

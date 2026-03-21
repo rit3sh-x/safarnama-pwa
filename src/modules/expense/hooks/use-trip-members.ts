@@ -1,5 +1,5 @@
 import { api } from "@backend/api"
-import { useQuery } from "convex/react"
+import { useQuery } from "convex-helpers/react/cache"
 import type { Id } from "@backend/dataModel"
 
 export function useTripMembers(tripId: Id<"trip"> | undefined) {

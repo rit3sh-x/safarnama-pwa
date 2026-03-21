@@ -29,12 +29,14 @@ export function EmptyData() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center gap-2 px-8 text-center">
-      <Icon className="mb-4 h-10 w-10 text-muted-foreground" />
-
-      <p className="text-lg font-semibold text-foreground">{title}</p>
-
-      <p className="text-sm text-muted-foreground">{description}</p>
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
+      <div className="flex size-20 items-center justify-center rounded-full bg-muted">
+        <Icon className="size-10 text-muted-foreground" />
+      </div>
+      <div>
+        <p className="text-xl font-semibold text-foreground">{title}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      </div>
     </div>
   )
 }

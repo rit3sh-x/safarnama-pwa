@@ -5,6 +5,8 @@ import type { DataModel, Id } from "../_generated/dataModel"
 import { components } from "../_generated/api"
 import type { Doc, Id as IdAuth } from "../betterAuth/_generated/dataModel"
 import type { QueryCtx, MutationCtx } from "../_generated/server"
+import type { Category, CoercedItem, RawItem } from "./types"
+import { VALID_CATEGORIES } from "./constants"
 
 export async function requireUserAccess(ctx: GenericCtx<DataModel>) {
   const identity = await ctx.auth.getUserIdentity()
@@ -134,4 +136,42 @@ export async function requireTripPermission(
     })
   }
   return result
+}
+
+export function coerceItem(raw: RawItem): CoercedItem {
+  const category: Category = VALID_CATEGORIES.includes(raw.category as Category)
+    ? (raw.category as Category)
+    : "other"
+
+  return {
+    time: String(raw.time ?? "09:00"),
+    duration: String(raw.duration ?? "1 hour"),
+    category,
+    title: String(raw.title ?? ""),
+    description: String(raw.description ?? ""),
+    location: String(raw.location ?? ""),
+    pricing: {
+      amount: Number(raw.pricing?.amount ?? 0),
+      currency: String(raw.pricing?.currency ?? "INR"),
+      note: String(raw.pricing?.note ?? ""),
+    },
+    weather: String(raw.weather ?? ""),
+    tips: Array.isArray(raw.tips) ? raw.tips.map(String) : [],
+    imageUrl: String(raw.imageUrl ?? ""),
+    imageSource: raw.imageSource ? String(raw.imageSource) : undefined,
+    rating: raw.rating != null ? Number(raw.rating) : undefined,
+    bookingUrl: raw.bookingUrl ? String(raw.bookingUrl) : undefined,
+  }
+}
+
+export function extractJson(text: string): string {
+  const stripped = text
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .trim()
+
+  const match = stripped.match(/\{[\s\S]*\}/)
+  if (match) return match[0]
+  return stripped
 }

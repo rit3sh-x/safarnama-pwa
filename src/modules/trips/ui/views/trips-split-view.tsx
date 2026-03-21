@@ -5,6 +5,7 @@ import { TripsView } from "./trip-list-view"
 import { TripChatView } from "./trip-chat-view"
 import { TripInfoView } from "./trip-info-view"
 import { TripExpenseView } from "@/modules/expense/ui/views/trip-expense-view"
+import { TripPlanView } from "./trip-plan-view"
 import { MessageSquare } from "lucide-react"
 import type { TripPanelView } from "../../types"
 import type { Id } from "@backend/dataModel"
@@ -55,6 +56,10 @@ function TripPanel({
     case "expenses":
       return (
         <TripExpenseView tripId={tripId} onBack={() => onViewChange("chat")} />
+      )
+    case "plan":
+      return (
+        <TripPlanView tripId={tripId} onBack={() => onViewChange("chat")} />
       )
     case "chat":
       return (

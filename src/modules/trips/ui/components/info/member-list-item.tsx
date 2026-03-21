@@ -1,4 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { getInitials } from "@/lib/utils"
 import { Crown } from "lucide-react"
 
@@ -28,10 +29,13 @@ export function MemberListItem({
       </div>
 
       {isOwner && (
-        <div className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400">
+        <Badge
+          variant="outline"
+          className="gap-1 border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+        >
           <Crown className="size-3" />
           Admin
-        </div>
+        </Badge>
       )}
     </div>
   )

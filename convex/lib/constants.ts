@@ -1,4 +1,5 @@
 import { roleValidator } from "../betterAuth/schema"
+import type { Category } from "./types"
 
 export const Owner = roleValidator.members[0]
 export const Member = roleValidator.members[1]
@@ -9,3 +10,12 @@ export const LIMITS = {
   MAX_REQUESTS_PER_USER: 100,
   MAX_TRIPS_PER_USER: 50,
 }
+
+export const VALID_CATEGORIES: Category[] = [
+  "food",
+  "activity",
+  "transport",
+  "accommodation",
+  "shopping",
+  "other",
+]

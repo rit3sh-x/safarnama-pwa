@@ -35,7 +35,7 @@ export function TopBar({ title, className }: TopBarProps) {
         {user.image ? (
           <img
             src={user.image}
-            alt="avatar"
+            alt={user.username}
             className="h-full w-full rounded-full object-cover"
           />
         ) : (

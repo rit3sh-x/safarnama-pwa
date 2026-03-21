@@ -47,8 +47,8 @@ function PublicTripItem({ trip, onPress }: PublicTripItemProps) {
       <div className="h-14 w-14 overflow-hidden rounded-full">
         {trip.logo ? (
           <img
-            title={trip.name}
             src={trip.logo}
+            alt={trip.name}
             className="h-full w-full rounded-full object-cover"
           />
         ) : (

@@ -1,4 +1,4 @@
-import { components } from "@backend/api"
+import { components, internal } from "@backend/api"
 import { ConvexError, v } from "convex/values"
 import { nanoid } from "nanoid"
 import { mutation, query } from "../_generated/server"
@@ -338,5 +338,41 @@ export const remove = mutation({
     )
 
     await ctx.db.delete(tripId)
+  },
+})
+
+export const generateItinerary = mutation({
+  args: {
+    tripId: v.id("trip"),
+    userPrompt: v.optional(v.string()),
+  },
+  handler: async (ctx, { tripId, userPrompt }) => {
+    const { trip } = await requireTripMember(ctx, tripId)
+
+    if (!trip.startDate || !trip.endDate) {
+      throw new ConvexError({
+        code: "BAD_REQUEST",
+        message: "Trip must have start and end dates to generate an itinerary.",
+      })
+    }
+
+    await ctx.scheduler.runAfter(0, internal.methods.ai.planTrip, {
+      tripId,
+      destination: trip.destination,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      userPrompt,
+    })
+  },
+})
+
+export const getItinerary = query({
+  args: { tripId: v.id("trip") },
+  handler: async (ctx, { tripId }) => {
+    return await ctx.db
+      .query("itinerary")
+      .withIndex("by_trip", (q) => q.eq("tripId", tripId))
+      .order("asc")
+      .collect()
   },
 })

@@ -21,6 +21,7 @@ import { Route as authSigninRouteImport } from './routes/(auth)/signin'
 import { Route as authSignUpCreateUsernameRouteImport } from './routes/(auth)/sign-up/create-username'
 import { Route as authSignUpCreateAccountRouteImport } from './routes/(auth)/sign-up/create-account'
 import { Route as customTripsTripIdRouteRouteImport } from './routes/(custom)/trips/$tripId/route'
+import { Route as customTripsTripIdPlanRouteImport } from './routes/(custom)/trips/$tripId/plan'
 import { Route as customTripsTripIdInfoRouteImport } from './routes/(custom)/trips/$tripId/info'
 import { Route as customTripsTripIdExpensesRouteImport } from './routes/(custom)/trips/$tripId/expenses'
 import { Route as customTripsTripIdChatRouteImport } from './routes/(custom)/trips/$tripId/chat'
@@ -87,6 +88,11 @@ const customTripsTripIdRouteRoute = customTripsTripIdRouteRouteImport.update({
   path: '/trips/$tripId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const customTripsTripIdPlanRoute = customTripsTripIdPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => customTripsTripIdRouteRoute,
+} as any)
 const customTripsTripIdInfoRoute = customTripsTripIdInfoRouteImport.update({
   id: '/info',
   path: '/info',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/trips/$tripId/chat': typeof customTripsTripIdChatRoute
   '/trips/$tripId/expenses': typeof customTripsTripIdExpensesRoute
   '/trips/$tripId/info': typeof customTripsTripIdInfoRoute
+  '/trips/$tripId/plan': typeof customTripsTripIdPlanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/trips/$tripId/chat': typeof customTripsTripIdChatRoute
   '/trips/$tripId/expenses': typeof customTripsTripIdExpensesRoute
   '/trips/$tripId/info': typeof customTripsTripIdInfoRoute
+  '/trips/$tripId/plan': typeof customTripsTripIdPlanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/(custom)/trips/$tripId/chat': typeof customTripsTripIdChatRoute
   '/(custom)/trips/$tripId/expenses': typeof customTripsTripIdExpensesRoute
   '/(custom)/trips/$tripId/info': typeof customTripsTripIdInfoRoute
+  '/(custom)/trips/$tripId/plan': typeof customTripsTripIdPlanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/trips/$tripId/chat'
     | '/trips/$tripId/expenses'
     | '/trips/$tripId/info'
+    | '/trips/$tripId/plan'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/trips/$tripId/chat'
     | '/trips/$tripId/expenses'
     | '/trips/$tripId/info'
+    | '/trips/$tripId/plan'
   id:
     | '__root__'
     | '/'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/(custom)/trips/$tripId/chat'
     | '/(custom)/trips/$tripId/expenses'
     | '/(custom)/trips/$tripId/info'
+    | '/(custom)/trips/$tripId/plan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -326,6 +338,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof customTripsTripIdRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(custom)/trips/$tripId/plan': {
+      id: '/(custom)/trips/$tripId/plan'
+      path: '/plan'
+      fullPath: '/trips/$tripId/plan'
+      preLoaderRoute: typeof customTripsTripIdPlanRouteImport
+      parentRoute: typeof customTripsTripIdRouteRoute
+    }
     '/(custom)/trips/$tripId/info': {
       id: '/(custom)/trips/$tripId/info'
       path: '/info'
@@ -388,6 +407,7 @@ interface customTripsTripIdRouteRouteChildren {
   customTripsTripIdChatRoute: typeof customTripsTripIdChatRoute
   customTripsTripIdExpensesRoute: typeof customTripsTripIdExpensesRoute
   customTripsTripIdInfoRoute: typeof customTripsTripIdInfoRoute
+  customTripsTripIdPlanRoute: typeof customTripsTripIdPlanRoute
 }
 
 const customTripsTripIdRouteRouteChildren: customTripsTripIdRouteRouteChildren =
@@ -395,6 +415,7 @@ const customTripsTripIdRouteRouteChildren: customTripsTripIdRouteRouteChildren =
     customTripsTripIdChatRoute: customTripsTripIdChatRoute,
     customTripsTripIdExpensesRoute: customTripsTripIdExpensesRoute,
     customTripsTripIdInfoRoute: customTripsTripIdInfoRoute,
+    customTripsTripIdPlanRoute: customTripsTripIdPlanRoute,
   }
 
 const customTripsTripIdRouteRouteWithChildren =

@@ -13,9 +13,12 @@ export interface SelectedTrip {
 
 export type NavOption = "trips" | "invites" | "public_trips"
 
-export type TripPanelView = "chat" | "info" | "expenses"
+export type TripPanelView = "chat" | "info" | "expenses" | "plan"
 
 export type TripId = Id<"trip">
+
+type TripsPlanResult = FunctionReturnType<typeof api.methods.trips.getItinerary>
+export type DayItem = TripsPlanResult[number]["items"][number]
 
 type TripsListResult = FunctionReturnType<typeof api.methods.trips.list>
 export type TripOrg = TripsListResult["page"][number]

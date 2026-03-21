@@ -1,4 +1,4 @@
-import { InfoIcon, MessageSquareIcon, Wallet2Icon } from "lucide-react"
+import { InfoIcon, MapIcon, MessageSquareIcon, Wallet2Icon } from "lucide-react"
 import type { Tab } from "@/types"
 
 export const COVER_IMAGE_MAX_SIZE = 1 * 1024 * 1024
@@ -26,6 +26,12 @@ export const TRIP_TABS: Tab[] = [
     title: "Expenses",
     icon: Wallet2Icon,
     route: "/trips/$tripId/expenses",
+  },
+  {
+    name: "plan",
+    title: "Plan",
+    icon: MapIcon,
+    route: "/trips/$tripId/plan",
   },
   {
     name: "info",

@@ -5,6 +5,7 @@ import { defineConfig } from "vite"
 import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import { varlockVitePlugin } from "@varlock/vite-integration"
 import { VitePWA } from "vite-plugin-pwa"
+import { ENV } from "varlock/env"
 
 const ONE_YEAR = 60 * 60 * 24 * 365
 const ONE_MONTH = 60 * 60 * 24 * 30
@@ -32,12 +33,15 @@ export default defineConfig({
         clientsClaim: true,
         cleanupOutdatedCaches: true,
 
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/api/, /^\/manifest/, /\.webmanifest$/],
+
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.yourapp\.com\/.*/i,
+            urlPattern: ({ url }) => url.origin === ENV.VITE_CONVEX_URL,
             handler: "NetworkFirst",
             options: {
-              cacheName: "api-cache",
+              cacheName: "convex-api-cache",
               networkTimeoutSeconds: 5,
               expiration: { maxEntries: 200, maxAgeSeconds: ONE_DAY },
               cacheableResponse: { statuses: [0, 200] },

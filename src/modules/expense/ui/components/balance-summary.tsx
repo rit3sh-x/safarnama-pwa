@@ -1,4 +1,5 @@
-import { ArrowRightIcon } from "lucide-react"
+import { ArrowRightIcon, CheckCircle2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface BalanceSummaryProps {
@@ -14,8 +15,11 @@ export function BalanceSummary({
 }: BalanceSummaryProps) {
   if (simplified.length === 0) {
     return (
-      <div className="px-4 py-3 text-center text-sm text-muted-foreground">
-        All settled up!
+      <div className="flex flex-col items-center gap-2 px-4 py-6 text-center">
+        <CheckCircle2 className="size-8 text-emerald-500" />
+        <p className="text-sm font-medium text-muted-foreground">
+          All settled up!
+        </p>
       </div>
     )
   }
@@ -38,21 +42,19 @@ export function BalanceSummary({
             className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2"
           >
             <span
-              className={
-                isYouOwe
-                  ? "text-sm font-medium text-red-500"
-                  : "text-sm font-medium text-foreground"
-              }
+              className={cn(
+                "text-sm font-medium",
+                isYouOwe ? "text-red-500" : "text-foreground"
+              )}
             >
               {fromName}
             </span>
             <ArrowRightIcon className="size-3.5 shrink-0 text-muted-foreground" />
             <span
-              className={
-                isOwedToYou
-                  ? "text-sm font-medium text-green-500"
-                  : "text-sm font-medium text-foreground"
-              }
+              className={cn(
+                "text-sm font-medium",
+                isOwedToYou ? "text-emerald-500" : "text-foreground"
+              )}
             >
               {toName}
             </span>

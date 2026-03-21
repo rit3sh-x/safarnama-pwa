@@ -1,6 +1,7 @@
 import { PAGINATION } from "@/lib/constants"
 import { api } from "@backend/api"
-import { useMutation, usePaginatedQuery, useQuery } from "convex/react"
+import { useMutation, usePaginatedQuery } from "convex/react"
+import { useQuery } from "convex-helpers/react/cache"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
 import type { Id } from "@backend/dataModel"
@@ -24,14 +25,27 @@ export function useExpenses(tripId: Id<"trip"> | undefined) {
 }
 
 export function useBalances(tripId: Id<"trip"> | undefined) {
-  return useQuery(api.methods.expenses.balances, tripId ? { tripId } : "skip")
+  const data = useQuery(
+    api.methods.expenses.balances,
+    tripId ? { tripId } : "skip"
+  )
+
+  return {
+    balances: data,
+    isLoading: data === undefined,
+  }
 }
 
 export function useSettlements(tripId: Id<"trip"> | undefined) {
-  return useQuery(
+  const data = useQuery(
     api.methods.expenses.listSettlements,
     tripId ? { tripId } : "skip"
   )
+
+  return {
+    settlements: data,
+    isLoading: data === undefined,
+  }
 }
 
 export const useCreateExpense = () => {

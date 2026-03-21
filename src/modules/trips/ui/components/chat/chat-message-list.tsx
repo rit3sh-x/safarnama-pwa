@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef } from "react"
+import { MessageSquare } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 import { InfiniteScrollTrigger } from "@/components/infinite-scroll-trigger"
@@ -165,11 +166,16 @@ function MessageListSkeleton() {
 
 function EmptyChat() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-20">
-      <p className="text-lg font-medium text-foreground">No messages yet</p>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Send the first message to start the conversation!
-      </p>
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 py-20 text-center">
+      <div className="flex size-20 items-center justify-center rounded-full bg-muted">
+        <MessageSquare className="size-10 text-muted-foreground" />
+      </div>
+      <div>
+        <p className="text-xl font-semibold text-foreground">No messages yet</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Send the first message to start the conversation!
+        </p>
+      </div>
     </div>
   )
 }

@@ -13,9 +13,12 @@ import { ThemeProvider } from "./components/theme-provider"
 import { NuqsAdapter } from "nuqs/adapters/react"
 import { Provider } from "jotai"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ConvexQueryCacheProvider } from "convex-helpers/react/cache"
 
 import { Toaster } from "@/components/ui/sonner"
 import "./index.css"
+
+const CACHE_EXPIRATION_TIME = 300000
 
 const router = createRouter({
   routeTree,
@@ -52,11 +55,13 @@ if (!rootElement.innerHTML) {
                   client={convex}
                   authClient={authClient}
                 >
-                  <AuthenticationProvider>
-                    <RouterProvider router={router} />
-                    <NetworkModal />
-                    <Toaster />
-                  </AuthenticationProvider>
+                  <ConvexQueryCacheProvider expiration={CACHE_EXPIRATION_TIME}>
+                    <AuthenticationProvider>
+                      <RouterProvider router={router} />
+                      <NetworkModal />
+                      <Toaster />
+                    </AuthenticationProvider>
+                  </ConvexQueryCacheProvider>
                 </ConvexBetterAuthProvider>
               </OnboardingProvider>
             </ThemeProvider>

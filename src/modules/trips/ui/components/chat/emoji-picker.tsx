@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { PlusIcon, SmileIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { QUICK_REACTIONS } from "@/modules/trips/constants"
 
 interface EmojiPickerProps {
@@ -93,9 +94,10 @@ export function QuickReactionPicker({
             variant="ghost"
             size="icon"
             onClick={() => onSelect(e.emoji)}
-            className={`h-8 w-8 rounded-full p-0 text-lg ${
-              hasReacted ? "bg-primary/15 ring-1 ring-primary/30" : ""
-            }`}
+            className={cn(
+              "h-8 w-8 rounded-full p-0 text-lg",
+              hasReacted && "bg-primary/15 ring-1 ring-primary/30"
+            )}
           >
             {e.emoji}
           </Button>

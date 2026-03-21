@@ -25,7 +25,7 @@ export function TripInfoHeader({
   logo,
   memberCount,
 }: TripInfoHeaderProps) {
-  const trip = useTripDetails(tripId)
+  const { trip } = useTripDetails(tripId)
   const initials = getInitials(name)
   const bgColor = stringToHex(tripId)
 

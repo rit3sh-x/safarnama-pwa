@@ -11,7 +11,10 @@
 import type * as http from "../http.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_debtSimplification from "../lib/debtSimplification.js";
+import type * as lib_prompt from "../lib/prompt.js";
+import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
+import type * as methods_ai from "../methods/ai.js";
 import type * as methods_blogs from "../methods/blogs.js";
 import type * as methods_expenses from "../methods/expenses.js";
 import type * as methods_file from "../methods/file.js";
@@ -33,7 +36,10 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/constants": typeof lib_constants;
   "lib/debtSimplification": typeof lib_debtSimplification;
+  "lib/prompt": typeof lib_prompt;
+  "lib/types": typeof lib_types;
   "lib/utils": typeof lib_utils;
+  "methods/ai": typeof methods_ai;
   "methods/blogs": typeof methods_blogs;
   "methods/expenses": typeof methods_expenses;
   "methods/file": typeof methods_file;

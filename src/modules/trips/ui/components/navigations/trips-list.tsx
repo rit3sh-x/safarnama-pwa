@@ -1,7 +1,8 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
 import { InfiniteScrollTrigger } from "@/components/infinite-scroll-trigger"
-import { getInitials, stringToHex } from "@/lib/utils"
+import { cn, getInitials, stringToHex } from "@/lib/utils"
 import type { Id } from "@backend/dataModel"
 import { formatDistanceToNow } from "date-fns"
 import type { TripOrg } from "../../../types"
@@ -79,15 +80,16 @@ function TripListItem({ trip, isSelected, onPress }: TripListItemProps) {
           role: trip.role,
         })
       }
-      className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors hover:bg-muted/50 ${
-        isSelected ? "bg-primary/8 hover:bg-primary/12" : ""
-      }`}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors hover:bg-muted/50",
+        isSelected && "bg-primary/8 hover:bg-primary/12"
+      )}
     >
       <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full">
         {trip.logo ? (
           <img
-            title={trip.name}
             src={trip.logo}
+            alt={trip.name}
             className="h-full w-full rounded-full object-cover"
           />
         ) : (
@@ -104,11 +106,12 @@ function TripListItem({ trip, isSelected, onPress }: TripListItemProps) {
         <div className="flex min-w-0 items-center justify-between gap-2">
           <p className="flex-1 truncate text-base font-semibold">{trip.name}</p>
           <p
-            className={`shrink-0 text-xs ${
+            className={cn(
+              "shrink-0 text-xs",
               trip.unreadCount > 0
                 ? "font-semibold text-primary"
                 : "text-muted-foreground"
-            }`}
+            )}
           >
             {timeLabel}
           </p>
@@ -116,17 +119,18 @@ function TripListItem({ trip, isSelected, onPress }: TripListItemProps) {
 
         <div className="flex min-w-0 items-center justify-between gap-2">
           <p
-            className={`flex-1 truncate text-sm ${
+            className={cn(
+              "flex-1 truncate text-sm",
               trip.unreadCount > 0 ? "text-foreground" : "text-muted-foreground"
-            }`}
+            )}
           >
             {lastMessagePreview}
           </p>
 
           {trip.unreadCount > 0 && (
-            <div className="flex min-w-6 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground">
+            <Badge className="min-w-6 justify-center px-1.5 text-xs font-bold">
               {trip.unreadCount >= 100 ? "99+" : trip.unreadCount}
-            </div>
+            </Badge>
           )}
         </div>
       </div>

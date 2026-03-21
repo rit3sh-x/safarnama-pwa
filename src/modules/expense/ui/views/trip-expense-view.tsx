@@ -28,7 +28,7 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
   const { user } = useAuthenticatedUser()
   const selectedTrip = useAtomValue(selectedTripAtom)
   const { expenses, isLoading, isDone, loadMore } = useExpenses(tripId)
-  const balances = useBalances(tripId)
+  const { balances } = useBalances(tripId)
   const { members } = useTripMembers(tripId)
 
   const [showAddExpense, setShowAddExpense] = useState(false)

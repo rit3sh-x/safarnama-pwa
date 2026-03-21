@@ -1,4 +1,5 @@
-import { useConvexAuth, useQuery } from "convex/react"
+import { useConvexAuth } from "convex/react"
+import { useQuery } from "convex-helpers/react/cache"
 import { api } from "@backend/api"
 import { AuthenticationContext } from "./auth-context"
 import { useOnboarding } from "@/modules/onboarding/hooks/use-onboarding"

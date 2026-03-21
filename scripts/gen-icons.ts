@@ -47,7 +47,7 @@ for (const icon of icons) {
 }
 
 await source()
-  .resize(310, 150, { fit: "contain", background: "#0A0A0F" })
+  .resize(310, 150, { fit: "contain", background: "#00000000" })
   .png()
   .toFile(join(DEST, "icon-wide-310x150.png"))
 console.log("✓ icon-wide-310x150.png")

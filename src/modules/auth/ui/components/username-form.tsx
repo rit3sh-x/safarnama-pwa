@@ -3,6 +3,7 @@ import { useForm } from "@tanstack/react-form"
 import { useCallback, useRef, useState } from "react"
 import Cropper, { type Area } from "react-easy-crop"
 import { CameraIcon } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 import { changeUsername } from "../../hooks/auth-handlers"
 import { useUploadFileToConvex } from "@/lib/utils"
@@ -170,7 +171,10 @@ export function UsernameForm() {
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 bg-muted ${imageError ? "border-destructive" : "border-border"}`}
+            className={cn(
+              "flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 bg-muted",
+              imageError ? "border-destructive" : "border-border"
+            )}
           >
             {croppedPreview ? (
               <img

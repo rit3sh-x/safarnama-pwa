@@ -26,6 +26,41 @@ export default defineSchema({
     userId: v.string(),
   }).index("userId", ["userId"]),
 
+  itinerary: defineTable({
+    tripId: v.id("trip"),
+    day: v.number(),
+    date: v.string(),
+    dayTheme: v.optional(v.string()),
+    items: v.array(
+      v.object({
+        time: v.string(),
+        duration: v.string(),
+        category: v.union(
+          v.literal("food"),
+          v.literal("activity"),
+          v.literal("transport"),
+          v.literal("accommodation"),
+          v.literal("shopping"),
+          v.literal("other")
+        ),
+        title: v.string(),
+        description: v.string(),
+        location: v.string(),
+        pricing: v.object({
+          amount: v.number(),
+          currency: v.string(),
+          note: v.string(),
+        }),
+        weather: v.string(),
+        tips: v.array(v.string()),
+        imageUrl: v.string(),
+        imageSource: v.optional(v.string()),
+        rating: v.optional(v.number()),
+        bookingUrl: v.optional(v.string()),
+      })
+    ),
+  }).index("by_trip", ["tripId"]),
+
   blog: defineTable({
     tripId: v.id("trip"),
     title: v.string(),

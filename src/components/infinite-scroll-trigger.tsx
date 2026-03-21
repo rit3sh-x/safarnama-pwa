@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react"
+import { Loader2 } from "lucide-react"
 import { Button } from "./ui/button"
 import { cn } from "../lib/utils"
 
@@ -57,7 +58,9 @@ export const InfiniteScrollTrigger = ({
         onClick={onLoadMore}
         size="sm"
         variant="ghost"
+        className="gap-2"
       >
+        {isLoadingMore && <Loader2 className="size-3.5 animate-spin" />}
         {text}
       </Button>
     </div>

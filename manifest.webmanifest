@@ -1,14 +1,14 @@
 {
   "name": "Safarnama",
   "short_name": "Safarnama",
-  "description": "Fast, native-like messaging",
+  "description": "Modern trips for modern people",
   "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#0A0A0F",
-  "background_color": "#0A0A0F",
+  "theme_color": "#1a1512",
+  "background_color": "#1a1512",
   "lang": "en",
   "dir": "ltr",
 
