@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import { isValidElement, type ReactNode, type ReactElement } from "react"
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -40,23 +40,71 @@ const Credenza = ({ children, ...props }: RootProps) => {
   return <Root {...props}>{children}</Root>
 }
 
-const CredenzaTrigger = ({ className, children, ...props }: SlotProps) => {
+const CredenzaTrigger = ({
+  className,
+  children,
+  asChild,
+  ...props
+}: SlotProps) => {
   const isMobile = useIsMobile()
-  const Trigger = isMobile ? DrawerTrigger : DialogTrigger
+
+  if (isMobile) {
+    return (
+      <DrawerTrigger className={className} asChild={asChild} {...props}>
+        {children}
+      </DrawerTrigger>
+    )
+  }
+
+  // base-ui uses `render` prop for element composition instead of `asChild`
+  if (asChild && isValidElement(children)) {
+    return (
+      <DialogTrigger
+        className={className}
+        render={children as ReactElement}
+        {...props}
+      />
+    )
+  }
+
   return (
-    <Trigger className={className} {...props}>
+    <DialogTrigger className={className} {...props}>
       {children}
-    </Trigger>
+    </DialogTrigger>
   )
 }
 
-const CredenzaClose = ({ className, children, ...props }: SlotProps) => {
+const CredenzaClose = ({
+  className,
+  children,
+  asChild,
+  ...props
+}: SlotProps) => {
   const isMobile = useIsMobile()
-  const Close = isMobile ? DrawerClose : DialogClose
+
+  if (isMobile) {
+    return (
+      <DrawerClose className={className} asChild={asChild} {...props}>
+        {children}
+      </DrawerClose>
+    )
+  }
+
+  // base-ui uses `render` prop for element composition instead of `asChild`
+  if (asChild && isValidElement(children)) {
+    return (
+      <DialogClose
+        className={className}
+        render={children as ReactElement}
+        {...props}
+      />
+    )
+  }
+
   return (
-    <Close className={className} {...props}>
+    <DialogClose className={className} {...props}>
       {children}
-    </Close>
+    </DialogClose>
   )
 }
 
