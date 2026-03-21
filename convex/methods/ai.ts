@@ -1,66 +1,50 @@
-import { internalAction, internalMutation } from "../_generated/server"
+"use node"
+
+import { internalAction } from "../_generated/server"
 import { internal } from "../_generated/api"
 import { ConvexError, v } from "convex/values"
-import OpenAI from "openai"
+import Groq from "groq-sdk"
+import { tavily } from "@tavily/core"
 import { SYSTEM_PROMPT, buildUserPrompt } from "../lib/prompt"
 import { coerceItem, extractJson } from "../lib/utils"
 import type { RawItem } from "../lib/types"
 
-const client = new OpenAI({
+const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
-  baseURL: "https://api.groq.com/openai/v1",
 })
 
-export const deleteExistingItinerary = internalMutation({
-  args: { tripId: v.id("trip") },
-  handler: async (ctx, { tripId }) => {
-    const existing = await ctx.db
-      .query("itinerary")
-      .withIndex("by_trip", (q) => q.eq("tripId", tripId))
-      .collect()
-    await Promise.all(existing.map((doc) => ctx.db.delete(doc._id)))
-  },
-})
+const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY })
 
-export const saveDay = internalMutation({
-  args: {
-    tripId: v.id("trip"),
-    day: v.number(),
-    date: v.string(),
-    dayTheme: v.optional(v.string()),
-    items: v.array(
-      v.object({
-        time: v.string(),
-        duration: v.string(),
-        category: v.union(
-          v.literal("food"),
-          v.literal("activity"),
-          v.literal("transport"),
-          v.literal("accommodation"),
-          v.literal("shopping"),
-          v.literal("other")
-        ),
-        title: v.string(),
-        description: v.string(),
-        location: v.string(),
-        pricing: v.object({
-          amount: v.number(),
-          currency: v.string(),
-          note: v.string(),
-        }),
-        weather: v.string(),
-        tips: v.array(v.string()),
-        imageUrl: v.string(),
-        imageSource: v.optional(v.string()),
-        rating: v.optional(v.number()),
-        bookingUrl: v.optional(v.string()),
+async function searchDestination(destination: string, month: string) {
+  const queries = [
+    `${destination} top attractions things to do ${month}`,
+    `${destination} best restaurants street food local cuisine`,
+    `${destination} weather ${month} travel tips transportation`,
+  ]
+
+  const results = await Promise.all(
+    queries.map((q) =>
+      tvly.search(q, {
+        maxResults: 5,
+        includeImages: true,
+        includeImageDescriptions: true,
+        searchDepth: "advanced",
       })
-    ),
-  },
-  handler: async (ctx, args) => {
-    await ctx.db.insert("itinerary", args)
-  },
-})
+    )
+  )
+
+  const searchContext = results
+    .flatMap((r) =>
+      r.results.map((item) => `[${item.title}](${item.url})\n${item.content}`)
+    )
+    .join("\n\n")
+
+  const images = results.flatMap((r) =>
+    r.images.map((img) => `${img.url} — ${img.description ?? ""}`)
+  )
+
+  return { searchContext, images }
+}
 
 export const planTrip = internalAction({
   args: {
@@ -71,49 +55,79 @@ export const planTrip = internalAction({
     userPrompt: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    await ctx.runMutation(internal.methods.ai.deleteExistingItinerary, {
-      tripId: args.tripId,
-    })
-
-    const response = await client.responses.create({
-      model: "openai/gpt-oss-120b",
-      input: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: buildUserPrompt(args) },
-      ],
-      tools: [{ type: "web_search" }],
-      tool_choice: "required",
-    })
-
-    const rawText = response.output_text
-    if (!rawText)
-      throw new ConvexError({
-        code: "INTERNAL",
-        message: "Model returned empty response",
-      })
-
-    let plan: Record<string, unknown>
     try {
-      plan = JSON.parse(extractJson(rawText))
-    } catch {
-      throw new ConvexError({
-        code: "INTERNAL",
-        message: "Failed to parse AI response as JSON",
+      await ctx.runMutation(
+        internal.methods.itinerary.deleteExistingItinerary,
+        {
+          tripId: args.tripId,
+        }
+      )
+
+      const month = new Date(args.startDate).toLocaleString("en", {
+        month: "long",
       })
-    }
 
-    const days = Array.isArray(plan.days) ? plan.days : []
+      const { searchContext, images } = await searchDestination(
+        args.destination,
+        month
+      )
 
-    for (const day of days) {
-      const rawItems: RawItem[] = Array.isArray(day.items) ? day.items : []
+      const userPrompt = buildUserPrompt(args)
 
-      await ctx.runMutation(internal.methods.ai.saveDay, {
+      const webContext = `\n\n--- WEB RESEARCH ---\n${searchContext}\n\n--- IMAGE URLs FOUND ---\n${images.join("\n")}\n\nUse the above real data and image URLs in your response.`
+
+      const response = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: userPrompt + webContext },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+      })
+
+      const rawText = response.choices[0]?.message?.content
+      if (!rawText)
+        throw new ConvexError({
+          code: "INTERNAL",
+          message: "Model returned empty response",
+        })
+
+      let plan: Record<string, unknown>
+      try {
+        plan = JSON.parse(extractJson(rawText))
+      } catch {
+        throw new ConvexError({
+          code: "INTERNAL",
+          message: "Failed to parse AI response as JSON",
+        })
+      }
+
+      const days = Array.isArray(plan.days) ? plan.days : []
+
+      for (const day of days) {
+        const rawItems: RawItem[] = Array.isArray(day.items) ? day.items : []
+
+        await ctx.runMutation(internal.methods.itinerary.saveDay, {
+          tripId: args.tripId,
+          day: Number(day.day),
+          date: String(day.date),
+          dayTheme: day.dayTheme ? String(day.dayTheme) : undefined,
+          items: rawItems.map(coerceItem),
+        })
+      }
+
+      await ctx.runMutation(internal.methods.itinerary.updateItineraryStatus, {
         tripId: args.tripId,
-        day: Number(day.day),
-        date: String(day.date),
-        dayTheme: day.dayTheme ? String(day.dayTheme) : undefined,
-        items: rawItems.map(coerceItem),
+        status: "done",
       })
+    } catch (e) {
+      console.error("planTrip failed:", e)
+      await ctx.runMutation(internal.methods.itinerary.updateItineraryStatus, {
+        tripId: args.tripId,
+        status: "error",
+      })
+      throw e
     }
   },
 })

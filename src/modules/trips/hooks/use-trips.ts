@@ -121,14 +121,26 @@ export const useTripItinerary = (tripId: Id<"trip">) => {
 
 export const useGenerateItinerary = () => {
   const [isPending, setIsPending] = useState(false)
-  const removeTrip = useMutation(api.methods.trips.generateItinerary)
+  const generate = useMutation(
+    api.methods.trips.generateItinerary
+  ).withOptimisticUpdate((localStore, args) => {
+    const currentTrip = localStore.getQuery(api.methods.trips.get, {
+      tripId: args.tripId,
+    })
+    if (!currentTrip) return
+
+    localStore.setQuery(api.methods.trips.get, { tripId: args.tripId }, {
+      ...currentTrip,
+      itineraryStatus: "planning",
+    })
+  })
 
   const mutate = async (
     args: FunctionArgs<typeof api.methods.trips.generateItinerary>
   ) => {
     setIsPending(true)
     try {
-      await removeTrip(args)
+      await generate(args)
     } catch {
       console.error("Failed to generate itinerary")
     } finally {

@@ -5,6 +5,7 @@ import {
   MoreVerticalIcon,
   InfoIcon,
   WalletIcon,
+  MapIcon,
 } from "lucide-react"
 import { getInitials, stringToHex } from "@/lib/utils"
 import type { Id } from "@backend/dataModel"
@@ -102,6 +103,10 @@ export function ChatHeader({
             <DropdownMenuItem onClick={() => setPanelView("expenses")}>
               <WalletIcon className="size-4" />
               Expenses
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setPanelView("plan")}>
+              <MapIcon className="size-4" />
+              Plan Trip
             </DropdownMenuItem>
             {onSearchPress && (
               <DropdownMenuItem onClick={onSearchPress}>

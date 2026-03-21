@@ -356,6 +356,8 @@ export const generateItinerary = mutation({
       })
     }
 
+    await ctx.db.patch(tripId, { itineraryStatus: "planning" })
+
     await ctx.scheduler.runAfter(0, internal.methods.ai.planTrip, {
       tripId,
       destination: trip.destination,

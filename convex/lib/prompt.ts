@@ -12,7 +12,7 @@ Use web search to find CURRENT, REAL information:
 
 STRICT RULES:
 1. Return ONLY valid JSON — no markdown, no code fences, no prose before or after.
-2. Prices must be realistic numbers in local currency.
+2. ALL prices must be in INR (Indian Rupees). Convert foreign prices to INR if needed.
 3. imageUrl must be a real URL found during your search, or "" if none found. NEVER invent URLs.
 4. imageSource must note where you found the image (e.g. "wikipedia", "lonelyplanet").
 5. Every location must be specific — not vague like "city center".
@@ -26,8 +26,8 @@ Return this exact JSON shape (no deviations):
     "summary": "2-3 sentence overview of the trip",
     "bestMonth": "Why this month is good or bad for this destination",
     "weatherNote": "Expected weather during these exact dates",
-    "totalEstimatedCost": "e.g. $800–$1,200 for 5 days excluding flights",
-    "currency": "ISO currency code e.g. EUR"
+    "totalEstimatedCost": "e.g. ₹65,000–₹1,00,000 for 5 days excluding flights",
+    "currency": "INR"
   },
   "days": [
     {
@@ -43,8 +43,8 @@ Return this exact JSON shape (no deviations):
           "description": "2-3 sentences on why to visit and what to expect",
           "location": "Full address or well-known landmark name",
           "pricing": {
-            "amount": 18,
-            "currency": "EUR",
+            "amount": 1500,
+            "currency": "INR",
             "note": "per person, skip-the-line"
           },
           "weather": "Sunny, 24°C — great for walking",
@@ -82,5 +82,5 @@ export function buildUserPrompt({
 Dates: ${startStr} → ${endStr} (${month}).
 User preferences: ${userPrompt?.trim() || "None — plan a balanced mix of highlights and local gems."}
 
-Search for current info about ${destination} in ${month}. Use real place names, real current prices, and real image URLs. Generate a full schedule covering all ${numDays} days.`
+Search for current info about ${destination} in ${month}. Use real place names, real current prices in INR, and real image URLs. Generate a full schedule covering all ${numDays} days. ALL pricing must use currency "INR".`
 }

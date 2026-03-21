@@ -113,7 +113,6 @@ export function ItineraryItem({
 
   return (
     <div className="relative flex gap-3 pl-1">
-      {/* Timeline connector */}
       <div className="flex flex-col items-center pt-1">
         <div
           className={cn(
@@ -127,7 +126,6 @@ export function ItineraryItem({
         {!isLast && <div className="w-px flex-1 bg-border" />}
       </div>
 
-      {/* Card */}
       <Collapsible open={open} onOpenChange={setOpen} className="mb-4 flex-1">
         <CollapsibleTrigger
           className={cn(
@@ -136,7 +134,6 @@ export function ItineraryItem({
             open && "bg-accent/30 ring-1 ring-border"
           )}
         >
-          {/* Header */}
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <h4 className="text-sm leading-tight font-semibold text-foreground">
@@ -171,7 +168,6 @@ export function ItineraryItem({
             </div>
           </div>
 
-          {/* Image */}
           {imageUrl && !imgError && (
             <div className="mt-2.5 aspect-video overflow-hidden rounded-lg bg-muted">
               <img
@@ -184,13 +180,11 @@ export function ItineraryItem({
             </div>
           )}
 
-          {/* Description */}
           <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
             {description}
           </p>
         </CollapsibleTrigger>
 
-        {/* Expanded details */}
         {hasDetails && (
           <CollapsibleContent className="-mt-4 rounded-b-xl border border-t-0 bg-card px-3 pb-3">
             <Separator className="mb-3" />

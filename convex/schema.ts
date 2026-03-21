@@ -12,6 +12,14 @@ export default defineSchema({
     isPublic: v.boolean(),
     createdBy: v.string(),
     updatedAt: v.number(),
+    itineraryStatus: v.optional(
+      v.union(
+        v.literal("empty"),
+        v.literal("planning"),
+        v.literal("done"),
+        v.literal("error")
+      )
+    ),
   })
     .index("orgId", ["orgId"])
     .index("isPublic", ["isPublic"])

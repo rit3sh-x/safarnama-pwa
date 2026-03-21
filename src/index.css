@@ -121,6 +121,16 @@
   --animate-fade-in: fade-in 0.5s ease-out;
 }
 
+@keyframes shimmer {
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(0%);
+  }
+}
+
 @keyframes slide-up {
   0% {
     opacity: 0;

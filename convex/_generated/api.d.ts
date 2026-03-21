@@ -18,6 +18,7 @@ import type * as methods_ai from "../methods/ai.js";
 import type * as methods_blogs from "../methods/blogs.js";
 import type * as methods_expenses from "../methods/expenses.js";
 import type * as methods_file from "../methods/file.js";
+import type * as methods_itinerary from "../methods/itinerary.js";
 import type * as methods_members from "../methods/members.js";
 import type * as methods_messages from "../methods/messages.js";
 import type * as methods_requests from "../methods/requests.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   "methods/blogs": typeof methods_blogs;
   "methods/expenses": typeof methods_expenses;
   "methods/file": typeof methods_file;
+  "methods/itinerary": typeof methods_itinerary;
   "methods/members": typeof methods_members;
   "methods/messages": typeof methods_messages;
   "methods/requests": typeof methods_requests;
