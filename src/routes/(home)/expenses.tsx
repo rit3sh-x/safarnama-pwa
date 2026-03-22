@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { ExpensesView } from "@/modules/expense/ui/views/expenses-view"
 
 export const Route = createFileRoute("/(home)/expenses")({
-  component: RouteComponent,
+  component: ExpensesView,
 })
-
-function RouteComponent() {
-  return <div>Hello "/src/app/(home)/expenses"!</div>
-}

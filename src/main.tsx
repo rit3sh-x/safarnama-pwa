@@ -10,8 +10,7 @@ import { OnboardingProvider } from "./modules/onboarding/context/onboarding-prov
 import { AuthenticationProvider } from "./modules/auth/context/auth-provider"
 import { NetworkModal } from "./components/network-modal"
 import { ThemeProvider } from "./components/theme-provider"
-import { NuqsAdapter } from "nuqs/adapters/react"
-import { Provider } from "jotai"
+import { Provider as JotaiProvider } from "jotai"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache"
 
@@ -46,28 +45,26 @@ if (!rootElement.innerHTML) {
 
   root.render(
     <StrictMode>
-      <NuqsAdapter>
-        <Provider>
-          <TooltipProvider>
-            <ThemeProvider>
-              <OnboardingProvider>
-                <ConvexBetterAuthProvider
-                  client={convex}
-                  authClient={authClient}
-                >
-                  <ConvexQueryCacheProvider expiration={CACHE_EXPIRATION_TIME}>
-                    <AuthenticationProvider>
-                      <RouterProvider router={router} />
-                      <NetworkModal />
-                      <Toaster />
-                    </AuthenticationProvider>
-                  </ConvexQueryCacheProvider>
-                </ConvexBetterAuthProvider>
-              </OnboardingProvider>
-            </ThemeProvider>
-          </TooltipProvider>
-        </Provider>
-      </NuqsAdapter>
+      <JotaiProvider>
+        <TooltipProvider>
+          <ThemeProvider>
+            <OnboardingProvider>
+              <ConvexBetterAuthProvider
+                client={convex}
+                authClient={authClient}
+              >
+                <ConvexQueryCacheProvider expiration={CACHE_EXPIRATION_TIME}>
+                  <AuthenticationProvider>
+                    <RouterProvider router={router} />
+                    <NetworkModal />
+                    <Toaster />
+                  </AuthenticationProvider>
+                </ConvexQueryCacheProvider>
+              </ConvexBetterAuthProvider>
+            </OnboardingProvider>
+          </ThemeProvider>
+        </TooltipProvider>
+      </JotaiProvider>
     </StrictMode>
   )
 }

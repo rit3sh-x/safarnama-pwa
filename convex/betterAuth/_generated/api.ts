@@ -12,6 +12,7 @@ import type * as adapter from "../adapter.js";
 import type * as auth from "../auth.js";
 import type * as methods_orgs from "../methods/orgs.js";
 import type * as methods_types from "../methods/types.js";
+import type * as methods_users from "../methods/users.js";
 import type * as roles from "../roles.js";
 
 import type {
@@ -26,6 +27,7 @@ const fullApi: ApiFromModules<{
   auth: typeof auth;
   "methods/orgs": typeof methods_orgs;
   "methods/types": typeof methods_types;
+  "methods/users": typeof methods_users;
   roles: typeof roles;
 }> = anyApi as any;
 

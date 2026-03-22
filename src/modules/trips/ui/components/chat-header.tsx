@@ -1,5 +1,6 @@
 import {
   ArrowLeftIcon,
+  BookTextIcon,
   SearchIcon,
   UserPlusIcon,
   MoreVerticalIcon,
@@ -16,8 +17,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useSetAtom } from "jotai"
-import { tripPanelViewAtom } from "../../atoms"
+import { useAtomValue, useSetAtom } from "jotai"
+import { selectedTripAtom, tripPanelViewAtom } from "../../atoms"
+import { useBlogByTrip, useSaveBlog } from "@/modules/blog/hooks/use-blogs"
+import { useNavigate } from "@tanstack/react-router"
 
 interface ChatHeaderProps {
   name: string
@@ -40,9 +43,30 @@ export function ChatHeader({
   logo,
   showBack = true,
 }: ChatHeaderProps) {
+  const navigate = useNavigate()
   const initials = getInitials(name)
   const bgColor = stringToHex(tripId)
   const setPanelView = useSetAtom(tripPanelViewAtom)
+  const selectedTrip = useAtomValue(selectedTripAtom)
+  const isOwner = selectedTrip?.role === "owner"
+  const { blog } = useBlogByTrip(tripId)
+  const { mutate: saveBlog } = useSaveBlog()
+
+  const handleWriteBlog = async () => {
+    if (blog) {
+      navigate({ to: "/blogs/$blogId/edit", params: { blogId: blog._id } })
+    } else {
+      const blogId = await saveBlog({
+        tripId,
+        title: "Untitled",
+        content: "",
+        status: "draft",
+      })
+      if (blogId) {
+        navigate({ to: "/blogs/$blogId/edit", params: { blogId } })
+      }
+    }
+  }
 
   return (
     <div className="border-b bg-card">
@@ -108,6 +132,12 @@ export function ChatHeader({
               <MapIcon className="size-4" />
               Plan Trip
             </DropdownMenuItem>
+            {isOwner && (
+              <DropdownMenuItem onClick={handleWriteBlog}>
+                <BookTextIcon className="size-4" />
+                Write Blog
+              </DropdownMenuItem>
+            )}
             {onSearchPress && (
               <DropdownMenuItem onClick={onSearchPress}>
                 <SearchIcon className="size-4" />

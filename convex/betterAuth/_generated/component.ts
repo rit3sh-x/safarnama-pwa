@@ -1546,5 +1546,14 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           Name
         >;
       };
+      users: {
+        getUsersByIds: FunctionReference<
+          "query",
+          "internal",
+          { userIds: Array<string> },
+          any,
+          Name
+        >;
+      };
     };
   };

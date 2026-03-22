@@ -305,7 +305,6 @@ export const remove = mutation({
         | "settlement"
         | "joinRequest"
         | "blog"
-        | "blogComment"
         | "messageReadCursor"
     ) => {
       const docs = await ctx.db
@@ -315,6 +314,18 @@ export const remove = mutation({
       await Promise.all(docs.map((doc) => ctx.db.delete(doc._id)))
     }
 
+    const blog = await ctx.db
+      .query("blog")
+      .withIndex("tripId", (q) => q.eq("tripId", tripId))
+      .unique()
+    if (blog) {
+      const comments = await ctx.db
+        .query("blogComment")
+        .withIndex("blogId", (q) => q.eq("blogId", blog._id))
+        .collect()
+      await Promise.all(comments.map((c) => ctx.db.delete(c._id)))
+    }
+
     await Promise.all([
       deleteByTripIndex("message"),
       deleteByTripIndex("expense"),
@@ -322,7 +333,6 @@ export const remove = mutation({
       deleteByTripIndex("settlement"),
       deleteByTripIndex("joinRequest"),
       deleteByTripIndex("blog"),
-      deleteByTripIndex("blogComment"),
       deleteByTripIndex("messageReadCursor"),
     ])
 
@@ -365,6 +375,125 @@ export const generateItinerary = mutation({
       endDate: trip.endDate,
       userPrompt,
     })
+  },
+})
+
+export const dashboardSummary = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireUserAccess(ctx)
+
+    const memberships: Doc<"member">[] = await ctx.runQuery(
+      components.betterAuth.methods.orgs.listUserMemberships,
+      { userId: user._id }
+    )
+
+    const orgIds = memberships.map((m) => m.organizationId)
+
+    const trips = (
+      await Promise.all(
+        orgIds.map((orgId) =>
+          ctx.db
+            .query("trip")
+            .withIndex("orgId", (q) => q.eq("orgId", orgId))
+            .unique()
+        )
+      )
+    ).filter((t): t is NonNullable<typeof t> => t !== null)
+
+    const orgs: PaginationResult<Doc<"organization">> = await ctx.runQuery(
+      components.betterAuth.adapter.findMany,
+      {
+        model: "organization",
+        where: [
+          {
+            field: "_id",
+            value: orgIds,
+            operator: "in" as const,
+            connector: "AND" as const,
+          },
+        ],
+        paginationOpts: { numItems: orgIds.length, cursor: null },
+      }
+    )
+    const orgMap = new Map(orgs.page.map((o) => [o._id, o]))
+
+    const now = Date.now()
+
+    const upcomingTrips = trips
+      .filter((t) => t.startDate && t.startDate > now)
+      .sort((a, b) => (a.startDate ?? 0) - (b.startDate ?? 0))
+      .slice(0, 5)
+      .map((t) => ({
+        tripId: t._id,
+        title: t.title,
+        destination: t.destination,
+        startDate: t.startDate!,
+        logo: orgMap.get(t.orgId as Id<"organization">)?.logo,
+      }))
+
+    const recentTrips = trips
+      .sort((a, b) => b.updatedAt - a.updatedAt)
+      .slice(0, 3)
+      .map((t) => ({
+        tripId: t._id,
+        title: t.title,
+        destination: t.destination,
+        updatedAt: t.updatedAt,
+        logo: orgMap.get(t.orgId as Id<"organization">)?.logo,
+      }))
+
+    const recentMessages = (
+      await Promise.all(
+        trips.slice(0, 10).map(async (trip) => {
+          const msg = await ctx.db
+            .query("message")
+            .withIndex("tripId", (q) => q.eq("tripId", trip._id))
+            .order("desc")
+            .first()
+          return msg ? { ...msg, tripTitle: trip.title } : null
+        })
+      )
+    )
+      .filter((m): m is NonNullable<typeof m> => m !== null)
+      .sort((a, b) => b._creationTime - a._creationTime)
+      .slice(0, 5)
+
+    const senderIds = [...new Set(recentMessages.map((m) => m.senderId))]
+    const users: { userId: string; username: string; image: string | null }[] =
+      senderIds.length > 0
+        ? await ctx.runQuery(
+            components.betterAuth.methods.users.getUsersByIds,
+            { userIds: senderIds as Id<"user">[] }
+          )
+        : []
+    const userMap = new Map(users.map((u) => [u.userId, u]))
+
+    const messagesWithSender = recentMessages.map((m) => ({
+      tripId: m.tripId,
+      tripTitle: m.tripTitle,
+      content: m.content,
+      senderId: m.senderId,
+      senderName: userMap.get(m.senderId)?.username ?? "Unknown",
+      createdAt: m._creationTime,
+      type: m.type,
+    }))
+
+    const blogs = await ctx.db
+      .query("blog")
+      .filter((q) => q.eq(q.field("status"), "published"))
+      .collect()
+    const userBlogCount = blogs.filter((b) =>
+      trips.some((t) => t._id === b.tripId)
+    ).length
+
+    return {
+      totalTrips: trips.length,
+      upcomingTrips,
+      recentTrips,
+      recentMessages: messagesWithSender,
+      totalBlogs: userBlogCount,
+    }
   },
 })
 

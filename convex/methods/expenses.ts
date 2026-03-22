@@ -1,8 +1,10 @@
 import { ConvexError, v } from "convex/values"
 import { mutation, query } from "../_generated/server"
-import { requireTripMember } from "../lib/utils"
+import { requireTripMember, requireUserAccess } from "../lib/utils"
+import { components } from "../_generated/api"
 import { paginationOptsValidator } from "convex/server"
 import { simplifyDebts } from "../lib/debtSimplification"
+import type { Doc } from "../betterAuth/_generated/dataModel"
 
 const splitTypeValidator = v.union(
   v.literal("equal"),
@@ -246,5 +248,112 @@ export const listSettlements = query({
       .withIndex("tripId", (q) => q.eq("tripId", tripId))
       .order("desc")
       .collect()
+  },
+})
+
+export const globalSummary = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await requireUserAccess(ctx)
+
+    const memberships: Doc<"member">[] = await ctx.runQuery(
+      components.betterAuth.methods.orgs.listUserMemberships,
+      { userId: user._id }
+    )
+
+    const orgIds = memberships.map((m) => m.organizationId)
+    const trips = (
+      await Promise.all(
+        orgIds.map((orgId) =>
+          ctx.db
+            .query("trip")
+            .withIndex("orgId", (q) => q.eq("orgId", orgId))
+            .unique()
+        )
+      )
+    ).filter((t): t is NonNullable<typeof t> => t !== null)
+
+    let totalSpent = 0
+    let totalOwed = 0
+    let totalOwing = 0
+    const monthlyMap = new Map<string, number>()
+    const perTrip: {
+      tripId: string
+      tripTitle: string
+      totalExpenses: number
+      userBalance: number
+    }[] = []
+
+    for (const trip of trips) {
+      const expenses = await ctx.db
+        .query("expense")
+        .withIndex("tripId", (q) => q.eq("tripId", trip._id))
+        .collect()
+
+      const tripTotal = expenses.reduce((sum, e) => sum + e.amount, 0)
+      const userPaid = expenses
+        .filter((e) => e.paidBy === user._id)
+        .reduce((sum, e) => sum + e.amount, 0)
+
+      totalSpent += userPaid
+
+      for (const expense of expenses) {
+        if (expense.paidBy !== user._id) continue
+        const d = new Date(expense.date)
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+        monthlyMap.set(key, (monthlyMap.get(key) ?? 0) + expense.amount)
+      }
+
+      const splits = await ctx.db
+        .query("expenseSplit")
+        .withIndex("tripId_userId", (q) => q.eq("tripId", trip._id))
+        .collect()
+
+      let tripOwed = 0
+      let tripOwing = 0
+      for (const split of splits) {
+        if (split.settled) continue
+        const expense = await ctx.db.get(split.expenseId)
+        if (!expense || split.userId === expense.paidBy) continue
+        if (expense.paidBy === user._id) {
+          tripOwed += split.owedAmount
+        }
+        if (split.userId === user._id) {
+          tripOwing += split.owedAmount
+        }
+      }
+
+      totalOwed += tripOwed
+      totalOwing += tripOwing
+
+      perTrip.push({
+        tripId: trip._id,
+        tripTitle: trip.title,
+        totalExpenses: tripTotal,
+        userBalance: tripOwed - tripOwing,
+      })
+    }
+
+    const now = new Date()
+    const monthlySpending: { month: string; amount: number }[] = []
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+      const label = d.toLocaleDateString("en-US", {
+        month: "short",
+        year: "2-digit",
+      })
+      monthlySpending.push({ month: label, amount: monthlyMap.get(key) ?? 0 })
+    }
+
+    perTrip.sort((a, b) => b.totalExpenses - a.totalExpenses)
+
+    return {
+      totalSpent,
+      totalOwed,
+      totalOwing,
+      monthlySpending,
+      perTrip,
+    }
   },
 })

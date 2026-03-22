@@ -74,28 +74,27 @@ export default defineSchema({
     title: v.string(),
     content: v.string(),
     coverImage: v.optional(v.string()),
-    published: v.boolean(),
+    status: v.union(v.literal("draft"), v.literal("published")),
     publishedAt: v.optional(v.number()),
     updatedAt: v.number(),
     tripTitle: v.string(),
     tripDestination: v.string(),
-    isPublic: v.boolean(),
   })
     .index("tripId", ["tripId"])
     .searchIndex("search", {
       searchField: "title",
-      filterFields: ["published", "isPublic"],
+      filterFields: ["status"],
     }),
 
   blogComment: defineTable({
-    tripId: v.id("trip"),
+    blogId: v.id("blog"),
     authorId: v.string(),
     content: v.string(),
     parentId: v.optional(v.id("blogComment")),
     editedAt: v.optional(v.number()),
     deletedAt: v.optional(v.number()),
   })
-    .index("tripId", ["tripId"])
+    .index("blogId", ["blogId"])
     .index("parentId", ["parentId"]),
 
   joinRequest: defineTable({

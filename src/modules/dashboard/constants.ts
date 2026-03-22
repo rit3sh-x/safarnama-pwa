@@ -7,7 +7,7 @@ import {
   Wallet2Icon,
 } from "lucide-react"
 
-export const TABS: Tab[] = [
+export const TABS = [
   {
     name: "dashboard",
     title: "Dashboard",
@@ -38,4 +38,4 @@ export const TABS: Tab[] = [
     icon: SettingsIcon,
     route: "/settings",
   },
-]
+] as const satisfies readonly Tab[]

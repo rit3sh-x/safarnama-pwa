@@ -16,6 +16,7 @@ import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as methods_ai from "../methods/ai.js";
 import type * as methods_blogs from "../methods/blogs.js";
+import type * as methods_comments from "../methods/comments.js";
 import type * as methods_expenses from "../methods/expenses.js";
 import type * as methods_file from "../methods/file.js";
 import type * as methods_itinerary from "../methods/itinerary.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   "lib/utils": typeof lib_utils;
   "methods/ai": typeof methods_ai;
   "methods/blogs": typeof methods_blogs;
+  "methods/comments": typeof methods_comments;
   "methods/expenses": typeof methods_expenses;
   "methods/file": typeof methods_file;
   "methods/itinerary": typeof methods_itinerary;
@@ -1590,6 +1592,14 @@ export declare const components: {
           "query",
           "internal",
           { userId: string },
+          any
+        >;
+      };
+      users: {
+        getUsersByIds: FunctionReference<
+          "query",
+          "internal",
+          { userIds: Array<string> },
           any
         >;
       };

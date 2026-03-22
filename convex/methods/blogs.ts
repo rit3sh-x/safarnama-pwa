@@ -2,10 +2,12 @@ import { v } from "convex/values"
 import { mutation, query } from "../_generated/server"
 import {
   requireTripAdmin,
-  requireTripMember,
+  requireUserAccess,
   getTripFromTripId,
 } from "../lib/utils"
+import { components } from "../_generated/api"
 import { paginationOptsValidator } from "convex/server"
+import type { Doc } from "../betterAuth/_generated/dataModel"
 
 export const browse = query({
   args: {
@@ -13,6 +15,7 @@ export const browse = query({
     paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, { search, paginationOpts }) => {
+    await requireUserAccess(ctx)
     const searchTerm = search?.trim()
 
     if (searchTerm) {
@@ -21,8 +24,7 @@ export const browse = query({
         .withSearchIndex("search", (qb) =>
           qb
             .search("title", searchTerm)
-            .eq("published", true)
-            .eq("isPublic", true)
+            .eq("status", "published")
         )
         .take(paginationOpts.numItems)
 
@@ -32,7 +34,9 @@ export const browse = query({
     const results = await ctx.db
       .query("blog")
       .filter((q) =>
-        q.and(q.eq(q.field("published"), true), q.eq(q.field("isPublic"), true))
+        q.and(
+          q.eq(q.field("status"), "published"),
+        )
       )
       .order("desc")
       .paginate(paginationOpts)
@@ -44,16 +48,40 @@ export const browse = query({
 export const get = query({
   args: { tripId: v.id("trip") },
   handler: async (ctx, { tripId }) => {
-    const trip = await getTripFromTripId(ctx, tripId)
+    await requireUserAccess(ctx)
     const blog = await ctx.db
       .query("blog")
       .withIndex("tripId", (q) => q.eq("tripId", tripId))
       .unique()
 
-    if (trip.isPublic && blog?.published) return blog
+    if (blog?.status === "published") return blog
+    return null
+  },
+})
 
-    await requireTripMember(ctx, tripId)
-    return blog ?? null
+export const getById = query({
+  args: { blogId: v.id("blog") },
+  handler: async (ctx, { blogId }) => {
+    const user = await requireUserAccess(ctx)
+
+    const blog = await ctx.db.get(blogId)
+    if (!blog) return null
+
+    const trip = await getTripFromTripId(ctx, blog.tripId)
+
+    const member: Doc<"member"> | null = await ctx.runQuery(
+      components.betterAuth.adapter.findOne,
+      {
+        model: "member",
+        where: [
+          { field: "userId", value: user._id, operator: "eq" },
+          { field: "organizationId", value: trip.orgId, operator: "eq" },
+        ],
+      }
+    )
+    const isOwner = member?.role === "owner"
+
+    return { ...blog, isOwner }
   },
 })
 
@@ -63,7 +91,7 @@ export const upsert = mutation({
     title: v.string(),
     content: v.string(),
     coverImage: v.optional(v.string()),
-    published: v.boolean(),
+    status: v.union(v.literal("draft"), v.literal("published")),
   },
   handler: async (ctx, { tripId, ...fields }) => {
     await requireTripAdmin(ctx, tripId)
@@ -78,7 +106,6 @@ export const upsert = mutation({
     const denormalized = {
       tripTitle: trip.title,
       tripDestination: trip.destination,
-      isPublic: trip.isPublic,
     }
 
     if (existing) {
@@ -86,20 +113,23 @@ export const upsert = mutation({
         ...fields,
         ...denormalized,
         publishedAt:
-          fields.published && !existing.published ? now : existing.publishedAt,
+          fields.status === "published" && existing.status !== "published"
+            ? now
+            : existing.publishedAt,
         updatedAt: now,
       })
+      return existing._id
     } else {
-      await ctx.db.insert("blog", {
+      const blogId = await ctx.db.insert("blog", {
         tripId,
         ...fields,
         ...denormalized,
-        publishedAt: fields.published ? now : undefined,
+        publishedAt: fields.status === "published" ? now : undefined,
         updatedAt: now,
       })
+      return blogId
     }
 
-    await ctx.db.patch(tripId, { updatedAt: now })
   },
 })
 
@@ -116,7 +146,7 @@ export const remove = mutation({
     if (blog) {
       const comments = await ctx.db
         .query("blogComment")
-        .withIndex("tripId", (q) => q.eq("tripId", tripId))
+        .withIndex("blogId", (q) => q.eq("blogId", blog._id))
         .collect()
       await Promise.all(comments.map((c) => ctx.db.delete(c._id)))
 

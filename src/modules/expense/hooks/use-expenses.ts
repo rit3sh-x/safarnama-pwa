@@ -119,3 +119,12 @@ export const useCreateSettlement = () => {
 
   return { mutate, isPending }
 }
+
+export function useGlobalExpenseSummary() {
+  const data = useQuery(api.methods.expenses.globalSummary, {})
+
+  return {
+    summary: data,
+    isLoading: data === undefined,
+  }
+}
