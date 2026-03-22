@@ -1,8 +1,9 @@
 import { useCallback, useLayoutEffect, useRef } from "react"
 import { useNavigate, useRouterState } from "@tanstack/react-router"
 import { TRIP_TABS } from "../constants"
+import type { Id } from "@backend/dataModel"
 
-export function useTripTabNavigation(tripId: string) {
+export function useTripTabNavigation(tripId: Id<"trip">) {
   const navigate = useNavigate()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 

@@ -16,15 +16,9 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useUserSearch } from "../../hooks/use-user-search"
 import { useSendInvite } from "../../hooks/use-admin-requests"
-import type { Id } from "@backend/dataModel"
+import type { Id } from "@backend/authDataModel"
 import { toast } from "sonner"
-
-interface SelectedUser {
-  id: string
-  name: string
-  username: string
-  image: string | null
-}
+import type { SelectedUser } from "../../types"
 
 interface InviteMembersModalProps {
   open: boolean
@@ -101,12 +95,12 @@ export function InviteMembersModal({
               {selected.map((user) => (
                 <Badge key={user.id} variant="secondary" className="gap-1 pr-1">
                   <span className="max-w-24 truncate">{user.name}</span>
-                  <button
+                  <Button
                     onClick={() => handleRemove(user.id)}
                     className="ml-0.5 rounded-full p-0.5 hover:bg-muted-foreground/20"
                   >
                     <X className="size-3" />
-                  </button>
+                  </Button>
                 </Badge>
               ))}
             </div>

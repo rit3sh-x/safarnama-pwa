@@ -12,7 +12,6 @@ import {
 } from "../../hooks/use-messages"
 import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication"
 import { useUploadFileToConvex } from "@/lib/utils"
-import type { TripId } from "../../types"
 import {
   ChatMessageList,
   ChatInputToolbar,
@@ -30,7 +29,7 @@ import { selectedTripAtom } from "../../atoms"
 import type { Id } from "@backend/dataModel"
 
 interface TripChatViewProps {
-  tripId: TripId
+  tripId: Id<"trip">
   isPanel?: boolean
   onGroupPress?: () => void
 }

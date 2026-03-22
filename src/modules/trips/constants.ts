@@ -14,7 +14,7 @@ export const QUICK_REACTIONS = [
   { emoji: "🙏", label: "thanks" },
 ]
 
-export const TRIP_TABS: Tab[] = [
+export const TRIP_TABS = [
   {
     name: "chat",
     title: "Chat",
@@ -39,4 +39,4 @@ export const TRIP_TABS: Tab[] = [
     icon: InfoIcon,
     route: "/trips/$tripId/info",
   },
-]
+] as const satisfies readonly Tab[]

@@ -7,10 +7,10 @@ import { selectedTripAtom } from "../../atoms"
 import { useMembers } from "../../hooks/use-members"
 import { TripInfoHeader, MembersSection } from "../components/info"
 import { InviteMembersModal } from "../components/invite-members-modal"
-import type { TripId } from "../../types"
+import type { Id } from "@backend/dataModel"
 
 interface TripInfoViewProps {
-  tripId: TripId
+  tripId: Id<"trip">
   onBack?: () => void
 }
 

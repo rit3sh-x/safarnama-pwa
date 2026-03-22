@@ -4,12 +4,12 @@ import { useTripTabNavigation } from "../../hooks/use-trip-tab-navigation"
 import { TripTabBar } from "../components/trip-tab-bar"
 import { SwipeableOutlet } from "@/components/swipeable-outlet"
 import { ChatHeader } from "../components/chat-header"
-import type { TripId } from "../../types"
 import { useAtomValue } from "jotai"
 import { selectedTripAtom } from "../../atoms"
+import type { Id } from "@backend/dataModel"
 
 interface TripLayoutProps {
-  tripId: TripId
+  tripId: Id<"trip">
 }
 
 export function TripLayout({ tripId }: TripLayoutProps) {

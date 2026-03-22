@@ -4,12 +4,11 @@ import { api } from "@backend/api"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
 import { PAGINATION } from "@/lib/constants"
-import type { TripId } from "../types"
 import { nanoid } from "nanoid"
 import { toast } from "sonner"
 import type { Id } from "@backend/dataModel"
 
-export function useMessages(tripId: TripId | undefined) {
+export function useMessages(tripId: Id<"trip"> | undefined) {
   const { results, status, loadMore } = usePaginatedQuery(
     api.methods.messages.list,
     tripId ? { tripId } : "skip",
@@ -199,10 +198,10 @@ export const useUnpinMessage = () => {
   return { mutate, isPending }
 }
 
-export function useMarkRead(tripId: TripId | undefined) {
+export function useMarkRead(tripId: Id<"trip"> | undefined) {
   const markRead = useMutation(api.methods.messages.markRead)
   const lastMarkedRef = useRef(0)
-  const tripIdRef = useRef<TripId | undefined>(undefined)
+  const tripIdRef = useRef<Id<"trip"> | undefined>(undefined)
 
   useEffect(() => {
     tripIdRef.current = tripId

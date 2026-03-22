@@ -45,7 +45,7 @@ export const create = mutation({
 
     const slug = `${baseSlug}-${nanoid(10)}`
 
-    const org = await ctx.runMutation(components.betterAuth.adapter.create, {
+    const org: Doc<"organization"> = await ctx.runMutation(components.betterAuth.adapter.create, {
       input: {
         model: "organization",
         data: {

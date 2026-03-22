@@ -15,8 +15,6 @@ export type NavOption = "trips" | "invites" | "public_trips"
 
 export type TripPanelView = "chat" | "info" | "expenses" | "plan"
 
-export type TripId = Id<"trip">
-
 type TripsPlanResult = FunctionReturnType<typeof api.methods.trips.getItinerary>
 export type DayItem = TripsPlanResult[number]["items"][number]
 
@@ -37,3 +35,6 @@ export type ReviewType = FunctionArgs<
 
 type MessagesListResult = FunctionReturnType<typeof api.methods.messages.list>
 export type Message = MessagesListResult["page"][number]
+
+type UserSearchResults = FunctionReturnType<typeof api.methods.search.searchUsers>
+export type SelectedUser = UserSearchResults[number]

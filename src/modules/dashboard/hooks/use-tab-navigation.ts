@@ -7,7 +7,7 @@ export function useTabNavigation() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   const currentIndex = TABS.findIndex((tab) =>
-    tab.route === "/" ? pathname === "/" : pathname.startsWith(tab.route)
+    pathname.startsWith(tab.route)
   )
   const safeIndex = currentIndex === -1 ? 0 : currentIndex
   const indexRef = useRef(safeIndex)

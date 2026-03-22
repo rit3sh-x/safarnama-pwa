@@ -63,7 +63,7 @@ export const useCreateTrip = () => {
       return await createTripMutation(args)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create trip")
-
+      throw err
     } finally {
       setIsPending(false)
     }
