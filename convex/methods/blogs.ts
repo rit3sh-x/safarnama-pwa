@@ -1,4 +1,4 @@
-import { v } from "convex/values"
+import { ConvexError, v } from "convex/values"
 import { mutation, query } from "../_generated/server"
 import {
   requireTripAdmin,
@@ -8,6 +8,8 @@ import {
 import { components } from "../_generated/api"
 import { paginationOptsValidator } from "convex/server"
 import type { Doc } from "../betterAuth/_generated/dataModel"
+import type { RatingValue } from "../types"
+import { checkProfanity, extractTextFromTiptap } from "../lib/profanity"
 
 export const browse = query({
   args: {
@@ -17,6 +19,25 @@ export const browse = query({
   handler: async (ctx, { search, paginationOpts }) => {
     await requireUserAccess(ctx)
     const searchTerm = search?.trim()
+
+    const enrichWithRatings = async (blogs: typeof results.page) => {
+      return Promise.all(
+        blogs.map(async (blog) => {
+          const ratings = await ctx.db
+            .query("blogRating")
+            .withIndex("blogId", (q) => q.eq("blogId", blog._id))
+            .collect()
+          const total = ratings.length
+          const avg =
+            total > 0
+              ? Math.round(
+                  (ratings.reduce((s, r) => s + r.rating, 0) / total) * 10
+                ) / 10
+              : 0
+          return { ...blog, avgRating: avg, totalRatings: total }
+        })
+      )
+    }
 
     if (searchTerm) {
       const results = await ctx.db
@@ -28,7 +49,8 @@ export const browse = query({
         )
         .take(paginationOpts.numItems)
 
-      return { page: results, isDone: true, continueCursor: "" }
+      const enriched = await enrichWithRatings(results)
+      return { page: enriched, isDone: true, continueCursor: "" }
     }
 
     const results = await ctx.db
@@ -41,7 +63,8 @@ export const browse = query({
       .order("desc")
       .paginate(paginationOpts)
 
-    return results
+    const enrichedPage = await enrichWithRatings(results.page)
+    return { ...results, page: enrichedPage }
   },
 })
 
@@ -81,7 +104,24 @@ export const getById = query({
     )
     const isOwner = member?.role === "owner"
 
-    return { ...blog, isOwner }
+    const ratings = await ctx.db
+      .query("blogRating")
+      .withIndex("blogId", (q) => q.eq("blogId", blogId))
+      .collect()
+    const totalRatings = ratings.length
+    const avgRating =
+      totalRatings > 0
+        ? Math.round(
+            (ratings.reduce((s, r) => s + r.rating, 0) / totalRatings) * 10
+          ) / 10
+        : 0
+    const distribution = ratings.reduce<Record<RatingValue, number>>(
+      (acc, r) => ({ ...acc, [r.rating]: (acc[r.rating as RatingValue] ?? 0) + 1 }),
+      { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    )
+    const userRating = ratings.find((r) => r.userId === user._id)?.rating ?? null
+
+    return { ...blog, isOwner, avgRating, totalRatings, distribution, userRating }
   },
 })
 
@@ -95,6 +135,17 @@ export const upsert = mutation({
   },
   handler: async (ctx, { tripId, ...fields }) => {
     await requireTripAdmin(ctx, tripId)
+
+    if (fields.status === "published") {
+      const titleCheck = checkProfanity(fields.title)
+      if (titleCheck.hasProfanity)
+        throw new ConvexError("Title contains inappropriate language")
+      const textContent = extractTextFromTiptap(fields.content)
+      const contentCheck = checkProfanity(textContent)
+      if (contentCheck.hasProfanity)
+        throw new ConvexError("Content contains inappropriate language")
+    }
+
     const now = Date.now()
     const trip = await getTripFromTripId(ctx, tripId)
 

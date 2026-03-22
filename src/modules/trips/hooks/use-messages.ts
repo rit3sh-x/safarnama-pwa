@@ -6,6 +6,7 @@ import { useState } from "react"
 import { PAGINATION } from "@/lib/constants"
 import type { TripId } from "../types"
 import { nanoid } from "nanoid"
+import { toast } from "sonner"
 import type { Id } from "@backend/dataModel"
 
 export function useMessages(tripId: TripId | undefined) {
@@ -68,8 +69,8 @@ export const useSendMessage = () => {
     setIsPending(true)
     try {
       await send(args)
-    } catch {
-      console.error("Failed to send message")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send message")
     } finally {
       setIsPending(false)
     }
@@ -88,8 +89,8 @@ export const useEditMessage = () => {
     setIsPending(true)
     try {
       await editMsg(args)
-    } catch {
-      console.error("Failed to edit message")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to edit message")
     } finally {
       setIsPending(false)
     }
@@ -108,8 +109,8 @@ export const useDeleteMessage = () => {
     setIsPending(true)
     try {
       await removeMsg(args)
-    } catch {
-      console.error("Failed to delete message")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete message")
     } finally {
       setIsPending(false)
     }
@@ -128,8 +129,8 @@ export const useAddReaction = () => {
     setIsPending(true)
     try {
       await addReaction(args)
-    } catch {
-      console.error("Failed to add reaction")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to add reaction")
     } finally {
       setIsPending(false)
     }
@@ -148,8 +149,8 @@ export const useRemoveReaction = () => {
     setIsPending(true)
     try {
       await removeReaction(args)
-    } catch {
-      console.error("Failed to remove reaction")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove reaction")
     } finally {
       setIsPending(false)
     }
@@ -168,8 +169,8 @@ export const usePinMessage = () => {
     setIsPending(true)
     try {
       await pin(args)
-    } catch {
-      console.error("Failed to pin message")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to pin message")
     } finally {
       setIsPending(false)
     }
@@ -188,8 +189,8 @@ export const useUnpinMessage = () => {
     setIsPending(true)
     try {
       await unpin(args)
-    } catch {
-      console.error("Failed to unpin message")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to unpin message")
     } finally {
       setIsPending(false)
     }

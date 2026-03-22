@@ -11,6 +11,7 @@
 import type * as http from "../http.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_debtSimplification from "../lib/debtSimplification.js";
+import type * as lib_profanity from "../lib/profanity.js";
 import type * as lib_prompt from "../lib/prompt.js";
 import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
@@ -20,8 +21,10 @@ import type * as methods_comments from "../methods/comments.js";
 import type * as methods_expenses from "../methods/expenses.js";
 import type * as methods_file from "../methods/file.js";
 import type * as methods_itinerary from "../methods/itinerary.js";
+import type * as methods_mediation from "../methods/mediation.js";
 import type * as methods_members from "../methods/members.js";
 import type * as methods_messages from "../methods/messages.js";
+import type * as methods_ratings from "../methods/ratings.js";
 import type * as methods_requests from "../methods/requests.js";
 import type * as methods_search from "../methods/search.js";
 import type * as methods_trips from "../methods/trips.js";
@@ -38,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/constants": typeof lib_constants;
   "lib/debtSimplification": typeof lib_debtSimplification;
+  "lib/profanity": typeof lib_profanity;
   "lib/prompt": typeof lib_prompt;
   "lib/types": typeof lib_types;
   "lib/utils": typeof lib_utils;
@@ -47,8 +51,10 @@ declare const fullApi: ApiFromModules<{
   "methods/expenses": typeof methods_expenses;
   "methods/file": typeof methods_file;
   "methods/itinerary": typeof methods_itinerary;
+  "methods/mediation": typeof methods_mediation;
   "methods/members": typeof methods_members;
   "methods/messages": typeof methods_messages;
+  "methods/ratings": typeof methods_ratings;
   "methods/requests": typeof methods_requests;
   "methods/search": typeof methods_search;
   "methods/trips": typeof methods_trips;

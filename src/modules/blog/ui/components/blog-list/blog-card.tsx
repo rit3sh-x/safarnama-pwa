@@ -1,5 +1,6 @@
 import { useNavigate } from "@tanstack/react-router"
 import { format } from "date-fns"
+import { StarIcon } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import type { Id } from "@backend/dataModel"
 
@@ -9,6 +10,8 @@ interface BlogCardProps {
   destination: string
   coverImage?: string
   publishedAt?: number
+  avgRating?: number
+  totalRatings?: number
 }
 
 export function BlogCard({
@@ -17,6 +20,8 @@ export function BlogCard({
   destination,
   coverImage,
   publishedAt,
+  avgRating,
+  totalRatings,
 }: BlogCardProps) {
   const navigate = useNavigate()
 
@@ -63,11 +68,22 @@ export function BlogCard({
             {destination}
           </p>
 
-          {formattedDate && (
-            <p className="text-xs text-muted-foreground/70 tabular-nums">
-              {formattedDate}
-            </p>
-          )}
+          <div className="flex items-center gap-3">
+            {formattedDate && (
+              <p className="text-xs text-muted-foreground/70 tabular-nums">
+                {formattedDate}
+              </p>
+            )}
+            {avgRating != null && avgRating > 0 && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground/70 tabular-nums">
+                <StarIcon className="size-3 fill-yellow-400 text-yellow-400" />
+                {avgRating.toFixed(1)}
+                {totalRatings != null && (
+                  <span>({totalRatings})</span>
+                )}
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </Card>

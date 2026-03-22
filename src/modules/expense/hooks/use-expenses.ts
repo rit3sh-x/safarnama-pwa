@@ -4,6 +4,7 @@ import { useMutation, usePaginatedQuery } from "convex/react"
 import { useQuery } from "convex-helpers/react/cache"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
+import { toast } from "sonner"
 import type { Id } from "@backend/dataModel"
 
 export function useExpenses(tripId: Id<"trip"> | undefined) {
@@ -58,6 +59,9 @@ export const useCreateExpense = () => {
     setIsPending(true)
     try {
       return await createExpense(args)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create expense")
+
     } finally {
       setIsPending(false)
     }
@@ -76,6 +80,9 @@ export const useRemoveExpense = () => {
     setIsPending(true)
     try {
       await removeExpense(args)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove expense")
+
     } finally {
       setIsPending(false)
     }
@@ -94,6 +101,9 @@ export const useSettleSplit = () => {
     setIsPending(true)
     try {
       await settleSplit(args)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to settle split")
+
     } finally {
       setIsPending(false)
     }
@@ -112,6 +122,9 @@ export const useCreateSettlement = () => {
     setIsPending(true)
     try {
       return await createSettlement(args)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to record settlement")
+
     } finally {
       setIsPending(false)
     }

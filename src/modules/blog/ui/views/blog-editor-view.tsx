@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react"
 import { useRouter } from "@tanstack/react-router"
-import { ArrowLeftIcon, Loader2Icon } from "lucide-react"
+import { ArrowLeftIcon, Loader2Icon, AlertCircleIcon, XIcon } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useBlog, useSaveBlog } from "../../hooks/use-blogs"
 import { Editor } from "../components/editor"
@@ -9,6 +9,7 @@ import { EditorToolbar } from "../components/toolbar/editor-toolbar"
 import { FloatingFormatToolbar } from "../components/toolbar/floating-format-toolbar"
 import { MobileInsertButton } from "../components/toolbar/mobile-insert-button"
 import { useEditorStore } from "../../hooks/use-editor-store"
+import { checkProfanity } from "../../lib/profanity"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { Id } from "@backend/dataModel"
@@ -25,9 +26,11 @@ export function BlogEditorView({ blogId }: BlogEditorViewProps) {
   const { editor } = useEditorStore()
 
   const [title, setTitle] = useState(() => blog?.title ?? "")
+  const [publishError, setPublishError] = useState<string | null>(null)
 
   const handleSaveDraft = useCallback(async () => {
     if (!blog || !editor) return
+    setPublishError(null)
     await saveBlog({
       tripId: blog.tripId,
       title,
@@ -39,13 +42,33 @@ export function BlogEditorView({ blogId }: BlogEditorViewProps) {
 
   const handlePublish = useCallback(async () => {
     if (!blog || !editor) return
-    await saveBlog({
-      tripId: blog.tripId,
-      title,
-      content: JSON.stringify(editor.getJSON()),
-      coverImage: blog.coverImage,
-      status: "published",
-    })
+    setPublishError(null)
+
+    const titleCheck = checkProfanity(title)
+    if (titleCheck.hasProfanity) {
+      setPublishError("Title contains inappropriate language")
+      return
+    }
+    const textContent = editor.getText()
+    const contentCheck = checkProfanity(textContent)
+    if (contentCheck.hasProfanity) {
+      setPublishError("Content contains inappropriate language")
+      return
+    }
+
+    try {
+      await saveBlog({
+        tripId: blog.tripId,
+        title,
+        content: JSON.stringify(editor.getJSON()),
+        coverImage: blog.coverImage,
+        status: "published",
+      })
+    } catch (err) {
+      setPublishError(
+        err instanceof Error ? err.message : "Failed to publish"
+      )
+    }
   }, [blog, editor, title, saveBlog])
 
   if (isLoading) {
@@ -115,6 +138,22 @@ export function BlogEditorView({ blogId }: BlogEditorViewProps) {
           </Button>
         </div>
       </div>
+
+      {publishError && (
+        <div className="flex items-center justify-between gap-2 border-b border-destructive/20 bg-destructive/5 px-4 py-2 text-sm text-destructive">
+          <div className="flex items-center gap-2">
+            <AlertCircleIcon className="size-4 shrink-0" />
+            <span>{publishError}</span>
+          </div>
+          <button
+            aria-label="Dismiss error"
+            onClick={() => setPublishError(null)}
+            className="shrink-0 rounded-md p-0.5 transition-colors hover:bg-destructive/10"
+          >
+            <XIcon className="size-3.5" />
+          </button>
+        </div>
+      )}
 
       {!isMobile && <EditorToolbar />}
 

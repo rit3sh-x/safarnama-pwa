@@ -2,6 +2,7 @@ import { useNavigate, useRouter } from "@tanstack/react-router"
 import { ArrowLeftIcon, CalendarIcon, PencilIcon } from "lucide-react"
 import { useBlog } from "../../hooks/use-blogs"
 import { Editor } from "../components/editor"
+import { BlogRatingSection } from "../components/blog-rating-section"
 import { CommentSection } from "../components/comments/comment-section"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -117,6 +118,10 @@ export function BlogViewerView({ blogId }: BlogViewerViewProps) {
                 {publishedDate}
               </span>
             )}
+          </div>
+
+          <div className="mt-4">
+            <BlogRatingSection blogId={blog._id} />
           </div>
         </div>
 

@@ -3,6 +3,7 @@ import { api } from "@backend/api"
 import { useMutation, usePaginatedQuery } from "convex/react"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
+import { toast } from "sonner"
 import { useSearchParams } from "./use-search-params"
 
 export const useSendRequest = () => {
@@ -15,8 +16,8 @@ export const useSendRequest = () => {
     setIsPending(true)
     try {
       await sendRequest(args)
-    } catch {
-      console.error("Failed to send request")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to send request")
     } finally {
       setIsPending(false)
     }
@@ -51,8 +52,8 @@ export const useCancelRequest = () => {
     setIsPending(true)
     try {
       await cancelRequest(args)
-    } catch {
-      console.error("Failed to cancel request")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to cancel request")
     } finally {
       setIsPending(false)
     }
@@ -71,8 +72,8 @@ export const useReviewInvite = () => {
     setIsPending(true)
     try {
       await reviewInvite(args)
-    } catch {
-      console.error("Failed to respond to invite")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to respond to invite")
     } finally {
       setIsPending(false)
     }

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react"
-import { SendHorizontalIcon } from "lucide-react"
+import { AlertCircleIcon, SendHorizontalIcon } from "lucide-react"
 import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication"
 import { stringToHex } from "@/lib/utils"
+import { checkProfanity } from "@/modules/blog/lib/profanity"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 
@@ -12,6 +13,7 @@ interface CommentInputProps {
   autoFocus?: boolean
   initialValue?: string
   isPending?: boolean
+  error?: string | null
 }
 
 export function CommentInput({
@@ -21,11 +23,15 @@ export function CommentInput({
   autoFocus = false,
   initialValue = "",
   isPending = false,
+  error: externalError = null,
 }: CommentInputProps) {
   const { user } = useAuthenticatedUser()
   const [value, setValue] = useState(initialValue)
   const [focused, setFocused] = useState(autoFocus)
+  const [clientError, setClientError] = useState<string | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const displayError = clientError || externalError
 
   useEffect(() => {
     if (autoFocus) textareaRef.current?.focus()
@@ -41,9 +47,23 @@ export function CommentInput({
   const handleSubmit = async () => {
     const trimmed = value.trim()
     if (!trimmed) return
-    await onSubmit(trimmed)
-    setValue("")
-    setFocused(false)
+    setClientError(null)
+
+    const check = checkProfanity(trimmed)
+    if (check.hasProfanity) {
+      setClientError("Comment contains inappropriate language")
+      return
+    }
+
+    try {
+      await onSubmit(trimmed)
+      setValue("")
+      setFocused(false)
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to post comment"
+      setClientError(msg)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -75,13 +95,23 @@ export function CommentInput({
           ref={textareaRef}
           aria-label={placeholder}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value)
+            if (clientError) setClientError(null)
+          }}
           onFocus={() => setFocused(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           rows={1}
           className="w-full resize-none border-b border-border bg-transparent pb-1.5 text-sm outline-none placeholder:text-muted-foreground/50 focus:border-foreground"
         />
+
+        {displayError && (
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-destructive">
+            <AlertCircleIcon className="size-3 shrink-0" />
+            {displayError}
+          </p>
+        )}
 
         {(focused || value) && (
           <div className="mt-2 flex justify-end gap-2">

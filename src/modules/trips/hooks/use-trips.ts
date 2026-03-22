@@ -4,6 +4,7 @@ import { useMutation, usePaginatedQuery } from "convex/react"
 import { useQuery } from "convex-helpers/react/cache"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
+import { toast } from "sonner"
 import { useSearchParams } from "./use-search-params"
 import type { Id } from "@backend/dataModel"
 
@@ -60,6 +61,9 @@ export const useCreateTrip = () => {
     setIsPending(true)
     try {
       return await createTripMutation(args)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create trip")
+
     } finally {
       setIsPending(false)
     }
@@ -78,8 +82,9 @@ export const useUpdateTrip = () => {
     setIsPending(true)
     try {
       await updateTrip(args)
-    } catch {
-      console.error("Failed to update trip")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update trip")
+
     } finally {
       setIsPending(false)
     }
@@ -98,8 +103,9 @@ export const useRemoveTrip = () => {
     setIsPending(true)
     try {
       await removeTrip(args)
-    } catch {
-      console.error("Failed to remove trip")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove trip")
+
     } finally {
       setIsPending(false)
     }

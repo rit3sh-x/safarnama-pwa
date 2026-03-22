@@ -5,7 +5,9 @@ import { useQuery } from "convex-helpers/react/cache"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
 import { nanoid } from "nanoid"
+import { toast } from "sonner"
 import type { Id } from "@backend/dataModel"
+import type { RatingValue } from "@backend/types"
 
 export function useBlog(blogId: Id<"blog">) {
     const data = useQuery(api.methods.blogs.getById, { blogId })
@@ -74,10 +76,21 @@ export const useSaveBlog = () => {
         localStore.setQuery(api.methods.blogs.get, { tripId: args.tripId }, optimisticBlog)
 
         if (currentTripBlog?._id) {
+            const existing = localStore.getQuery(
+                api.methods.blogs.getById,
+                { blogId: currentTripBlog._id }
+            )
             localStore.setQuery(
                 api.methods.blogs.getById,
                 { blogId: currentTripBlog._id },
-                { ...optimisticBlog, isOwner: true }
+                {
+                    ...optimisticBlog,
+                    isOwner: true,
+                    avgRating: existing?.avgRating ?? 0,
+                    totalRatings: existing?.totalRatings ?? 0,
+                    distribution: existing?.distribution ?? { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<RatingValue, number>,
+                    userRating: existing?.userRating ?? null,
+                }
             )
         }
     })
@@ -88,6 +101,9 @@ export const useSaveBlog = () => {
         setIsPending(true)
         try {
             return await upsertBlog(args)
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to save blog")
+
         } finally {
             setIsPending(false)
         }
@@ -106,6 +122,9 @@ export const useRemoveBlog = () => {
         setIsPending(true)
         try {
             await removeBlog(args)
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to remove blog")
+
         } finally {
             setIsPending(false)
         }

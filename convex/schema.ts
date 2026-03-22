@@ -97,6 +97,14 @@ export default defineSchema({
     .index("blogId", ["blogId"])
     .index("parentId", ["parentId"]),
 
+  blogRating: defineTable({
+    blogId: v.id("blog"),
+    userId: v.string(),
+    rating: v.number(),
+  })
+    .index("blogId", ["blogId"])
+    .index("blogId_userId", ["blogId", "userId"]),
+
   joinRequest: defineTable({
     tripId: v.id("trip"),
     orgId: v.string(),

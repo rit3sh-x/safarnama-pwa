@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { PencilIcon, Trash2Icon, CornerDownRightIcon } from "lucide-react"
-import { cn, stringToHex } from "@/lib/utils"
+import { stringToHex } from "@/lib/utils"
 import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -43,7 +43,6 @@ function relativeTime(timestamp: number): string {
 }
 
 function renderContent(content: string) {
-  // Highlight @username mentions
   const parts = content.split(/(@\w+)/g)
   return parts.map((part, i) =>
     part.startsWith("@") ? (

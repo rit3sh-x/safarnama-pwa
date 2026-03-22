@@ -41,7 +41,6 @@ export function EditorToolbar() {
   return (
     <TooltipProvider>
       <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-background px-2 py-1.5">
-        {/* History */}
         <ToolbarButton
           icon={Undo2Icon}
           label="Undo"
@@ -57,7 +56,6 @@ export function EditorToolbar() {
 
         <Separator orientation="vertical" className="mx-1 h-5" />
 
-        {/* Text Style */}
         <HeadingPicker />
         <FontFamilyPicker />
         <FontSizePicker />
@@ -65,7 +63,6 @@ export function EditorToolbar() {
 
         <Separator orientation="vertical" className="mx-1 h-5" />
 
-        {/* Formatting */}
         <ToolbarButton
           icon={BoldIcon}
           label="Bold"
@@ -99,7 +96,6 @@ export function EditorToolbar() {
 
         <Separator orientation="vertical" className="mx-1 h-5" />
 
-        {/* Colors */}
         <ColorPicker
           value={textColor}
           onChange={(color) =>
@@ -119,7 +115,6 @@ export function EditorToolbar() {
 
         <Separator orientation="vertical" className="mx-1 h-5" />
 
-        {/* Alignment + Lists */}
         <AlignmentPicker />
         <ToolbarButton
           icon={ListIcon}
@@ -142,7 +137,6 @@ export function EditorToolbar() {
 
         <Separator orientation="vertical" className="mx-1 h-5" />
 
-        {/* Insert */}
         <LinkButton />
         <ImageUploadButton />
         <ToolbarButton

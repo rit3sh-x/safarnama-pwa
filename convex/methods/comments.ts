@@ -4,6 +4,7 @@ import { requireUserAccess } from "../lib/utils"
 import { components } from "../_generated/api"
 import { paginationOptsValidator } from "convex/server"
 import type { Doc } from "../betterAuth/_generated/dataModel"
+import { checkProfanity } from "../lib/profanity"
 
 export const listParents = query({
   args: {
@@ -101,6 +102,10 @@ export const create = mutation({
   handler: async (ctx, { blogId, content, parentId }) => {
     const user = await requireUserAccess(ctx)
 
+    const profanityCheck = checkProfanity(content)
+    if (profanityCheck.hasProfanity)
+      throw new ConvexError("Comment contains inappropriate language")
+
     if (parentId) {
       const parent = await ctx.db.get(parentId)
       if (!parent || parent.blogId !== blogId) {
@@ -124,6 +129,11 @@ export const edit = mutation({
   },
   handler: async (ctx, { commentId, content }) => {
     const user = await requireUserAccess(ctx)
+
+    const profanityCheck = checkProfanity(content)
+    if (profanityCheck.hasProfanity)
+      throw new ConvexError("Comment contains inappropriate language")
+
     const comment = await ctx.db.get(commentId)
 
     if (!comment) throw new ConvexError("Comment not found")

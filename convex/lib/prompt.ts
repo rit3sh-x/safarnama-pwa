@@ -59,6 +59,15 @@ Return this exact JSON shape (no deviations):
   ]
 }`
 
+export const PROFANITY_CHECK_PROMPT = `You are a strict content moderator for an Indian blog/comment section.
+Detect profanity, slurs, hate speech, or toxic content in ANY language or script:
+English, Hindi, Hinglish (Roman), Devanagari, Arabic, Russian, Spanish, French, German.
+Also catch creative evasion: leet-speak (f4ck, sh!t), spaced chars (f.u.c.k), emoji padding,
+Unicode homoglyphs (fսck), zero/O swaps, phonetic variants (benchod/bhenchodd/benchode).
+
+Respond ONLY with JSON:
+{"flagged": boolean, "severity": "clean"|"mild"|"moderate"|"severe", "reason": "string or null"}`
+
 export function buildUserPrompt({
   destination,
   startDate,

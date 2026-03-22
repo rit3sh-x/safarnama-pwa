@@ -3,6 +3,7 @@ import { api } from "@backend/api"
 import { useMutation, usePaginatedQuery } from "convex/react"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
+import { toast } from "sonner"
 import type { Id } from "@backend/dataModel"
 import { useSearchParams } from "./use-search-params"
 
@@ -35,8 +36,8 @@ export const useRemoveMember = () => {
     setIsPending(true)
     try {
       await removeMember(args)
-    } catch {
-      console.error("Failed to remove member")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove member")
     } finally {
       setIsPending(false)
     }
@@ -55,8 +56,8 @@ export const useLeaveTrip = () => {
     setIsPending(true)
     try {
       await leaveTrip(args)
-    } catch {
-      console.error("Failed to leave trip")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to leave trip")
     } finally {
       setIsPending(false)
     }
@@ -75,8 +76,8 @@ export const useChangeMemberRole = () => {
     setIsPending(true)
     try {
       await changeMemberRole(args)
-    } catch {
-      console.error("Failed to change member role")
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to change role")
     } finally {
       setIsPending(false)
     }

@@ -32,6 +32,8 @@ export function BlogListView() {
                 destination={blog.tripDestination}
                 coverImage={blog.coverImage}
                 publishedAt={blog.publishedAt}
+                avgRating={(blog as { avgRating?: number }).avgRating}
+                totalRatings={(blog as { totalRatings?: number }).totalRatings}
               />
             ))}
           </div>

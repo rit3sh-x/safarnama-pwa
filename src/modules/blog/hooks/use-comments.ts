@@ -5,6 +5,7 @@ import { useMutation, usePaginatedQuery } from "convex/react"
 import { useQuery } from "convex-helpers/react/cache"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
+import { toast } from "sonner"
 
 export function useParentComments(blogId: Id<"blog">) {
   const { results, status, loadMore } = usePaginatedQuery(
@@ -43,6 +44,9 @@ export const useCreateComment = () => {
     setIsPending(true)
     try {
       await create(args)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to post comment")
+
     } finally {
       setIsPending(false)
     }
@@ -61,6 +65,9 @@ export const useEditComment = () => {
     setIsPending(true)
     try {
       await edit(args)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to edit comment")
+
     } finally {
       setIsPending(false)
     }
@@ -79,6 +86,9 @@ export const useDeleteComment = () => {
     setIsPending(true)
     try {
       await remove(args)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete comment")
+
     } finally {
       setIsPending(false)
     }

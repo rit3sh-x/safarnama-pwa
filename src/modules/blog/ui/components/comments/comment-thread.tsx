@@ -34,7 +34,6 @@ export function CommentThread({
 
   const replyCount = topComment.replyCount ?? 0
 
-  // Only fetch replies when expanded
   const { replies, isLoading: repliesLoading } = useReplies(
     expanded ? topComment._id : undefined
   )
@@ -50,7 +49,6 @@ export function CommentThread({
     if (!expanded) setExpanded(true)
   }
 
-  // When replying to a reply, prepend @username (YouTube behavior)
   const replyInitialValue =
     replyingTo && replyingTo._id !== topComment._id
       ? `@${replyingTo.author.username} `
@@ -66,7 +64,6 @@ export function CommentThread({
         isEditPending={isEditPending}
       />
 
-      {/* View replies toggle */}
       {replyCount > 0 && (
         <div className="ml-11">
           <Button
@@ -87,7 +84,6 @@ export function CommentThread({
         </div>
       )}
 
-      {/* Replies — indented, lazy loaded */}
       {expanded && (
         <div className="ml-11 border-l border-border pl-4">
           {repliesLoading && (
@@ -109,7 +105,6 @@ export function CommentThread({
         </div>
       )}
 
-      {/* Inline reply input */}
       {replyingTo && (
         <div className="ml-11 mt-1 pl-4">
           <CommentInput

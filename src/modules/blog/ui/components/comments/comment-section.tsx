@@ -56,13 +56,11 @@ export function CommentSection({ blogId }: CommentSectionProps) {
         <h2 className="text-lg font-semibold">Comments</h2>
       </div>
 
-      {/* New comment input */}
       <CommentInput
         onSubmit={handleCreateTopLevel}
         isPending={isCreatePending}
       />
 
-      {/* Loading */}
       {isLoading && (
         <div className="mt-6 space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -77,7 +75,6 @@ export function CommentSection({ blogId }: CommentSectionProps) {
         </div>
       )}
 
-      {/* Comments */}
       {!isLoading && comments.length > 0 && (
         <div className="mt-6 space-y-1">
           {comments.map((comment) => (
@@ -95,7 +92,6 @@ export function CommentSection({ blogId }: CommentSectionProps) {
         </div>
       )}
 
-      {/* Load more */}
       {comments.length > 0 && (
         <InfiniteScrollTrigger
           canLoadMore={!isDone}
@@ -107,7 +103,6 @@ export function CommentSection({ blogId }: CommentSectionProps) {
         />
       )}
 
-      {/* Empty state */}
       {!isLoading && comments.length === 0 && (
         <p className="mt-8 text-center text-sm text-muted-foreground">
           No comments yet. Be the first to share your thoughts!
