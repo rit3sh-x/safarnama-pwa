@@ -1,9 +1,10 @@
 import { useNavigate } from "@tanstack/react-router"
-import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication"
+import { useAuthentication } from "@/modules/auth/hooks/use-authentication"
 import { UserCircle2Icon } from "lucide-react"
 
 import { cn, stringToHex } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface TopBarProps {
   title: string
@@ -12,7 +13,21 @@ interface TopBarProps {
 
 export function TopBar({ title, className }: TopBarProps) {
   const navigate = useNavigate()
-  const { user } = useAuthenticatedUser()
+  const { user } = useAuthentication()
+
+  if (!user || !user.username) {
+    return (
+      <div
+        className={cn(
+          "flex items-center justify-between border-b border-border px-4 pt-4 pb-3",
+          className
+        )}
+      >
+        <Skeleton className="h-6 w-28 rounded-md" />
+        <Skeleton className="size-9 rounded-full" />
+      </div>
+    )
+  }
 
   const avatarBgColor = stringToHex(user.username)
 

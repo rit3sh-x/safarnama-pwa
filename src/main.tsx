@@ -13,9 +13,11 @@ import { ThemeProvider } from "./components/theme-provider"
 import { Provider as JotaiProvider } from "jotai"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache"
+import { ErrorBoundary } from "react-error-boundary"
 
 import { Toaster } from "@/components/ui/sonner"
 import "./index.css"
+import { ErrorView } from "./modules/dashboard/ui/views/error-view"
 
 const CACHE_EXPIRATION_TIME = 300000
 
@@ -45,26 +47,28 @@ if (!rootElement.innerHTML) {
 
   root.render(
     <StrictMode>
-      <JotaiProvider>
-        <TooltipProvider>
-          <ThemeProvider>
-            <OnboardingProvider>
-              <ConvexBetterAuthProvider
-                client={convex}
-                authClient={authClient}
-              >
-                <ConvexQueryCacheProvider expiration={CACHE_EXPIRATION_TIME}>
-                  <AuthenticationProvider>
-                    <RouterProvider router={router} />
-                    <NetworkModal />
-                    <Toaster />
-                  </AuthenticationProvider>
-                </ConvexQueryCacheProvider>
-              </ConvexBetterAuthProvider>
-            </OnboardingProvider>
-          </ThemeProvider>
-        </TooltipProvider>
-      </JotaiProvider>
+      <ErrorBoundary fallback={<ErrorView />}>
+        <JotaiProvider>
+          <TooltipProvider>
+            <ThemeProvider>
+              <OnboardingProvider>
+                <ConvexBetterAuthProvider
+                  client={convex}
+                  authClient={authClient}
+                >
+                  <ConvexQueryCacheProvider expiration={CACHE_EXPIRATION_TIME}>
+                    <AuthenticationProvider>
+                      <RouterProvider router={router} />
+                      <NetworkModal />
+                      <Toaster />
+                    </AuthenticationProvider>
+                  </ConvexQueryCacheProvider>
+                </ConvexBetterAuthProvider>
+              </OnboardingProvider>
+            </ThemeProvider>
+          </TooltipProvider>
+        </JotaiProvider>
+      </ErrorBoundary>
     </StrictMode>
   )
 }
