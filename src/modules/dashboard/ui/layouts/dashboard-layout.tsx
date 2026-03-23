@@ -34,8 +34,6 @@ export const DashboardLayout = () => {
   }
 
   return (
-    <div className="h-full overflow-hidden">
-      <Outlet />
-    </div>
+    <Outlet />
   )
 }

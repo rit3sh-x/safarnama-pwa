@@ -94,10 +94,38 @@ export const get = query({
   },
   handler: async (ctx, { tripId }) => {
     const trip = await ctx.db.get(tripId)
-    if (trip?.isPublic) return trip
+
+    if (!trip) return null;
+
+    const org: Doc<"organization"> = await ctx.runQuery(
+      components.betterAuth.adapter.findOne, {
+      model: "organization",
+      where: [
+        {
+          field: "_id",
+          value: trip.orgId,
+          operator: "eq",
+        },
+      ],
+    }
+    )
+
+    const tripData = {
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      destination: trip.destination,
+      description: trip.description,
+      isPublic: trip.isPublic,
+      orgId: trip.orgId as Id<"organization">,
+      logo: org.logo,
+      itineraryStatus: trip.itineraryStatus,
+      title: trip.title,
+    }
+
+    if (trip.isPublic) return tripData
 
     await requireTripMember(ctx, tripId)
-    return trip
+    return tripData
   },
 })
 
@@ -130,12 +158,12 @@ export const list = query({
           },
           ...(search
             ? [
-                {
-                  field: "name",
-                  value: search.toLowerCase(),
-                  operator: "contains" as const,
-                },
-              ]
+              {
+                field: "name",
+                value: search.toLowerCase(),
+                operator: "contains" as const,
+              },
+            ]
             : []),
         ],
         paginationOpts,
@@ -200,10 +228,10 @@ export const list = query({
         updatedAt: lastMsg ? lastMsg._creationTime : trip.updatedAt,
         lastMessage: lastMsg
           ? {
-              content: lastMsg.content,
-              senderId: lastMsg.senderId,
-              deletedAt: lastMsg.deletedAt,
-            }
+            content: lastMsg.content,
+            senderId: lastMsg.senderId,
+            deletedAt: lastMsg.deletedAt,
+          }
           : null,
         unreadCount,
         destination: trip.destination,
@@ -227,9 +255,9 @@ export const listPublic = query({
       .filter((q2) =>
         s
           ? q2.or(
-              q2.gte(q2.field("title"), s),
-              q2.gte(q2.field("destination"), s)
-            )
+            q2.gte(q2.field("title"), s),
+            q2.gte(q2.field("destination"), s)
+          )
           : q2.eq(q2.field("isPublic"), true)
       )
       .order("desc")
@@ -463,9 +491,9 @@ export const dashboardSummary = query({
     const users: { userId: string; username: string; image: string | null }[] =
       senderIds.length > 0
         ? await ctx.runQuery(
-            components.betterAuth.methods.users.getUsersByIds,
-            { userIds: senderIds as Id<"user">[] }
-          )
+          components.betterAuth.methods.users.getUsersByIds,
+          { userIds: senderIds as Id<"user">[] }
+        )
         : []
     const userMap = new Map(users.map((u) => [u.userId, u]))
 

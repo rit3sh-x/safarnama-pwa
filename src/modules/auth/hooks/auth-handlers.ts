@@ -1,4 +1,5 @@
 import { authClient } from "@/lib/auth-client"
+import {toast} from "sonner"
 
 export const signInWithUsername = ({
   password,
@@ -13,12 +14,13 @@ export const signInWithUsername = ({
   }
 }) => {
   return authClient.signIn.username(
+    { username, password },
     {
-      username,
-      password,
-    },
-    {
-      ...fetchOptions,
+      onSuccess: fetchOptions?.onSuccess,
+      onError: ({ error }) => {
+        toast.error(error instanceof Error ? error.message : "Sign in failed")
+        fetchOptions?.onError?.({ error })
+      },
     }
   )
 }
@@ -36,12 +38,13 @@ export const signInWithEmail = ({
   }
 }) => {
   return authClient.signIn.email(
+    { email, password },
     {
-      email,
-      password,
-    },
-    {
-      ...fetchOptions,
+      onSuccess: fetchOptions?.onSuccess,
+      onError: ({ error }) => {
+        toast.error(error instanceof Error ? error.message : "Sign in failed")
+        fetchOptions?.onError?.({ error })
+      },
     }
   )
 }
@@ -61,22 +64,26 @@ export const signUpWithEmail = ({
   }
 }) => {
   return authClient.signUp.email(
+    { email, password, name },
     {
-      email,
-      password,
-      name,
-    },
-    {
-      ...fetchOptions,
+      onSuccess: fetchOptions?.onSuccess,
+      onError: ({ error }) => {
+        toast.error(error instanceof Error ? error.message : "Sign up failed")
+        fetchOptions?.onError?.({ error })
+      },
     }
   )
 }
 
 export async function signInWithGoogle() {
-  return authClient.signIn.social({
-    provider: "google",
-    callbackURL: "/create-username",
-  })
+  try {
+    return await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/sign-up/create-username",
+    })
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : "Google sign in failed")
+  }
 }
 
 export async function changeUsername({
@@ -92,12 +99,13 @@ export async function changeUsername({
   }
 }) {
   return authClient.updateUser(
+    { username, image: imageUrl },
     {
-      username,
-      image: imageUrl,
-    },
-    {
-      ...fetchOptions,
+      onSuccess: fetchOptions?.onSuccess,
+      onError: ({ error }) => {
+        toast.error(error instanceof Error ? error.message : "Failed to update profile")
+        fetchOptions?.onError?.({ error })
+      },
     }
   )
 }

@@ -1,9 +1,10 @@
 import { useEffect } from "react"
 import { useAtom, useAtomValue } from "jotai"
-import { selectedTripAtom, tripPanelViewAtom } from "../../atoms"
+import { selectedTripAtom, tripPanelViewAtom, publicTripPreviewAtom } from "../../atoms"
 import { TripsView } from "./trip-list-view"
 import { TripChatView } from "./trip-chat-view"
 import { TripInfoView } from "./trip-info-view"
+import { PublicTripPreview } from "./public-trip-preview"
 import { TripExpenseView } from "@/modules/expense/ui/views/trip-expense-view"
 import { TripPlanView } from "./trip-plan-view"
 import { MessageSquare } from "lucide-react"
@@ -13,10 +14,12 @@ import type { Id } from "@backend/dataModel"
 export function TripsSplitView() {
   const selectedTrip = useAtomValue(selectedTripAtom)
   const [panelView, setPanelView] = useAtom(tripPanelViewAtom)
+  const [publicPreviewId, setPublicPreview] = useAtom(publicTripPreviewAtom)
 
   useEffect(() => {
     setPanelView("chat")
-  }, [selectedTrip?.tripId, setPanelView])
+    if (selectedTrip) setPublicPreview(null)
+  }, [selectedTrip, setPanelView, setPublicPreview])
 
   return (
     <div className="grid h-full md:grid-cols-[3fr_5fr] lg:grid-cols-[1fr_2fr] xl:grid-cols-[1fr_3fr] 2xl:grid-cols-[1fr_4fr]">
@@ -25,7 +28,12 @@ export function TripsSplitView() {
       </div>
 
       <div className="overflow-hidden">
-        {selectedTrip ? (
+        {publicPreviewId ? (
+          <PublicTripPreview
+            tripId={publicPreviewId}
+            onBack={() => setPublicPreview(null)}
+          />
+        ) : selectedTrip ? (
           <TripPanel
             tripId={selectedTrip.tripId}
             view={panelView}

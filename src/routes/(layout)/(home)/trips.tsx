@@ -3,7 +3,7 @@ import { TripsSplitView } from "@/modules/trips/ui/views/trips-split-view"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { createFileRoute } from "@tanstack/react-router"
 
-export const Route = createFileRoute("/(home)/trips")({
+export const Route = createFileRoute("/(layout)/(home)/trips")({
   component: TripsPage,
 })
 

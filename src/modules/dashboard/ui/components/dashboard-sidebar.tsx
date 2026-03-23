@@ -33,20 +33,19 @@ export const DashboardSidebar = () => {
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              render={(props) => (
+              render={
                 <Link
-                  {...props}
                   to="/dashboard"
                   className="flex items-center justify-center"
-                >
-                  <img
-                    src="/logo.png"
-                    alt="Safarnama"
-                    className="size-12 shrink-0 object-contain"
-                  />
-                </Link>
-              )}
-            />
+                />
+              }
+            >
+              <img
+                src="/logo.png"
+                alt="Safarnama"
+                className="size-12 shrink-0 object-contain"
+              />
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -57,15 +56,14 @@ export const DashboardSidebar = () => {
             <SidebarMenuItem key={tab.name}>
               <SidebarMenuButton
                 isActive={isActive(tab.route)}
+                tooltip={tab.title}
                 className={cn(
                   isActive(tab.route) && "bg-foreground! text-background!"
                 )}
-                render={(props) => (
-                  <Link {...props} to={tab.route}>
-                    <tab.icon className="size-4" />
-                  </Link>
-                )}
-              />
+                render={<Link to={tab.route} />}
+              >
+                <tab.icon className="size-4" />
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

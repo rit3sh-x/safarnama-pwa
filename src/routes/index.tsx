@@ -1,11 +1,18 @@
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, Navigate } from "@tanstack/react-router"
+import { useAuthentication } from "@/modules/auth/hooks/use-authentication"
 
 export const Route = createFileRoute("/")({
-  beforeLoad: () => {
-    throw redirect({
-      to: "/dashboard",
-      replace: true,
-    })
-  },
-  component: undefined,
+  component: IndexRedirect,
 })
+
+function IndexRedirect() {
+  const { isLoading, isAuthenticated, hasUsername } = useAuthentication()
+
+  if (isLoading) return null
+
+  if (isAuthenticated && hasUsername) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return <Navigate to="/signin" replace />
+}

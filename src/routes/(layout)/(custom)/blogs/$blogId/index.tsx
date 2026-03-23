@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { BlogViewerView } from "@/modules/blog/ui/views/blog-viewer-view"
 
-export const Route = createFileRoute("/(custom)/blogs/$blogId/")({
+export const Route = createFileRoute("/(layout)/(custom)/blogs/$blogId/")({
   component: BlogViewPage,
 })
 

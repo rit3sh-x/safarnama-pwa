@@ -1,13 +1,23 @@
 import profanity, { ProfanitySeverity } from "allprofanity"
+import { BLOCKED_WORDS } from "./constants"
 
-profanity.loadLanguages(["english", "french", "german", "spanish", "hindi", "hinglish"])
-profanity.loadIndianLanguages()
+let initialized = false
+
+function getProfanity() {
+  if (!initialized) {
+    profanity.loadLanguages(["english", "french", "german", "spanish", "hindi"])
+    profanity.loadIndianLanguages()
+    profanity.add(BLOCKED_WORDS)
+    initialized = true
+  }
+  return profanity
+}
 
 export function checkProfanity(text: string): {
   hasProfanity: boolean
   severity: ProfanitySeverity
 } {
-  const result = profanity.detect(text)
+  const result = getProfanity().detect(text)
   return {
     hasProfanity: result.hasProfanity,
     severity: result.severity,

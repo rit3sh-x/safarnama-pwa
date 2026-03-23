@@ -21,7 +21,7 @@ export function TripLayout({ tripId }: TripLayoutProps) {
 
   if (isMobile) {
     return (
-      <div className="flex h-dvh flex-col bg-background">
+      <div className="flex h-full flex-col bg-background">
         <ChatHeader
           name={trip?.name ?? "Trip"}
           tripId={tripId}

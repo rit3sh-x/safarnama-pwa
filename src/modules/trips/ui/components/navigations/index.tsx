@@ -11,7 +11,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { useCallback } from "react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useSetAtom } from "jotai"
-import { selectedTripAtom } from "../../../atoms"
+import { selectedTripAtom, publicTripPreviewAtom } from "../../../atoms"
 import type { InviteItem, ReviewType } from "../../../types"
 import type { Id } from "@backend/dataModel"
 import type { Doc, Id as IdAuth } from "@backend/authDataModel"
@@ -84,15 +84,23 @@ function InvitesTab() {
 function PublicTripsTab() {
   const { trips, isLoading, isDone, loadMore } = usePublicTrips()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
+  const setPublicPreview = useSetAtom(publicTripPreviewAtom)
+  const setSelectedTrip = useSetAtom(selectedTripAtom)
 
   const handlePress = useCallback(
     (tripId: Id<"trip">) => {
-      navigate({
-        to: "/trips/$tripId/info",
-        params: { tripId },
-      })
+      if (isMobile) {
+        navigate({
+          to: "/public/$tripId",
+          params: { tripId },
+        })
+      } else {
+        setSelectedTrip(null)
+        setPublicPreview(tripId)
+      }
     },
-    [navigate]
+    [navigate, isMobile, setPublicPreview, setSelectedTrip]
   )
 
   return (

@@ -1,5 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router"
-import { TripLayout } from "@/modules/trips/ui/layouts/trip-layout"
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router"
 import type { Id } from "@backend/dataModel"
 import { getIsMobile } from "@/hooks/use-mobile"
 import { z } from "zod"
@@ -8,7 +7,7 @@ const tripParamsSchema = z.object({
   tripId: z.string().transform((val) => val as Id<"trip">),
 })
 
-export const Route = createFileRoute("/(custom)/trips/$tripId")({
+export const Route = createFileRoute("/(layout)/(custom)/public/$tripId")({
   params: {
     parse: (params) => tripParamsSchema.parse(params),
     stringify: (params) => ({
@@ -27,6 +26,5 @@ export const Route = createFileRoute("/(custom)/trips/$tripId")({
 })
 
 function Page() {
-  const { tripId } = Route.useParams()
-  return <TripLayout tripId={tripId} />
+  return <Outlet />
 }

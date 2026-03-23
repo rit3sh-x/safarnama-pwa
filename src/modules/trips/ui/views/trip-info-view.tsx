@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { selectedTripAtom } from "../../atoms"
 import { useMembers } from "../../hooks/use-members"
 import { TripInfoHeader, MembersSection } from "../components/info"
+import { JoinRequestsSection } from "../components/info/join-requests-section"
 import { InviteMembersModal } from "../components/invite-members-modal"
 import type { Id } from "@backend/dataModel"
 
@@ -52,6 +53,10 @@ export function TripInfoView({ tripId, onBack }: TripInfoViewProps) {
           isAdmin={isAdmin}
           onInvitePress={() => setShowInvite(true)}
         />
+
+        {isAdmin && selectedTrip?.orgId && (
+          <JoinRequestsSection orgId={selectedTrip.orgId} />
+        )}
       </div>
 
       {selectedTrip?.orgId && (

@@ -1,6 +1,8 @@
 import { PAGINATION } from "@/lib/constants"
 import { api } from "@backend/api"
+import type { Id } from "@backend/dataModel"
 import { useMutation, usePaginatedQuery } from "convex/react"
+import { useQuery } from "convex-helpers/react/cache"
 import type { FunctionArgs } from "convex/server"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -80,4 +82,13 @@ export const useReviewInvite = () => {
   }
 
   return { mutate, isPending }
+}
+
+export function useRequestStatus(tripId: Id<"trip">) {
+  const data = useQuery(api.methods.requests.checkRequestStatus, { tripId })
+
+  return {
+    status: data?.status ?? "none",
+    isLoading: data === undefined,
+  }
 }

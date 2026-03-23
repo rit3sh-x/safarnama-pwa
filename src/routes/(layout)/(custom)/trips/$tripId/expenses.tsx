@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { TripExpenseView } from "@/modules/expense/ui/views/trip-expense-view"
 
-export const Route = createFileRoute("/(custom)/trips/$tripId/expenses")({
+export const Route = createFileRoute("/(layout)/(custom)/trips/$tripId/expenses")({
   component: RouteComponent,
 })
 

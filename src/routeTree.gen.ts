@@ -10,32 +10,35 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as homeRouteRouteImport } from './routes/(home)/route'
+import { Route as layoutRouteRouteImport } from './routes/(layout)/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as homeTripsRouteImport } from './routes/(home)/trips'
-import { Route as homeSettingsRouteImport } from './routes/(home)/settings'
-import { Route as homeExpensesRouteImport } from './routes/(home)/expenses'
-import { Route as homeDashboardRouteImport } from './routes/(home)/dashboard'
-import { Route as homeBlogsRouteImport } from './routes/(home)/blogs'
 import { Route as authSigninRouteImport } from './routes/(auth)/signin'
+import { Route as layouthomeRouteRouteImport } from './routes/(layout)/(home)/route'
+import { Route as layouthomeTripsRouteImport } from './routes/(layout)/(home)/trips'
+import { Route as layouthomeSettingsRouteImport } from './routes/(layout)/(home)/settings'
+import { Route as layouthomeExpensesRouteImport } from './routes/(layout)/(home)/expenses'
+import { Route as layouthomeDashboardRouteImport } from './routes/(layout)/(home)/dashboard'
+import { Route as layouthomeBlogsRouteImport } from './routes/(layout)/(home)/blogs'
 import { Route as authSignUpCreateUsernameRouteImport } from './routes/(auth)/sign-up/create-username'
 import { Route as authSignUpCreateAccountRouteImport } from './routes/(auth)/sign-up/create-account'
-import { Route as customTripsTripIdRouteRouteImport } from './routes/(custom)/trips/$tripId/route'
-import { Route as customBlogsBlogIdRouteRouteImport } from './routes/(custom)/blogs/$blogId/route'
-import { Route as customBlogsBlogIdIndexRouteImport } from './routes/(custom)/blogs/$blogId/index'
-import { Route as customTripsTripIdPlanRouteImport } from './routes/(custom)/trips/$tripId/plan'
-import { Route as customTripsTripIdInfoRouteImport } from './routes/(custom)/trips/$tripId/info'
-import { Route as customTripsTripIdExpensesRouteImport } from './routes/(custom)/trips/$tripId/expenses'
-import { Route as customTripsTripIdChatRouteImport } from './routes/(custom)/trips/$tripId/chat'
-import { Route as customBlogsBlogIdEditRouteImport } from './routes/(custom)/blogs/$blogId/edit'
+import { Route as layoutcustomTripsTripIdRouteRouteImport } from './routes/(layout)/(custom)/trips/$tripId/route'
+import { Route as layoutcustomPublicTripIdRouteRouteImport } from './routes/(layout)/(custom)/public/$tripId/route'
+import { Route as layoutcustomBlogsBlogIdRouteRouteImport } from './routes/(layout)/(custom)/blogs/$blogId/route'
+import { Route as layoutcustomPublicTripIdIndexRouteImport } from './routes/(layout)/(custom)/public/$tripId/index'
+import { Route as layoutcustomBlogsBlogIdIndexRouteImport } from './routes/(layout)/(custom)/blogs/$blogId/index'
+import { Route as layoutcustomTripsTripIdPlanRouteImport } from './routes/(layout)/(custom)/trips/$tripId/plan'
+import { Route as layoutcustomTripsTripIdInfoRouteImport } from './routes/(layout)/(custom)/trips/$tripId/info'
+import { Route as layoutcustomTripsTripIdExpensesRouteImport } from './routes/(layout)/(custom)/trips/$tripId/expenses'
+import { Route as layoutcustomTripsTripIdChatRouteImport } from './routes/(layout)/(custom)/trips/$tripId/chat'
+import { Route as layoutcustomBlogsBlogIdEditRouteImport } from './routes/(layout)/(custom)/blogs/$blogId/edit'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const homeRouteRoute = homeRouteRouteImport.update({
-  id: '/(home)',
+const layoutRouteRoute = layoutRouteRouteImport.update({
+  id: '/(layout)',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,35 +46,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const homeTripsRoute = homeTripsRouteImport.update({
-  id: '/trips',
-  path: '/trips',
-  getParentRoute: () => homeRouteRoute,
-} as any)
-const homeSettingsRoute = homeSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => homeRouteRoute,
-} as any)
-const homeExpensesRoute = homeExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
-  getParentRoute: () => homeRouteRoute,
-} as any)
-const homeDashboardRoute = homeDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => homeRouteRoute,
-} as any)
-const homeBlogsRoute = homeBlogsRouteImport.update({
-  id: '/blogs',
-  path: '/blogs',
-  getParentRoute: () => homeRouteRoute,
-} as any)
 const authSigninRoute = authSigninRouteImport.update({
   id: '/(auth)/signin',
   path: '/signin',
   getParentRoute: () => rootRouteImport,
+} as any)
+const layouthomeRouteRoute = layouthomeRouteRouteImport.update({
+  id: '/(home)',
+  getParentRoute: () => layoutRouteRoute,
+} as any)
+const layouthomeTripsRoute = layouthomeTripsRouteImport.update({
+  id: '/trips',
+  path: '/trips',
+  getParentRoute: () => layouthomeRouteRoute,
+} as any)
+const layouthomeSettingsRoute = layouthomeSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => layouthomeRouteRoute,
+} as any)
+const layouthomeExpensesRoute = layouthomeExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => layouthomeRouteRoute,
+} as any)
+const layouthomeDashboardRoute = layouthomeDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => layouthomeRouteRoute,
+} as any)
+const layouthomeBlogsRoute = layouthomeBlogsRouteImport.update({
+  id: '/blogs',
+  path: '/blogs',
+  getParentRoute: () => layouthomeRouteRoute,
 } as any)
 const authSignUpCreateUsernameRoute =
   authSignUpCreateUsernameRouteImport.update({
@@ -84,108 +91,133 @@ const authSignUpCreateAccountRoute = authSignUpCreateAccountRouteImport.update({
   path: '/sign-up/create-account',
   getParentRoute: () => rootRouteImport,
 } as any)
-const customTripsTripIdRouteRoute = customTripsTripIdRouteRouteImport.update({
-  id: '/(custom)/trips/$tripId',
-  path: '/trips/$tripId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const customBlogsBlogIdRouteRoute = customBlogsBlogIdRouteRouteImport.update({
-  id: '/(custom)/blogs/$blogId',
-  path: '/blogs/$blogId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const customBlogsBlogIdIndexRoute = customBlogsBlogIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => customBlogsBlogIdRouteRoute,
-} as any)
-const customTripsTripIdPlanRoute = customTripsTripIdPlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
-  getParentRoute: () => customTripsTripIdRouteRoute,
-} as any)
-const customTripsTripIdInfoRoute = customTripsTripIdInfoRouteImport.update({
-  id: '/info',
-  path: '/info',
-  getParentRoute: () => customTripsTripIdRouteRoute,
-} as any)
-const customTripsTripIdExpensesRoute =
-  customTripsTripIdExpensesRouteImport.update({
+const layoutcustomTripsTripIdRouteRoute =
+  layoutcustomTripsTripIdRouteRouteImport.update({
+    id: '/(custom)/trips/$tripId',
+    path: '/trips/$tripId',
+    getParentRoute: () => layoutRouteRoute,
+  } as any)
+const layoutcustomPublicTripIdRouteRoute =
+  layoutcustomPublicTripIdRouteRouteImport.update({
+    id: '/(custom)/public/$tripId',
+    path: '/public/$tripId',
+    getParentRoute: () => layoutRouteRoute,
+  } as any)
+const layoutcustomBlogsBlogIdRouteRoute =
+  layoutcustomBlogsBlogIdRouteRouteImport.update({
+    id: '/(custom)/blogs/$blogId',
+    path: '/blogs/$blogId',
+    getParentRoute: () => layoutRouteRoute,
+  } as any)
+const layoutcustomPublicTripIdIndexRoute =
+  layoutcustomPublicTripIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => layoutcustomPublicTripIdRouteRoute,
+  } as any)
+const layoutcustomBlogsBlogIdIndexRoute =
+  layoutcustomBlogsBlogIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => layoutcustomBlogsBlogIdRouteRoute,
+  } as any)
+const layoutcustomTripsTripIdPlanRoute =
+  layoutcustomTripsTripIdPlanRouteImport.update({
+    id: '/plan',
+    path: '/plan',
+    getParentRoute: () => layoutcustomTripsTripIdRouteRoute,
+  } as any)
+const layoutcustomTripsTripIdInfoRoute =
+  layoutcustomTripsTripIdInfoRouteImport.update({
+    id: '/info',
+    path: '/info',
+    getParentRoute: () => layoutcustomTripsTripIdRouteRoute,
+  } as any)
+const layoutcustomTripsTripIdExpensesRoute =
+  layoutcustomTripsTripIdExpensesRouteImport.update({
     id: '/expenses',
     path: '/expenses',
-    getParentRoute: () => customTripsTripIdRouteRoute,
+    getParentRoute: () => layoutcustomTripsTripIdRouteRoute,
   } as any)
-const customTripsTripIdChatRoute = customTripsTripIdChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => customTripsTripIdRouteRoute,
-} as any)
-const customBlogsBlogIdEditRoute = customBlogsBlogIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => customBlogsBlogIdRouteRoute,
-} as any)
+const layoutcustomTripsTripIdChatRoute =
+  layoutcustomTripsTripIdChatRouteImport.update({
+    id: '/chat',
+    path: '/chat',
+    getParentRoute: () => layoutcustomTripsTripIdRouteRoute,
+  } as any)
+const layoutcustomBlogsBlogIdEditRoute =
+  layoutcustomBlogsBlogIdEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => layoutcustomBlogsBlogIdRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
   '/signin': typeof authSigninRoute
-  '/blogs': typeof homeBlogsRoute
-  '/dashboard': typeof homeDashboardRoute
-  '/expenses': typeof homeExpensesRoute
-  '/settings': typeof homeSettingsRoute
-  '/trips': typeof homeTripsRoute
-  '/blogs/$blogId': typeof customBlogsBlogIdRouteRouteWithChildren
-  '/trips/$tripId': typeof customTripsTripIdRouteRouteWithChildren
   '/sign-up/create-account': typeof authSignUpCreateAccountRoute
   '/sign-up/create-username': typeof authSignUpCreateUsernameRoute
-  '/blogs/$blogId/edit': typeof customBlogsBlogIdEditRoute
-  '/trips/$tripId/chat': typeof customTripsTripIdChatRoute
-  '/trips/$tripId/expenses': typeof customTripsTripIdExpensesRoute
-  '/trips/$tripId/info': typeof customTripsTripIdInfoRoute
-  '/trips/$tripId/plan': typeof customTripsTripIdPlanRoute
-  '/blogs/$blogId/': typeof customBlogsBlogIdIndexRoute
+  '/blogs': typeof layouthomeBlogsRoute
+  '/dashboard': typeof layouthomeDashboardRoute
+  '/expenses': typeof layouthomeExpensesRoute
+  '/settings': typeof layouthomeSettingsRoute
+  '/trips': typeof layouthomeTripsRoute
+  '/blogs/$blogId': typeof layoutcustomBlogsBlogIdRouteRouteWithChildren
+  '/public/$tripId': typeof layoutcustomPublicTripIdRouteRouteWithChildren
+  '/trips/$tripId': typeof layoutcustomTripsTripIdRouteRouteWithChildren
+  '/blogs/$blogId/edit': typeof layoutcustomBlogsBlogIdEditRoute
+  '/trips/$tripId/chat': typeof layoutcustomTripsTripIdChatRoute
+  '/trips/$tripId/expenses': typeof layoutcustomTripsTripIdExpensesRoute
+  '/trips/$tripId/info': typeof layoutcustomTripsTripIdInfoRoute
+  '/trips/$tripId/plan': typeof layoutcustomTripsTripIdPlanRoute
+  '/blogs/$blogId/': typeof layoutcustomBlogsBlogIdIndexRoute
+  '/public/$tripId/': typeof layoutcustomPublicTripIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
   '/signin': typeof authSigninRoute
-  '/blogs': typeof homeBlogsRoute
-  '/dashboard': typeof homeDashboardRoute
-  '/expenses': typeof homeExpensesRoute
-  '/settings': typeof homeSettingsRoute
-  '/trips': typeof homeTripsRoute
-  '/trips/$tripId': typeof customTripsTripIdRouteRouteWithChildren
   '/sign-up/create-account': typeof authSignUpCreateAccountRoute
   '/sign-up/create-username': typeof authSignUpCreateUsernameRoute
-  '/blogs/$blogId/edit': typeof customBlogsBlogIdEditRoute
-  '/trips/$tripId/chat': typeof customTripsTripIdChatRoute
-  '/trips/$tripId/expenses': typeof customTripsTripIdExpensesRoute
-  '/trips/$tripId/info': typeof customTripsTripIdInfoRoute
-  '/trips/$tripId/plan': typeof customTripsTripIdPlanRoute
-  '/blogs/$blogId': typeof customBlogsBlogIdIndexRoute
+  '/blogs': typeof layouthomeBlogsRoute
+  '/dashboard': typeof layouthomeDashboardRoute
+  '/expenses': typeof layouthomeExpensesRoute
+  '/settings': typeof layouthomeSettingsRoute
+  '/trips': typeof layouthomeTripsRoute
+  '/trips/$tripId': typeof layoutcustomTripsTripIdRouteRouteWithChildren
+  '/blogs/$blogId/edit': typeof layoutcustomBlogsBlogIdEditRoute
+  '/trips/$tripId/chat': typeof layoutcustomTripsTripIdChatRoute
+  '/trips/$tripId/expenses': typeof layoutcustomTripsTripIdExpensesRoute
+  '/trips/$tripId/info': typeof layoutcustomTripsTripIdInfoRoute
+  '/trips/$tripId/plan': typeof layoutcustomTripsTripIdPlanRoute
+  '/blogs/$blogId': typeof layoutcustomBlogsBlogIdIndexRoute
+  '/public/$tripId': typeof layoutcustomPublicTripIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/(home)': typeof homeRouteRouteWithChildren
+  '/(layout)': typeof layoutRouteRouteWithChildren
   '/onboarding': typeof OnboardingRoute
+  '/(layout)/(home)': typeof layouthomeRouteRouteWithChildren
   '/(auth)/signin': typeof authSigninRoute
-  '/(home)/blogs': typeof homeBlogsRoute
-  '/(home)/dashboard': typeof homeDashboardRoute
-  '/(home)/expenses': typeof homeExpensesRoute
-  '/(home)/settings': typeof homeSettingsRoute
-  '/(home)/trips': typeof homeTripsRoute
-  '/(custom)/blogs/$blogId': typeof customBlogsBlogIdRouteRouteWithChildren
-  '/(custom)/trips/$tripId': typeof customTripsTripIdRouteRouteWithChildren
   '/(auth)/sign-up/create-account': typeof authSignUpCreateAccountRoute
   '/(auth)/sign-up/create-username': typeof authSignUpCreateUsernameRoute
-  '/(custom)/blogs/$blogId/edit': typeof customBlogsBlogIdEditRoute
-  '/(custom)/trips/$tripId/chat': typeof customTripsTripIdChatRoute
-  '/(custom)/trips/$tripId/expenses': typeof customTripsTripIdExpensesRoute
-  '/(custom)/trips/$tripId/info': typeof customTripsTripIdInfoRoute
-  '/(custom)/trips/$tripId/plan': typeof customTripsTripIdPlanRoute
-  '/(custom)/blogs/$blogId/': typeof customBlogsBlogIdIndexRoute
+  '/(layout)/(home)/blogs': typeof layouthomeBlogsRoute
+  '/(layout)/(home)/dashboard': typeof layouthomeDashboardRoute
+  '/(layout)/(home)/expenses': typeof layouthomeExpensesRoute
+  '/(layout)/(home)/settings': typeof layouthomeSettingsRoute
+  '/(layout)/(home)/trips': typeof layouthomeTripsRoute
+  '/(layout)/(custom)/blogs/$blogId': typeof layoutcustomBlogsBlogIdRouteRouteWithChildren
+  '/(layout)/(custom)/public/$tripId': typeof layoutcustomPublicTripIdRouteRouteWithChildren
+  '/(layout)/(custom)/trips/$tripId': typeof layoutcustomTripsTripIdRouteRouteWithChildren
+  '/(layout)/(custom)/blogs/$blogId/edit': typeof layoutcustomBlogsBlogIdEditRoute
+  '/(layout)/(custom)/trips/$tripId/chat': typeof layoutcustomTripsTripIdChatRoute
+  '/(layout)/(custom)/trips/$tripId/expenses': typeof layoutcustomTripsTripIdExpensesRoute
+  '/(layout)/(custom)/trips/$tripId/info': typeof layoutcustomTripsTripIdInfoRoute
+  '/(layout)/(custom)/trips/$tripId/plan': typeof layoutcustomTripsTripIdPlanRoute
+  '/(layout)/(custom)/blogs/$blogId/': typeof layoutcustomBlogsBlogIdIndexRoute
+  '/(layout)/(custom)/public/$tripId/': typeof layoutcustomPublicTripIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -193,70 +225,74 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/signin'
+    | '/sign-up/create-account'
+    | '/sign-up/create-username'
     | '/blogs'
     | '/dashboard'
     | '/expenses'
     | '/settings'
     | '/trips'
     | '/blogs/$blogId'
+    | '/public/$tripId'
     | '/trips/$tripId'
-    | '/sign-up/create-account'
-    | '/sign-up/create-username'
     | '/blogs/$blogId/edit'
     | '/trips/$tripId/chat'
     | '/trips/$tripId/expenses'
     | '/trips/$tripId/info'
     | '/trips/$tripId/plan'
     | '/blogs/$blogId/'
+    | '/public/$tripId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/onboarding'
     | '/signin'
+    | '/sign-up/create-account'
+    | '/sign-up/create-username'
     | '/blogs'
     | '/dashboard'
     | '/expenses'
     | '/settings'
     | '/trips'
     | '/trips/$tripId'
-    | '/sign-up/create-account'
-    | '/sign-up/create-username'
     | '/blogs/$blogId/edit'
     | '/trips/$tripId/chat'
     | '/trips/$tripId/expenses'
     | '/trips/$tripId/info'
     | '/trips/$tripId/plan'
     | '/blogs/$blogId'
+    | '/public/$tripId'
   id:
     | '__root__'
     | '/'
-    | '/(home)'
+    | '/(layout)'
     | '/onboarding'
+    | '/(layout)/(home)'
     | '/(auth)/signin'
-    | '/(home)/blogs'
-    | '/(home)/dashboard'
-    | '/(home)/expenses'
-    | '/(home)/settings'
-    | '/(home)/trips'
-    | '/(custom)/blogs/$blogId'
-    | '/(custom)/trips/$tripId'
     | '/(auth)/sign-up/create-account'
     | '/(auth)/sign-up/create-username'
-    | '/(custom)/blogs/$blogId/edit'
-    | '/(custom)/trips/$tripId/chat'
-    | '/(custom)/trips/$tripId/expenses'
-    | '/(custom)/trips/$tripId/info'
-    | '/(custom)/trips/$tripId/plan'
-    | '/(custom)/blogs/$blogId/'
+    | '/(layout)/(home)/blogs'
+    | '/(layout)/(home)/dashboard'
+    | '/(layout)/(home)/expenses'
+    | '/(layout)/(home)/settings'
+    | '/(layout)/(home)/trips'
+    | '/(layout)/(custom)/blogs/$blogId'
+    | '/(layout)/(custom)/public/$tripId'
+    | '/(layout)/(custom)/trips/$tripId'
+    | '/(layout)/(custom)/blogs/$blogId/edit'
+    | '/(layout)/(custom)/trips/$tripId/chat'
+    | '/(layout)/(custom)/trips/$tripId/expenses'
+    | '/(layout)/(custom)/trips/$tripId/info'
+    | '/(layout)/(custom)/trips/$tripId/plan'
+    | '/(layout)/(custom)/blogs/$blogId/'
+    | '/(layout)/(custom)/public/$tripId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  homeRouteRoute: typeof homeRouteRouteWithChildren
+  layoutRouteRoute: typeof layoutRouteRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   authSigninRoute: typeof authSigninRoute
-  customBlogsBlogIdRouteRoute: typeof customBlogsBlogIdRouteRouteWithChildren
-  customTripsTripIdRouteRoute: typeof customTripsTripIdRouteRouteWithChildren
   authSignUpCreateAccountRoute: typeof authSignUpCreateAccountRoute
   authSignUpCreateUsernameRoute: typeof authSignUpCreateUsernameRoute
 }
@@ -270,11 +306,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(home)': {
-      id: '/(home)'
+    '/(layout)': {
+      id: '/(layout)'
       path: ''
       fullPath: ''
-      preLoaderRoute: typeof homeRouteRouteImport
+      preLoaderRoute: typeof layoutRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -284,47 +320,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(home)/trips': {
-      id: '/(home)/trips'
-      path: '/trips'
-      fullPath: '/trips'
-      preLoaderRoute: typeof homeTripsRouteImport
-      parentRoute: typeof homeRouteRoute
-    }
-    '/(home)/settings': {
-      id: '/(home)/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof homeSettingsRouteImport
-      parentRoute: typeof homeRouteRoute
-    }
-    '/(home)/expenses': {
-      id: '/(home)/expenses'
-      path: '/expenses'
-      fullPath: '/expenses'
-      preLoaderRoute: typeof homeExpensesRouteImport
-      parentRoute: typeof homeRouteRoute
-    }
-    '/(home)/dashboard': {
-      id: '/(home)/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof homeDashboardRouteImport
-      parentRoute: typeof homeRouteRoute
-    }
-    '/(home)/blogs': {
-      id: '/(home)/blogs'
-      path: '/blogs'
-      fullPath: '/blogs'
-      preLoaderRoute: typeof homeBlogsRouteImport
-      parentRoute: typeof homeRouteRoute
-    }
     '/(auth)/signin': {
       id: '/(auth)/signin'
       path: '/signin'
       fullPath: '/signin'
       preLoaderRoute: typeof authSigninRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(layout)/(home)': {
+      id: '/(layout)/(home)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof layouthomeRouteRouteImport
+      parentRoute: typeof layoutRouteRoute
+    }
+    '/(layout)/(home)/trips': {
+      id: '/(layout)/(home)/trips'
+      path: '/trips'
+      fullPath: '/trips'
+      preLoaderRoute: typeof layouthomeTripsRouteImport
+      parentRoute: typeof layouthomeRouteRoute
+    }
+    '/(layout)/(home)/settings': {
+      id: '/(layout)/(home)/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof layouthomeSettingsRouteImport
+      parentRoute: typeof layouthomeRouteRoute
+    }
+    '/(layout)/(home)/expenses': {
+      id: '/(layout)/(home)/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof layouthomeExpensesRouteImport
+      parentRoute: typeof layouthomeRouteRoute
+    }
+    '/(layout)/(home)/dashboard': {
+      id: '/(layout)/(home)/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof layouthomeDashboardRouteImport
+      parentRoute: typeof layouthomeRouteRoute
+    }
+    '/(layout)/(home)/blogs': {
+      id: '/(layout)/(home)/blogs'
+      path: '/blogs'
+      fullPath: '/blogs'
+      preLoaderRoute: typeof layouthomeBlogsRouteImport
+      parentRoute: typeof layouthomeRouteRoute
     }
     '/(auth)/sign-up/create-username': {
       id: '/(auth)/sign-up/create-username'
@@ -340,128 +383,175 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authSignUpCreateAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(custom)/trips/$tripId': {
-      id: '/(custom)/trips/$tripId'
+    '/(layout)/(custom)/trips/$tripId': {
+      id: '/(layout)/(custom)/trips/$tripId'
       path: '/trips/$tripId'
       fullPath: '/trips/$tripId'
-      preLoaderRoute: typeof customTripsTripIdRouteRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof layoutcustomTripsTripIdRouteRouteImport
+      parentRoute: typeof layoutRouteRoute
     }
-    '/(custom)/blogs/$blogId': {
-      id: '/(custom)/blogs/$blogId'
+    '/(layout)/(custom)/public/$tripId': {
+      id: '/(layout)/(custom)/public/$tripId'
+      path: '/public/$tripId'
+      fullPath: '/public/$tripId'
+      preLoaderRoute: typeof layoutcustomPublicTripIdRouteRouteImport
+      parentRoute: typeof layoutRouteRoute
+    }
+    '/(layout)/(custom)/blogs/$blogId': {
+      id: '/(layout)/(custom)/blogs/$blogId'
       path: '/blogs/$blogId'
       fullPath: '/blogs/$blogId'
-      preLoaderRoute: typeof customBlogsBlogIdRouteRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof layoutcustomBlogsBlogIdRouteRouteImport
+      parentRoute: typeof layoutRouteRoute
     }
-    '/(custom)/blogs/$blogId/': {
-      id: '/(custom)/blogs/$blogId/'
+    '/(layout)/(custom)/public/$tripId/': {
+      id: '/(layout)/(custom)/public/$tripId/'
+      path: '/'
+      fullPath: '/public/$tripId/'
+      preLoaderRoute: typeof layoutcustomPublicTripIdIndexRouteImport
+      parentRoute: typeof layoutcustomPublicTripIdRouteRoute
+    }
+    '/(layout)/(custom)/blogs/$blogId/': {
+      id: '/(layout)/(custom)/blogs/$blogId/'
       path: '/'
       fullPath: '/blogs/$blogId/'
-      preLoaderRoute: typeof customBlogsBlogIdIndexRouteImport
-      parentRoute: typeof customBlogsBlogIdRouteRoute
+      preLoaderRoute: typeof layoutcustomBlogsBlogIdIndexRouteImport
+      parentRoute: typeof layoutcustomBlogsBlogIdRouteRoute
     }
-    '/(custom)/trips/$tripId/plan': {
-      id: '/(custom)/trips/$tripId/plan'
+    '/(layout)/(custom)/trips/$tripId/plan': {
+      id: '/(layout)/(custom)/trips/$tripId/plan'
       path: '/plan'
       fullPath: '/trips/$tripId/plan'
-      preLoaderRoute: typeof customTripsTripIdPlanRouteImport
-      parentRoute: typeof customTripsTripIdRouteRoute
+      preLoaderRoute: typeof layoutcustomTripsTripIdPlanRouteImport
+      parentRoute: typeof layoutcustomTripsTripIdRouteRoute
     }
-    '/(custom)/trips/$tripId/info': {
-      id: '/(custom)/trips/$tripId/info'
+    '/(layout)/(custom)/trips/$tripId/info': {
+      id: '/(layout)/(custom)/trips/$tripId/info'
       path: '/info'
       fullPath: '/trips/$tripId/info'
-      preLoaderRoute: typeof customTripsTripIdInfoRouteImport
-      parentRoute: typeof customTripsTripIdRouteRoute
+      preLoaderRoute: typeof layoutcustomTripsTripIdInfoRouteImport
+      parentRoute: typeof layoutcustomTripsTripIdRouteRoute
     }
-    '/(custom)/trips/$tripId/expenses': {
-      id: '/(custom)/trips/$tripId/expenses'
+    '/(layout)/(custom)/trips/$tripId/expenses': {
+      id: '/(layout)/(custom)/trips/$tripId/expenses'
       path: '/expenses'
       fullPath: '/trips/$tripId/expenses'
-      preLoaderRoute: typeof customTripsTripIdExpensesRouteImport
-      parentRoute: typeof customTripsTripIdRouteRoute
+      preLoaderRoute: typeof layoutcustomTripsTripIdExpensesRouteImport
+      parentRoute: typeof layoutcustomTripsTripIdRouteRoute
     }
-    '/(custom)/trips/$tripId/chat': {
-      id: '/(custom)/trips/$tripId/chat'
+    '/(layout)/(custom)/trips/$tripId/chat': {
+      id: '/(layout)/(custom)/trips/$tripId/chat'
       path: '/chat'
       fullPath: '/trips/$tripId/chat'
-      preLoaderRoute: typeof customTripsTripIdChatRouteImport
-      parentRoute: typeof customTripsTripIdRouteRoute
+      preLoaderRoute: typeof layoutcustomTripsTripIdChatRouteImport
+      parentRoute: typeof layoutcustomTripsTripIdRouteRoute
     }
-    '/(custom)/blogs/$blogId/edit': {
-      id: '/(custom)/blogs/$blogId/edit'
+    '/(layout)/(custom)/blogs/$blogId/edit': {
+      id: '/(layout)/(custom)/blogs/$blogId/edit'
       path: '/edit'
       fullPath: '/blogs/$blogId/edit'
-      preLoaderRoute: typeof customBlogsBlogIdEditRouteImport
-      parentRoute: typeof customBlogsBlogIdRouteRoute
+      preLoaderRoute: typeof layoutcustomBlogsBlogIdEditRouteImport
+      parentRoute: typeof layoutcustomBlogsBlogIdRouteRoute
     }
   }
 }
 
-interface homeRouteRouteChildren {
-  homeBlogsRoute: typeof homeBlogsRoute
-  homeDashboardRoute: typeof homeDashboardRoute
-  homeExpensesRoute: typeof homeExpensesRoute
-  homeSettingsRoute: typeof homeSettingsRoute
-  homeTripsRoute: typeof homeTripsRoute
+interface layouthomeRouteRouteChildren {
+  layouthomeBlogsRoute: typeof layouthomeBlogsRoute
+  layouthomeDashboardRoute: typeof layouthomeDashboardRoute
+  layouthomeExpensesRoute: typeof layouthomeExpensesRoute
+  layouthomeSettingsRoute: typeof layouthomeSettingsRoute
+  layouthomeTripsRoute: typeof layouthomeTripsRoute
 }
 
-const homeRouteRouteChildren: homeRouteRouteChildren = {
-  homeBlogsRoute: homeBlogsRoute,
-  homeDashboardRoute: homeDashboardRoute,
-  homeExpensesRoute: homeExpensesRoute,
-  homeSettingsRoute: homeSettingsRoute,
-  homeTripsRoute: homeTripsRoute,
+const layouthomeRouteRouteChildren: layouthomeRouteRouteChildren = {
+  layouthomeBlogsRoute: layouthomeBlogsRoute,
+  layouthomeDashboardRoute: layouthomeDashboardRoute,
+  layouthomeExpensesRoute: layouthomeExpensesRoute,
+  layouthomeSettingsRoute: layouthomeSettingsRoute,
+  layouthomeTripsRoute: layouthomeTripsRoute,
 }
 
-const homeRouteRouteWithChildren = homeRouteRoute._addFileChildren(
-  homeRouteRouteChildren,
+const layouthomeRouteRouteWithChildren = layouthomeRouteRoute._addFileChildren(
+  layouthomeRouteRouteChildren,
 )
 
-interface customBlogsBlogIdRouteRouteChildren {
-  customBlogsBlogIdEditRoute: typeof customBlogsBlogIdEditRoute
-  customBlogsBlogIdIndexRoute: typeof customBlogsBlogIdIndexRoute
+interface layoutcustomBlogsBlogIdRouteRouteChildren {
+  layoutcustomBlogsBlogIdEditRoute: typeof layoutcustomBlogsBlogIdEditRoute
+  layoutcustomBlogsBlogIdIndexRoute: typeof layoutcustomBlogsBlogIdIndexRoute
 }
 
-const customBlogsBlogIdRouteRouteChildren: customBlogsBlogIdRouteRouteChildren =
+const layoutcustomBlogsBlogIdRouteRouteChildren: layoutcustomBlogsBlogIdRouteRouteChildren =
   {
-    customBlogsBlogIdEditRoute: customBlogsBlogIdEditRoute,
-    customBlogsBlogIdIndexRoute: customBlogsBlogIdIndexRoute,
+    layoutcustomBlogsBlogIdEditRoute: layoutcustomBlogsBlogIdEditRoute,
+    layoutcustomBlogsBlogIdIndexRoute: layoutcustomBlogsBlogIdIndexRoute,
   }
 
-const customBlogsBlogIdRouteRouteWithChildren =
-  customBlogsBlogIdRouteRoute._addFileChildren(
-    customBlogsBlogIdRouteRouteChildren,
+const layoutcustomBlogsBlogIdRouteRouteWithChildren =
+  layoutcustomBlogsBlogIdRouteRoute._addFileChildren(
+    layoutcustomBlogsBlogIdRouteRouteChildren,
   )
 
-interface customTripsTripIdRouteRouteChildren {
-  customTripsTripIdChatRoute: typeof customTripsTripIdChatRoute
-  customTripsTripIdExpensesRoute: typeof customTripsTripIdExpensesRoute
-  customTripsTripIdInfoRoute: typeof customTripsTripIdInfoRoute
-  customTripsTripIdPlanRoute: typeof customTripsTripIdPlanRoute
+interface layoutcustomPublicTripIdRouteRouteChildren {
+  layoutcustomPublicTripIdIndexRoute: typeof layoutcustomPublicTripIdIndexRoute
 }
 
-const customTripsTripIdRouteRouteChildren: customTripsTripIdRouteRouteChildren =
+const layoutcustomPublicTripIdRouteRouteChildren: layoutcustomPublicTripIdRouteRouteChildren =
   {
-    customTripsTripIdChatRoute: customTripsTripIdChatRoute,
-    customTripsTripIdExpensesRoute: customTripsTripIdExpensesRoute,
-    customTripsTripIdInfoRoute: customTripsTripIdInfoRoute,
-    customTripsTripIdPlanRoute: customTripsTripIdPlanRoute,
+    layoutcustomPublicTripIdIndexRoute: layoutcustomPublicTripIdIndexRoute,
   }
 
-const customTripsTripIdRouteRouteWithChildren =
-  customTripsTripIdRouteRoute._addFileChildren(
-    customTripsTripIdRouteRouteChildren,
+const layoutcustomPublicTripIdRouteRouteWithChildren =
+  layoutcustomPublicTripIdRouteRoute._addFileChildren(
+    layoutcustomPublicTripIdRouteRouteChildren,
   )
+
+interface layoutcustomTripsTripIdRouteRouteChildren {
+  layoutcustomTripsTripIdChatRoute: typeof layoutcustomTripsTripIdChatRoute
+  layoutcustomTripsTripIdExpensesRoute: typeof layoutcustomTripsTripIdExpensesRoute
+  layoutcustomTripsTripIdInfoRoute: typeof layoutcustomTripsTripIdInfoRoute
+  layoutcustomTripsTripIdPlanRoute: typeof layoutcustomTripsTripIdPlanRoute
+}
+
+const layoutcustomTripsTripIdRouteRouteChildren: layoutcustomTripsTripIdRouteRouteChildren =
+  {
+    layoutcustomTripsTripIdChatRoute: layoutcustomTripsTripIdChatRoute,
+    layoutcustomTripsTripIdExpensesRoute: layoutcustomTripsTripIdExpensesRoute,
+    layoutcustomTripsTripIdInfoRoute: layoutcustomTripsTripIdInfoRoute,
+    layoutcustomTripsTripIdPlanRoute: layoutcustomTripsTripIdPlanRoute,
+  }
+
+const layoutcustomTripsTripIdRouteRouteWithChildren =
+  layoutcustomTripsTripIdRouteRoute._addFileChildren(
+    layoutcustomTripsTripIdRouteRouteChildren,
+  )
+
+interface layoutRouteRouteChildren {
+  layouthomeRouteRoute: typeof layouthomeRouteRouteWithChildren
+  layoutcustomBlogsBlogIdRouteRoute: typeof layoutcustomBlogsBlogIdRouteRouteWithChildren
+  layoutcustomPublicTripIdRouteRoute: typeof layoutcustomPublicTripIdRouteRouteWithChildren
+  layoutcustomTripsTripIdRouteRoute: typeof layoutcustomTripsTripIdRouteRouteWithChildren
+}
+
+const layoutRouteRouteChildren: layoutRouteRouteChildren = {
+  layouthomeRouteRoute: layouthomeRouteRouteWithChildren,
+  layoutcustomBlogsBlogIdRouteRoute:
+    layoutcustomBlogsBlogIdRouteRouteWithChildren,
+  layoutcustomPublicTripIdRouteRoute:
+    layoutcustomPublicTripIdRouteRouteWithChildren,
+  layoutcustomTripsTripIdRouteRoute:
+    layoutcustomTripsTripIdRouteRouteWithChildren,
+}
+
+const layoutRouteRouteWithChildren = layoutRouteRoute._addFileChildren(
+  layoutRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  homeRouteRoute: homeRouteRouteWithChildren,
+  layoutRouteRoute: layoutRouteRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   authSigninRoute: authSigninRoute,
-  customBlogsBlogIdRouteRoute: customBlogsBlogIdRouteRouteWithChildren,
-  customTripsTripIdRouteRoute: customTripsTripIdRouteRouteWithChildren,
   authSignUpCreateAccountRoute: authSignUpCreateAccountRoute,
   authSignUpCreateUsernameRoute: authSignUpCreateUsernameRoute,
 }

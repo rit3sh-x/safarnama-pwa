@@ -522,3 +522,21 @@ export const adminReviewRequest = mutation({
     }
   },
 })
+
+export const checkRequestStatus = query({
+  args: { tripId: v.id("trip") },
+  handler: async (ctx, { tripId }) => {
+    const user = await requireUserAccess(ctx)
+
+    const request = await ctx.db
+      .query("joinRequest")
+      .withIndex("userId_tripId", (q) =>
+        q.eq("userId", user._id).eq("tripId", tripId)
+      )
+      .order("desc")
+      .first()
+
+    if (!request) return { status: "none" as const }
+    return { status: request.status }
+  },
+})

@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router"
 import { HomeIcon, RefreshCwIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { StackedPanels } from "../components/stacked-cards"
+import { Link } from "@tanstack/react-router"
 
 export const ErrorView = () => {
     return (
@@ -19,9 +19,7 @@ export const ErrorView = () => {
                 Safarnama
             </p>
 
-            <div className="w-full h-full">
-                <StackedPanels />
-            </div>
+            <StackedPanels />
 
             <div className="absolute bottom-0 inset-x-0 z-20 flex flex-col items-center gap-3 pb-10 pt-16 bg-linear-to-t from-background via-background/80 to-transparent">
                 <h1 className="text-lg font-semibold text-foreground">
@@ -35,7 +33,7 @@ export const ErrorView = () => {
                         variant="outline"
                         size="sm"
                         className="gap-1.5"
-                        render={<a href={window.location.href} />}
+                        render={<Link to={window.location.href} />}
                     >
                         <RefreshCwIcon className="size-3.5" />
                         Try Again
@@ -43,7 +41,7 @@ export const ErrorView = () => {
                     <Button
                         size="sm"
                         className="gap-1.5"
-                        render={<Link to="/dashboard" />}
+                        render={<Link to="/" />}
                     >
                         <HomeIcon className="size-3.5" />
                         Go Home
