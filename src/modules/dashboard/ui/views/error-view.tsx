@@ -1,11 +1,19 @@
-import { HomeIcon, RefreshCwIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { StackedPanels } from "../components/stacked-cards"
-import { Link } from "@tanstack/react-router"
+import { HomeIcon, RefreshCwIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { StackedPanels } from "../components/stacked-cards";
+import { Link, type ErrorComponentProps } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { ENV } from "varlock/env";
 
-export const ErrorView = () => {
+export const ErrorView = ({ error, reset, info }: ErrorComponentProps) => {
+    useEffect(() => {
+        if (ENV.APP_ENV === "development") {
+            console.error("Caught by TanStack Router ErrorView:", error, info);
+        }
+    }, [error, info]);
+
     return (
-        <section className="relative w-full h-dvh overflow-hidden bg-background flex flex-col items-center justify-center">
+        <section className="relative flex h-dvh w-full flex-col items-center justify-center overflow-hidden bg-background">
             <div
                 className="pointer-events-none absolute inset-0 z-10 opacity-[0.03]"
                 style={{
@@ -15,25 +23,25 @@ export const ErrorView = () => {
                 }}
             />
 
-            <p className="absolute top-8 left-1/2 -translate-x-1/2 z-20 text-xs tracking-[0.25em] uppercase text-muted-foreground font-mono select-none">
+            <p className="absolute top-8 left-1/2 z-20 -translate-x-1/2 font-mono text-xs tracking-[0.25em] text-muted-foreground uppercase select-none">
                 Safarnama
             </p>
 
             <StackedPanels />
 
-            <div className="absolute bottom-0 inset-x-0 z-20 flex flex-col items-center gap-3 pb-10 pt-16 bg-linear-to-t from-background via-background/80 to-transparent">
+            <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-3 bg-linear-to-t from-background via-background/80 to-transparent pt-16 pb-10">
                 <h1 className="text-lg font-semibold text-foreground">
                     Something went wrong
                 </h1>
                 <p className="max-w-xs text-center text-sm text-muted-foreground">
                     An unexpected error occurred. Your journey data is safe.
                 </p>
-                <div className="flex gap-3 mt-1">
+                <div className="mt-1 flex gap-3">
                     <Button
                         variant="outline"
                         size="sm"
                         className="gap-1.5"
-                        render={<Link to={window.location.href} />}
+                        onClick={reset}
                     >
                         <RefreshCwIcon className="size-3.5" />
                         Try Again
@@ -49,5 +57,5 @@ export const ErrorView = () => {
                 </div>
             </div>
         </section>
-    )
-}
+    );
+};

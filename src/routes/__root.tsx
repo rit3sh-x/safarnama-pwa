@@ -1,24 +1,24 @@
-import { createRootRoute, Outlet } from "@tanstack/react-router"
-import { useAuthRedirect } from "@/modules/auth/hooks/use-auth-redirect"
-import { ErrorView } from "@/modules/dashboard/ui/views/error-view"
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
+import { createRootRoute, Outlet } from "@tanstack/react-router";
+import { useAuthRedirect } from "@/modules/auth/hooks/use-auth-redirect";
+import { ErrorView } from "@/modules/dashboard/ui/views/error-view";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 export const Route = createRootRoute({
-  component: Page,
-  errorComponent: ErrorView,
-})
+    component: Page,
+    errorComponent: ErrorView,
+});
 
 function Page() {
-  const { isLoading } = useAuthRedirect()
+    const { isLoading } = useAuthRedirect();
 
-  if (isLoading) {
-    return <div className="min-h-dvh bg-background" />
-  }
+    if (isLoading) {
+        return <div className="h-dvh bg-background" />;
+    }
 
-  return (
-    <div className="h-dvh w-dvw">
-      <Outlet />
-      <TanStackRouterDevtools />
-    </div>
-  )
+    return (
+        <div className="h-dvh w-dvw">
+            <Outlet />
+            <TanStackRouterDevtools />
+        </div>
+    );
 }

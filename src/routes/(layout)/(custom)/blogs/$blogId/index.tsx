@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { BlogViewerView } from "@/modules/blog/ui/views/blog-viewer-view"
+import { createFileRoute } from "@tanstack/react-router";
+import { BlogViewerView } from "@/modules/blog/ui/views/blog-viewer-view";
 
 export const Route = createFileRoute("/(layout)/(custom)/blogs/$blogId/")({
-  component: BlogViewPage,
-})
+    component: BlogViewPage,
+});
 
 function BlogViewPage() {
-  const { blogId } = Route.useParams()
-  return <BlogViewerView blogId={blogId} />
+    const { blogId } = Route.useParams();
+    return <BlogViewerView blogId={blogId} />;
 }

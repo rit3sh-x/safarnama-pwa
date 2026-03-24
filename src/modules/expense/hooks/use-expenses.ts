@@ -1,143 +1,149 @@
-import { PAGINATION } from "@/lib/constants"
-import { api } from "@backend/api"
-import { useMutation, usePaginatedQuery } from "convex/react"
-import { useQuery } from "convex-helpers/react/cache"
-import type { FunctionArgs } from "convex/server"
-import { useState } from "react"
-import { toast } from "sonner"
-import type { Id } from "@backend/dataModel"
+import { PAGINATION } from "@/lib/constants";
+import { api } from "@backend/api";
+import { useMutation, usePaginatedQuery } from "convex/react";
+import { useQuery } from "convex-helpers/react/cache";
+import type { FunctionArgs } from "convex/server";
+import { useState } from "react";
+import { toast } from "sonner";
+import type { Id } from "@backend/dataModel";
 
 export function useExpenses(tripId: Id<"trip"> | undefined) {
-  const listQuery = api.methods.expenses.list as unknown as Parameters<
-    typeof usePaginatedQuery
-  >[0]
-  const { results, status, loadMore } = usePaginatedQuery(
-    listQuery,
-    tripId ? { tripId } : "skip",
-    { initialNumItems: PAGINATION.TRIPS_PAGE_SIZE }
-  )
+    const listQuery = api.methods.expenses.list as unknown as Parameters<
+        typeof usePaginatedQuery
+    >[0];
+    const { results, status, loadMore } = usePaginatedQuery(
+        listQuery,
+        tripId ? { tripId } : "skip",
+        { initialNumItems: PAGINATION.TRIPS_PAGE_SIZE }
+    );
 
-  return {
-    expenses: results,
-    isLoading: status === "LoadingFirstPage",
-    isDone: status === "Exhausted",
-    loadMore: () => loadMore(PAGINATION.TRIPS_PAGE_SIZE),
-  }
+    return {
+        expenses: results,
+        isLoading: status === "LoadingFirstPage",
+        isDone: status === "Exhausted",
+        loadMore: () => loadMore(PAGINATION.TRIPS_PAGE_SIZE),
+    };
 }
 
 export function useBalances(tripId: Id<"trip"> | undefined) {
-  const data = useQuery(
-    api.methods.expenses.balances,
-    tripId ? { tripId } : "skip"
-  )
+    const data = useQuery(
+        api.methods.expenses.balances,
+        tripId ? { tripId } : "skip"
+    );
 
-  return {
-    balances: data,
-    isLoading: data === undefined,
-  }
+    return {
+        balances: data,
+        isLoading: data === undefined,
+    };
 }
 
 export function useSettlements(tripId: Id<"trip"> | undefined) {
-  const data = useQuery(
-    api.methods.expenses.listSettlements,
-    tripId ? { tripId } : "skip"
-  )
+    const data = useQuery(
+        api.methods.expenses.listSettlements,
+        tripId ? { tripId } : "skip"
+    );
 
-  return {
-    settlements: data,
-    isLoading: data === undefined,
-  }
+    return {
+        settlements: data,
+        isLoading: data === undefined,
+    };
 }
 
 export const useCreateExpense = () => {
-  const [isPending, setIsPending] = useState(false)
-  const createExpense = useMutation(api.methods.expenses.create)
+    const [isPending, setIsPending] = useState(false);
+    const createExpense = useMutation(api.methods.expenses.create);
 
-  const mutate = async (
-    args: FunctionArgs<typeof api.methods.expenses.create>
-  ) => {
-    setIsPending(true)
-    try {
-      return await createExpense(args)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create expense")
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.expenses.create>
+    ) => {
+        setIsPending(true);
+        try {
+            return await createExpense(args);
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Failed to create expense"
+            );
+        } finally {
+            setIsPending(false);
+        }
+    };
 
-    } finally {
-      setIsPending(false)
-    }
-  }
-
-  return { mutate, isPending }
-}
+    return { mutate, isPending };
+};
 
 export const useRemoveExpense = () => {
-  const [isPending, setIsPending] = useState(false)
-  const removeExpense = useMutation(api.methods.expenses.remove)
+    const [isPending, setIsPending] = useState(false);
+    const removeExpense = useMutation(api.methods.expenses.remove);
 
-  const mutate = async (
-    args: FunctionArgs<typeof api.methods.expenses.remove>
-  ) => {
-    setIsPending(true)
-    try {
-      await removeExpense(args)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to remove expense")
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.expenses.remove>
+    ) => {
+        setIsPending(true);
+        try {
+            await removeExpense(args);
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Failed to remove expense"
+            );
+        } finally {
+            setIsPending(false);
+        }
+    };
 
-    } finally {
-      setIsPending(false)
-    }
-  }
-
-  return { mutate, isPending }
-}
+    return { mutate, isPending };
+};
 
 export const useSettleSplit = () => {
-  const [isPending, setIsPending] = useState(false)
-  const settleSplit = useMutation(api.methods.expenses.settleSplit)
+    const [isPending, setIsPending] = useState(false);
+    const settleSplit = useMutation(api.methods.expenses.settleSplit);
 
-  const mutate = async (
-    args: FunctionArgs<typeof api.methods.expenses.settleSplit>
-  ) => {
-    setIsPending(true)
-    try {
-      await settleSplit(args)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to settle split")
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.expenses.settleSplit>
+    ) => {
+        setIsPending(true);
+        try {
+            await settleSplit(args);
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Failed to settle split"
+            );
+        } finally {
+            setIsPending(false);
+        }
+    };
 
-    } finally {
-      setIsPending(false)
-    }
-  }
-
-  return { mutate, isPending }
-}
+    return { mutate, isPending };
+};
 
 export const useCreateSettlement = () => {
-  const [isPending, setIsPending] = useState(false)
-  const createSettlement = useMutation(api.methods.expenses.createSettlement)
+    const [isPending, setIsPending] = useState(false);
+    const createSettlement = useMutation(api.methods.expenses.createSettlement);
 
-  const mutate = async (
-    args: FunctionArgs<typeof api.methods.expenses.createSettlement>
-  ) => {
-    setIsPending(true)
-    try {
-      return await createSettlement(args)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to record settlement")
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.expenses.createSettlement>
+    ) => {
+        setIsPending(true);
+        try {
+            return await createSettlement(args);
+        } catch (err) {
+            toast.error(
+                err instanceof Error
+                    ? err.message
+                    : "Failed to record settlement"
+            );
+        } finally {
+            setIsPending(false);
+        }
+    };
 
-    } finally {
-      setIsPending(false)
-    }
-  }
-
-  return { mutate, isPending }
-}
+    return { mutate, isPending };
+};
 
 export function useGlobalExpenseSummary() {
-  const data = useQuery(api.methods.expenses.globalSummary, {})
+    const data = useQuery(api.methods.expenses.globalSummary, {});
 
-  return {
-    summary: data,
-    isLoading: data === undefined,
-  }
+    return {
+        summary: data,
+        isLoading: data === undefined,
+    };
 }

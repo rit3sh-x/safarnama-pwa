@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import type { Editor } from "@tiptap/react"
+import { create } from "zustand";
+import type { Editor } from "@tiptap/react";
 
 interface EditorState {
     editor: Editor | null;

@@ -1,5 +1,5 @@
 export interface OnboardingScreen {
-  id: number
-  headline: string
-  subtext: string
+    id: number;
+    headline: string;
+    subtext: string;
 }

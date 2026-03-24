@@ -1,23 +1,21 @@
-import { Outlet } from "@tanstack/react-router"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { TopBar } from "../components/top-bar"
-import { useTabNavigation } from "../../hooks/use-tab-navigation"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { DashboardSidebar } from "@/modules/dashboard/ui/components/dashboard-sidebar"
+import { Outlet } from "@tanstack/react-router";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { TopBar } from "../components/top-bar";
+import { useTabNavigation } from "../../hooks/use-tab-navigation";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { DashboardSidebar } from "@/modules/dashboard/ui/components/dashboard-sidebar";
 
 export const DesktopLayout = () => {
-    const isMobile = useIsMobile()
-    const {
-        currentTab,
-    } = useTabNavigation()
+    const isMobile = useIsMobile();
+    const { currentTab } = useTabNavigation();
 
-    const title = currentTab.title
+    const title = currentTab.title;
 
     if (!isMobile) {
         return (
             <SidebarProvider
                 open={false}
-                onOpenChange={() => { }}
+                onOpenChange={() => {}}
                 className="h-full"
             >
                 <DashboardSidebar />
@@ -28,10 +26,8 @@ export const DesktopLayout = () => {
                     </main>
                 </SidebarInset>
             </SidebarProvider>
-        )
+        );
     }
 
-    return (
-        <Outlet />
-    )
-}
+    return <Outlet />;
+};

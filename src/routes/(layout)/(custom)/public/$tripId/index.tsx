@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router"
-import { PublicTripPreview } from "@/modules/trips/ui/views/public-trip-preview"
+import { createFileRoute } from "@tanstack/react-router";
+import { PublicTripPreview } from "@/modules/trips/ui/views/public-trip-preview";
 
 export const Route = createFileRoute("/(layout)/(custom)/public/$tripId/")({
-  component: PublicTripPage,
-})
+    component: PublicTripPage,
+});
 
 function PublicTripPage() {
-  const { tripId } = Route.useParams()
-  return <PublicTripPreview tripId={tripId} />
+    const { tripId } = Route.useParams();
+    return <PublicTripPreview tripId={tripId} />;
 }

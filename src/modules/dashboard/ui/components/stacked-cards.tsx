@@ -58,7 +58,10 @@ const GRADIENT_OVERLAYS = [
     "linear-gradient(135deg, rgba(59,130,246,0.55) 0%, rgba(6,182,212,0.45) 100%)",
 ];
 
-type PanelHandle = { setWave: (v: number) => void; setScale: (v: number) => void };
+type PanelHandle = {
+    setWave: (v: number) => void;
+    setScale: (v: number) => void;
+};
 
 const Panel = forwardRef<PanelHandle, { index: number; total: number }>(
     ({ index, total }, ref) => {
@@ -76,7 +79,9 @@ const Panel = forwardRef<PanelHandle, { index: number; total: number }>(
 
         return (
             <motion.div
-                className={cn("absolute rounded-xl pointer-events-none overflow-hidden")}
+                className={cn(
+                    "pointer-events-none absolute overflow-hidden rounded-xl"
+                )}
                 style={{
                     width: w,
                     height: h,
@@ -91,19 +96,24 @@ const Panel = forwardRef<PanelHandle, { index: number; total: number }>(
             >
                 <div
                     className="absolute inset-0 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${PANEL_IMAGES[index % PANEL_IMAGES.length]})` }}
+                    style={{
+                        backgroundImage: `url(${PANEL_IMAGES[index % PANEL_IMAGES.length]})`,
+                    }}
                 />
                 <div
                     className="absolute inset-0"
                     style={{
-                        background: GRADIENT_OVERLAYS[index % GRADIENT_OVERLAYS.length],
+                        background:
+                            GRADIENT_OVERLAYS[index % GRADIENT_OVERLAYS.length],
                         mixBlendMode: "multiply",
                     }}
                 />
                 <div className="absolute inset-0 bg-linear-to-b from-black/8 to-black/32" />
                 <div
-                    className="absolute inset-0 rounded-xl box-border"
-                    style={{ border: `1px solid rgba(255,255,255,${0.08 + t * 0.22})` }}
+                    className="absolute inset-0 box-border rounded-xl"
+                    style={{
+                        border: `1px solid rgba(255,255,255,${0.08 + t * 0.22})`,
+                    }}
                 />
             </motion.div>
         );
@@ -133,7 +143,9 @@ export function StackedPanels() {
 
             const cursorCardPos = cx * (PANEL_COUNT - 1);
             panelRefs.current.forEach((ref, i) => {
-                const inf = Math.exp(-(Math.abs(i - cursorCardPos) ** 2) / (2 * SIGMA ** 2));
+                const inf = Math.exp(
+                    -(Math.abs(i - cursorCardPos) ** 2) / (2 * SIGMA ** 2)
+                );
                 ref?.setWave(-inf * 70);
                 ref?.setScale(0.35 + inf * 0.65);
             });
@@ -155,7 +167,7 @@ export function StackedPanels() {
             ref={containerRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            className="relative w-full h-full flex items-center justify-center select-none"
+            className="relative flex h-full w-full items-center justify-center select-none"
             style={{ perspective: "900px" }}
         >
             <motion.div
@@ -173,7 +185,9 @@ export function StackedPanels() {
                         key={i}
                         index={i}
                         total={PANEL_COUNT}
-                        ref={(el) => { panelRefs.current[i] = el; }}
+                        ref={(el) => {
+                            panelRefs.current[i] = el;
+                        }}
                     />
                 ))}
             </motion.div>

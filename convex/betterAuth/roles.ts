@@ -1,30 +1,30 @@
-import { createAccessControl, type Role } from "better-auth/plugins/access"
+import { createAccessControl, type Role } from "better-auth/plugins/access";
 
 const statement = {
-  member: ["invite", "add", "remove"],
-} as const
+    member: ["invite", "add", "remove"],
+} as const;
 
-export const ac = createAccessControl(statement)
+export const ac = createAccessControl(statement);
 
 const OWNER = ac.newRole({
-  member: ["invite", "add", "remove"],
-})
+    member: ["invite", "add", "remove"],
+});
 
 const MEMBER = ac.newRole({
-  member: ["invite", "add"],
-})
+    member: ["invite", "add"],
+});
 
 export const ROLES = {
-  OWNER: "owner",
-  MEMBER: "member",
-} as const
+    OWNER: "owner",
+    MEMBER: "member",
+} as const;
 
 export const ROLE_MAP = {
-  [ROLES.OWNER]: OWNER,
-  [ROLES.MEMBER]: MEMBER,
-} as Record<string, Role>
+    [ROLES.OWNER]: OWNER,
+    [ROLES.MEMBER]: MEMBER,
+} as Record<string, Role>;
 
-export const ROLE_VALUES = Object.values(ROLES)
+export const ROLE_VALUES = Object.values(ROLES);
 
-export type RoleKey = keyof typeof ROLES
-export type RoleValue = (typeof ROLES)[RoleKey]
+export type RoleKey = keyof typeof ROLES;
+export type RoleValue = (typeof ROLES)[RoleKey];

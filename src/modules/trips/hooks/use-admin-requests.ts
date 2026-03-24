@@ -1,88 +1,94 @@
-import { PAGINATION } from "@/lib/constants"
-import { api } from "@backend/api"
-import { useMutation, usePaginatedQuery } from "convex/react"
-import type { FunctionArgs } from "convex/server"
-import { useState } from "react"
-import { toast } from "sonner"
-import { useSearchParams } from "./use-search-params"
+import { PAGINATION } from "@/lib/constants";
+import { api } from "@backend/api";
+import { useMutation, usePaginatedQuery } from "convex/react";
+import type { FunctionArgs } from "convex/server";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useSearchParams } from "./use-search-params";
 
 export const useSendInvite = () => {
-  const [isPending, setIsPending] = useState(false)
-  const sendInvite = useMutation(api.methods.requests.adminSendInvite)
+    const [isPending, setIsPending] = useState(false);
+    const sendInvite = useMutation(api.methods.requests.adminSendInvite);
 
-  const mutate = async (
-    args: FunctionArgs<typeof api.methods.requests.adminSendInvite>
-  ) => {
-    setIsPending(true)
-    try {
-      return await sendInvite(args)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send invite")
-    } finally {
-      setIsPending(false)
-    }
-  }
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.requests.adminSendInvite>
+    ) => {
+        setIsPending(true);
+        try {
+            return await sendInvite(args);
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Failed to send invite"
+            );
+        } finally {
+            setIsPending(false);
+        }
+    };
 
-  return { mutate, isPending }
-}
+    return { mutate, isPending };
+};
 
 export const useAdminListRequests = ({
-  orgId,
+    orgId,
 }: Pick<
-  FunctionArgs<typeof api.methods.requests.adminListRequests>,
-  "orgId"
+    FunctionArgs<typeof api.methods.requests.adminListRequests>,
+    "orgId"
 >) => {
-  const { search } = useSearchParams()
-  const { results, status, loadMore } = usePaginatedQuery(
-    api.methods.requests.adminListRequests,
-    { orgId, search: search?.trim() },
-    { initialNumItems: PAGINATION.INVITES_PAGE_SIZE }
-  )
+    const { search } = useSearchParams();
+    const { results, status, loadMore } = usePaginatedQuery(
+        api.methods.requests.adminListRequests,
+        { orgId, search: search?.trim() },
+        { initialNumItems: PAGINATION.INVITES_PAGE_SIZE }
+    );
 
-  return {
-    requests: results,
-    isLoading: status === "LoadingFirstPage",
-    isDone: status === "Exhausted",
-    loadMore: () => loadMore(PAGINATION.INVITES_PAGE_SIZE),
-  }
-}
+    return {
+        requests: results,
+        isLoading: status === "LoadingFirstPage",
+        isDone: status === "Exhausted",
+        loadMore: () => loadMore(PAGINATION.INVITES_PAGE_SIZE),
+    };
+};
 
 export const useCancelInvite = () => {
-  const [isPending, setIsPending] = useState(false)
-  const cancelInvite = useMutation(api.methods.requests.adminCancelInvite)
+    const [isPending, setIsPending] = useState(false);
+    const cancelInvite = useMutation(api.methods.requests.adminCancelInvite);
 
-  const mutate = async (
-    args: FunctionArgs<typeof api.methods.requests.adminCancelInvite>
-  ) => {
-    setIsPending(true)
-    try {
-      await cancelInvite(args)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to cancel invite")
-    } finally {
-      setIsPending(false)
-    }
-  }
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.requests.adminCancelInvite>
+    ) => {
+        setIsPending(true);
+        try {
+            await cancelInvite(args);
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Failed to cancel invite"
+            );
+        } finally {
+            setIsPending(false);
+        }
+    };
 
-  return { mutate, isPending }
-}
+    return { mutate, isPending };
+};
 
 export const useReviewRequest = () => {
-  const [isPending, setIsPending] = useState(false)
-  const reviewRequest = useMutation(api.methods.requests.adminReviewRequest)
+    const [isPending, setIsPending] = useState(false);
+    const reviewRequest = useMutation(api.methods.requests.adminReviewRequest);
 
-  const mutate = async (
-    args: FunctionArgs<typeof api.methods.requests.adminReviewRequest>
-  ) => {
-    setIsPending(true)
-    try {
-      await reviewRequest(args)
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to review request")
-    } finally {
-      setIsPending(false)
-    }
-  }
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.requests.adminReviewRequest>
+    ) => {
+        setIsPending(true);
+        try {
+            await reviewRequest(args);
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Failed to review request"
+            );
+        } finally {
+            setIsPending(false);
+        }
+    };
 
-  return { mutate, isPending }
-}
+    return { mutate, isPending };
+};

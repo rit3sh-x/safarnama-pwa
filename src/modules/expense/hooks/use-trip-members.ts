@@ -1,15 +1,15 @@
-import { api } from "@backend/api"
-import { useQuery } from "convex-helpers/react/cache"
-import type { Id } from "@backend/dataModel"
+import { api } from "@backend/api";
+import { useQuery } from "convex-helpers/react/cache";
+import type { Id } from "@backend/dataModel";
 
 export function useTripMembers(tripId: Id<"trip"> | undefined) {
-  const members = useQuery(
-    api.methods.members.listAll,
-    tripId ? { tripId } : "skip"
-  )
+    const members = useQuery(
+        api.methods.members.listAll,
+        tripId ? { tripId } : "skip"
+    );
 
-  return {
-    members: members ?? [],
-    isLoading: members === undefined,
-  }
+    return {
+        members: members ?? [],
+        isLoading: members === undefined,
+    };
 }
