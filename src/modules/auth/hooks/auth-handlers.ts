@@ -35,14 +35,14 @@ export const signInWithEmail = ({
     email: string;
     password: string;
     fetchOptions?: {
-        onSuccess?: () => void;
+        onSuccess?: (context: { data: { twoFactorRedirect?: boolean } }) => void;
         onError?: ({ error }: { error: unknown }) => void;
     };
 }) => {
     return authClient.signIn.email(
         { email, password },
         {
-            onSuccess: fetchOptions?.onSuccess,
+            onSuccess: (context) => fetchOptions?.onSuccess?.(context),
             onError: ({ error }) => {
                 toast.error(
                     error instanceof Error ? error.message : "Sign in failed"

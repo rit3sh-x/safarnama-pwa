@@ -44,8 +44,3 @@ export type ReviewType = FunctionArgs<
 
 type MessagesListResult = FunctionReturnType<typeof api.methods.messages.list>;
 export type Message = MessagesListResult["page"][number];
-
-type UserSearchResults = FunctionReturnType<
-    typeof api.methods.search.searchUsers
->;
-export type SelectedUser = UserSearchResults[number];

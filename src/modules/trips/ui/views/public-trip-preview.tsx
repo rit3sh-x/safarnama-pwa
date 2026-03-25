@@ -26,7 +26,6 @@ import {
     CredenzaTitle,
 } from "@/components/ui/credenza";
 import type { Id } from "@backend/dataModel";
-import type { Id as IdAuth } from "@backend/authDataModel";
 
 interface PublicTripPreviewProps {
     tripId: Id<"trip">;
@@ -78,7 +77,7 @@ export function PublicTripPreview({ tripId, onBack }: PublicTripPreviewProps) {
     const handleJoin = async () => {
         if (!trip) return;
         await sendRequest({
-            orgId: trip.orgId as IdAuth<"organization">,
+            orgId: trip.orgId,
             message: message.trim() || undefined,
         });
         setShowMessageDialog(false);

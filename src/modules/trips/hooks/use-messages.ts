@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useMutation, usePaginatedQuery } from "convex/react";
+import type { OptimisticLocalStore } from "convex/browser";
 import { api } from "@backend/api";
 import type { FunctionArgs } from "convex/server";
 import { useState } from "react";
@@ -7,6 +8,27 @@ import { PAGINATION } from "@/lib/constants";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import type { Id } from "@backend/dataModel";
+
+function updateMessageInStore(
+    localStore: OptimisticLocalStore,
+    messageId: Id<"message">,
+    updater: (msg: Record<string, unknown>) => Record<string, unknown>
+) {
+    const allPages = localStore.getAllQueries(api.methods.messages.list);
+    for (const { args: queryArgs, value } of allPages) {
+        if (!queryArgs || !value) continue;
+        const page = value.page as Record<string, unknown>[];
+        const idx = page.findIndex((m) => m._id === messageId);
+        if (idx === -1) continue;
+        const updated = [...page];
+        updated[idx] = updater(updated[idx]);
+        localStore.setQuery(api.methods.messages.list, queryArgs, {
+            ...value,
+            page: updated,
+        } as typeof value);
+        break;
+    }
+}
 
 export function useMessages(tripId: Id<"trip"> | undefined) {
     const { results, status, loadMore } = usePaginatedQuery(
@@ -88,7 +110,15 @@ export const useSendMessage = () => {
 
 export const useEditMessage = () => {
     const [isPending, setIsPending] = useState(false);
-    const editMsg = useMutation(api.methods.messages.edit);
+    const editMsg = useMutation(api.methods.messages.edit).withOptimisticUpdate(
+        (localStore, args) => {
+            updateMessageInStore(localStore, args.messageId, (msg) => ({
+                ...msg,
+                content: args.content,
+                editedAt: Date.now(),
+            }));
+        }
+    );
 
     const mutate = async (
         args: FunctionArgs<typeof api.methods.messages.edit>
@@ -110,7 +140,15 @@ export const useEditMessage = () => {
 
 export const useDeleteMessage = () => {
     const [isPending, setIsPending] = useState(false);
-    const removeMsg = useMutation(api.methods.messages.remove);
+    const removeMsg = useMutation(
+        api.methods.messages.remove
+    ).withOptimisticUpdate((localStore, args) => {
+        updateMessageInStore(localStore, args.messageId, (msg) => ({
+            ...msg,
+            deletedAt: Date.now(),
+            content: "[deleted]",
+        }));
+    });
 
     const mutate = async (
         args: FunctionArgs<typeof api.methods.messages.remove>
@@ -132,7 +170,35 @@ export const useDeleteMessage = () => {
 
 export const useAddReaction = () => {
     const [isPending, setIsPending] = useState(false);
-    const addReaction = useMutation(api.methods.messages.addReaction);
+    const addReaction = useMutation(
+        api.methods.messages.addReaction
+    ).withOptimisticUpdate((localStore, args) => {
+        const currentUser = localStore.getQuery(
+            api.methods.users.currentUser,
+            {}
+        );
+        if (!currentUser) return;
+
+        updateMessageInStore(localStore, args.messageId, (msg) => {
+            const reactions = [
+                ...((msg.reactions as { emoji: string; userIds: string[]; count: number }[]) ?? []),
+            ];
+            const existing = reactions.find((r) => r.emoji === args.emoji);
+            if (existing) {
+                if (!existing.userIds.includes(currentUser._id)) {
+                    existing.userIds = [...existing.userIds, currentUser._id];
+                    existing.count++;
+                }
+            } else {
+                reactions.push({
+                    emoji: args.emoji,
+                    userIds: [currentUser._id],
+                    count: 1,
+                });
+            }
+            return { ...msg, reactions };
+        });
+    });
 
     const mutate = async (
         args: FunctionArgs<typeof api.methods.messages.addReaction>
@@ -154,7 +220,30 @@ export const useAddReaction = () => {
 
 export const useRemoveReaction = () => {
     const [isPending, setIsPending] = useState(false);
-    const removeReaction = useMutation(api.methods.messages.removeReaction);
+    const removeReaction = useMutation(
+        api.methods.messages.removeReaction
+    ).withOptimisticUpdate((localStore, args) => {
+        const currentUser = localStore.getQuery(
+            api.methods.users.currentUser,
+            {}
+        );
+        if (!currentUser) return;
+
+        updateMessageInStore(localStore, args.messageId, (msg) => {
+            const reactions = (
+                (msg.reactions as { emoji: string; userIds: string[]; count: number }[]) ?? []
+            )
+                .map((r) => {
+                    if (r.emoji !== args.emoji) return r;
+                    const userIds = r.userIds.filter(
+                        (id) => id !== currentUser._id
+                    );
+                    return { ...r, userIds, count: userIds.length };
+                })
+                .filter((r) => r.count > 0);
+            return { ...msg, reactions };
+        });
+    });
 
     const mutate = async (
         args: FunctionArgs<typeof api.methods.messages.removeReaction>
@@ -176,7 +265,19 @@ export const useRemoveReaction = () => {
 
 export const usePinMessage = () => {
     const [isPending, setIsPending] = useState(false);
-    const pin = useMutation(api.methods.messages.pin);
+    const pin = useMutation(api.methods.messages.pin).withOptimisticUpdate(
+        (localStore, args) => {
+            const currentUser = localStore.getQuery(
+                api.methods.users.currentUser,
+                {}
+            );
+            updateMessageInStore(localStore, args.messageId, (msg) => ({
+                ...msg,
+                pinnedAt: Date.now(),
+                pinnedBy: currentUser?._id,
+            }));
+        }
+    );
 
     const mutate = async (
         args: FunctionArgs<typeof api.methods.messages.pin>
@@ -198,7 +299,15 @@ export const usePinMessage = () => {
 
 export const useUnpinMessage = () => {
     const [isPending, setIsPending] = useState(false);
-    const unpin = useMutation(api.methods.messages.unpin);
+    const unpin = useMutation(api.methods.messages.unpin).withOptimisticUpdate(
+        (localStore, args) => {
+            updateMessageInStore(localStore, args.messageId, (msg) => ({
+                ...msg,
+                pinnedAt: undefined,
+                pinnedBy: undefined,
+            }));
+        }
+    );
 
     const mutate = async (
         args: FunctionArgs<typeof api.methods.messages.unpin>

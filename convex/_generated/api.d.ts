@@ -26,7 +26,6 @@ import type * as methods_members from "../methods/members.js";
 import type * as methods_messages from "../methods/messages.js";
 import type * as methods_ratings from "../methods/ratings.js";
 import type * as methods_requests from "../methods/requests.js";
-import type * as methods_search from "../methods/search.js";
 import type * as methods_trips from "../methods/trips.js";
 import type * as methods_users from "../methods/users.js";
 import type * as types from "../types.js";
@@ -56,7 +55,6 @@ declare const fullApi: ApiFromModules<{
   "methods/messages": typeof methods_messages;
   "methods/ratings": typeof methods_ratings;
   "methods/requests": typeof methods_requests;
-  "methods/search": typeof methods_search;
   "methods/trips": typeof methods_trips;
   "methods/users": typeof methods_users;
   types: typeof types;
@@ -104,6 +102,7 @@ export declare const components: {
                   emailVerified: boolean;
                   image?: null | string;
                   name: string;
+                  twoFactorEnabled?: null | boolean;
                   updatedAt: number;
                   userId?: null | string;
                   username?: null | string;
@@ -158,6 +157,10 @@ export declare const components: {
                   publicKey: string;
                 };
                 model: "jwks";
+              }
+            | {
+                data: { backupCodes: string; secret: string; userId: string };
+                model: "twoFactor";
               }
             | {
                 data: {
@@ -215,6 +218,7 @@ export declare const components: {
                     | "userId"
                     | "username"
                     | "displayUsername"
+                    | "twoFactorEnabled"
                     | "_id";
                   operator?:
                     | "lt"
@@ -353,6 +357,32 @@ export declare const components: {
                     | "createdAt"
                     | "expiresAt"
                     | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "twoFactor";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -503,6 +533,7 @@ export declare const components: {
                     | "userId"
                     | "username"
                     | "displayUsername"
+                    | "twoFactorEnabled"
                     | "_id";
                   operator?:
                     | "lt"
@@ -663,6 +694,32 @@ export declare const components: {
                 }>;
               }
             | {
+                model: "twoFactor";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
                 model: "organization";
                 where?: Array<{
                   connector?: "AND" | "OR";
@@ -776,6 +833,7 @@ export declare const components: {
             | "account"
             | "verification"
             | "jwks"
+            | "twoFactor"
             | "organization"
             | "member"
             | "invitation";
@@ -827,6 +885,7 @@ export declare const components: {
             | "account"
             | "verification"
             | "jwks"
+            | "twoFactor"
             | "organization"
             | "member"
             | "invitation";
@@ -871,6 +930,7 @@ export declare const components: {
                   emailVerified?: boolean;
                   image?: null | string;
                   name?: string;
+                  twoFactorEnabled?: null | boolean;
                   updatedAt?: number;
                   userId?: null | string;
                   username?: null | string;
@@ -887,6 +947,7 @@ export declare const components: {
                     | "userId"
                     | "username"
                     | "displayUsername"
+                    | "twoFactorEnabled"
                     | "_id";
                   operator?:
                     | "lt"
@@ -1062,6 +1123,37 @@ export declare const components: {
                     | "createdAt"
                     | "expiresAt"
                     | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "twoFactor";
+                update: {
+                  backupCodes?: string;
+                  secret?: string;
+                  userId?: string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -1230,6 +1322,7 @@ export declare const components: {
                   emailVerified?: boolean;
                   image?: null | string;
                   name?: string;
+                  twoFactorEnabled?: null | boolean;
                   updatedAt?: number;
                   userId?: null | string;
                   username?: null | string;
@@ -1246,6 +1339,7 @@ export declare const components: {
                     | "userId"
                     | "username"
                     | "displayUsername"
+                    | "twoFactorEnabled"
                     | "_id";
                   operator?:
                     | "lt"
@@ -1421,6 +1515,37 @@ export declare const components: {
                     | "createdAt"
                     | "expiresAt"
                     | "_id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "not_in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "twoFactor";
+                update: {
+                  backupCodes?: string;
+                  secret?: string;
+                  userId?: string;
+                };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "secret" | "backupCodes" | "userId" | "_id";
                   operator?:
                     | "lt"
                     | "lte"

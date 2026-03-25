@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as layoutRouteRouteImport } from './routes/(layout)/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as authTwoFactorRouteImport } from './routes/(auth)/two-factor'
 import { Route as authSigninRouteImport } from './routes/(auth)/signin'
 import { Route as layouthomeRouteRouteImport } from './routes/(layout)/(home)/route'
 import { Route as layouthomeTripsRouteImport } from './routes/(layout)/(home)/trips'
@@ -44,6 +45,11 @@ const layoutRouteRoute = layoutRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const authTwoFactorRoute = authTwoFactorRouteImport.update({
+  id: '/(auth)/two-factor',
+  path: '/two-factor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const authSigninRoute = authSigninRouteImport.update({
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
   '/signin': typeof authSigninRoute
+  '/two-factor': typeof authTwoFactorRoute
   '/sign-up/create-account': typeof authSignUpCreateAccountRoute
   '/sign-up/create-username': typeof authSignUpCreateUsernameRoute
   '/blogs': typeof layouthomeBlogsRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
   '/signin': typeof authSigninRoute
+  '/two-factor': typeof authTwoFactorRoute
   '/sign-up/create-account': typeof authSignUpCreateAccountRoute
   '/sign-up/create-username': typeof authSignUpCreateUsernameRoute
   '/blogs': typeof layouthomeBlogsRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/(layout)/(home)': typeof layouthomeRouteRouteWithChildren
   '/(auth)/signin': typeof authSigninRoute
+  '/(auth)/two-factor': typeof authTwoFactorRoute
   '/(auth)/sign-up/create-account': typeof authSignUpCreateAccountRoute
   '/(auth)/sign-up/create-username': typeof authSignUpCreateUsernameRoute
   '/(layout)/(home)/blogs': typeof layouthomeBlogsRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/signin'
+    | '/two-factor'
     | '/sign-up/create-account'
     | '/sign-up/create-username'
     | '/blogs'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/signin'
+    | '/two-factor'
     | '/sign-up/create-account'
     | '/sign-up/create-username'
     | '/blogs'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/(layout)/(home)'
     | '/(auth)/signin'
+    | '/(auth)/two-factor'
     | '/(auth)/sign-up/create-account'
     | '/(auth)/sign-up/create-username'
     | '/(layout)/(home)/blogs'
@@ -293,6 +305,7 @@ export interface RootRouteChildren {
   layoutRouteRoute: typeof layoutRouteRouteWithChildren
   OnboardingRoute: typeof OnboardingRoute
   authSigninRoute: typeof authSigninRoute
+  authTwoFactorRoute: typeof authTwoFactorRoute
   authSignUpCreateAccountRoute: typeof authSignUpCreateAccountRoute
   authSignUpCreateUsernameRoute: typeof authSignUpCreateUsernameRoute
 }
@@ -318,6 +331,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(auth)/two-factor': {
+      id: '/(auth)/two-factor'
+      path: '/two-factor'
+      fullPath: '/two-factor'
+      preLoaderRoute: typeof authTwoFactorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(auth)/signin': {
@@ -552,6 +572,7 @@ const rootRouteChildren: RootRouteChildren = {
   layoutRouteRoute: layoutRouteRouteWithChildren,
   OnboardingRoute: OnboardingRoute,
   authSigninRoute: authSigninRoute,
+  authTwoFactorRoute: authTwoFactorRoute,
   authSignUpCreateAccountRoute: authSignUpCreateAccountRoute,
   authSignUpCreateUsernameRoute: authSignUpCreateUsernameRoute,
 }

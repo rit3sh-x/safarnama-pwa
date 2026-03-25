@@ -98,17 +98,17 @@ export function CommentItem({
 
     return (
         <div className="flex gap-3 py-2">
-            <Avatar
-                className="size-8 shrink-0"
-                style={{ backgroundColor: avatarBg }}
-            >
+            <Avatar className="size-8 shrink-0">
                 {comment.author.image ? (
                     <AvatarImage
                         src={comment.author.image}
                         alt={comment.author.username}
                     />
                 ) : (
-                    <AvatarFallback className="text-xs text-white">
+                    <AvatarFallback
+                        className="text-xs text-white"
+                        style={{ backgroundColor: avatarBg }}
+                    >
                         {comment.author.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                 )}
@@ -129,7 +129,7 @@ export function CommentItem({
                     )}
                 </div>
 
-                <p className="mt-0.5 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                <p className="mt-0.5 text-sm leading-relaxed wrap-break-word whitespace-pre-wrap">
                     {renderContent(comment.content)}
                 </p>
 

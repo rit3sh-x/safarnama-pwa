@@ -11,8 +11,11 @@ function useRouteGroup() {
     const inAuth = matches.some((m) => m.routeId.startsWith("/(auth)"));
     const inCustom = matches.some((m) => m.routeId.startsWith("/(custom)"));
     const inOnboarding = matches.some((m) => m.routeId === "/onboarding");
+    const inTwoFactor = matches.some(
+        (m) => m.routeId === "/(auth)/two-factor"
+    );
 
-    return { inHome, inAuth, inCustom, inOnboarding };
+    return { inHome, inAuth, inCustom, inOnboarding, inTwoFactor };
 }
 
 function getAuthState(flags: {
@@ -32,7 +35,8 @@ export function useAuthRedirect() {
     const { isLoading, showOnboarding, showAuth, showUsername, showHome } =
         useAuthentication();
     const router = useRouter();
-    const { inHome, inAuth, inCustom, inOnboarding } = useRouteGroup();
+    const { inHome, inAuth, inCustom, inOnboarding, inTwoFactor } =
+        useRouteGroup();
     const prevAuthStateRef = useRef<AuthState | null>(null);
 
     useEffect(() => {
@@ -53,13 +57,15 @@ export function useAuthRedirect() {
 
         if (isInCorrectGroup && prevAuthStateRef.current === authState) return;
 
+        if (inTwoFactor && showAuth) return;
+
         prevAuthStateRef.current = authState;
 
         if (showOnboarding && !inOnboarding) {
             router.navigate({ to: "/onboarding", replace: true });
         } else if (showAuth && !inAuth) {
             router.navigate({ to: "/signin", replace: true });
-        } else if (showUsername && !inAuth) {
+        } else if (showUsername) {
             router.navigate({ to: "/sign-up/create-username", replace: true });
         } else if (showHome && !inHome && !inCustom) {
             router.navigate({ to: "/dashboard", replace: true });
@@ -74,6 +80,7 @@ export function useAuthRedirect() {
         inAuth,
         inCustom,
         inOnboarding,
+        inTwoFactor,
         router,
     ]);
 

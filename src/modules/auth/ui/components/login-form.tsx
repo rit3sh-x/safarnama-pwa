@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
+import { useNavigate } from "@tanstack/react-router";
 
 import { signInWithEmail, signInWithGoogle } from "../../hooks/auth-handlers";
 import {
@@ -22,6 +23,8 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onNavigateSignUp }: LoginFormProps) {
+    const navigate = useNavigate();
+
     const form = useForm({
         defaultValues: {
             email: "",
@@ -35,6 +38,11 @@ export function LoginForm({ onNavigateSignUp }: LoginFormProps) {
                 email: parsed.data.email,
                 password: parsed.data.password,
                 fetchOptions: {
+                    onSuccess: (context) => {
+                        if (context.data.twoFactorRedirect) {
+                            navigate({ to: "/two-factor", replace: true });
+                        }
+                    },
                     onError: ({ error }) => console.error(error),
                 },
             });

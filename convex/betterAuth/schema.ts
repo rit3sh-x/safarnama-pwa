@@ -14,12 +14,13 @@ export const tables = {
         userId: v.optional(v.union(v.null(), v.string())),
         username: v.optional(v.union(v.null(), v.string())),
         displayUsername: v.optional(v.union(v.null(), v.string())),
+        twoFactorEnabled: v.optional(v.union(v.null(), v.boolean())),
     })
         .index("email_name", ["email", "name"])
         .index("name", ["name"])
         .index("userId", ["userId"])
         .index("username", ["username"]),
-
+        
     session: defineTable({
         expiresAt: v.number(),
         token: v.string(),
@@ -71,6 +72,13 @@ export const tables = {
         expiresAt: v.optional(v.union(v.null(), v.number())),
     }),
 
+    twoFactor: defineTable({
+        secret: v.string(),
+        backupCodes: v.string(),
+        userId: v.string(),
+    })
+        .index("userId", ["userId"]),
+        
     organization: defineTable({
         name: v.string(),
         slug: v.string(),

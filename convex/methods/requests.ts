@@ -7,18 +7,18 @@ import {
 } from "../lib/utils";
 import { components } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
-import type { Doc as DocAuth } from "../betterAuth/_generated/dataModel";
+import type { Doc as DocAuth, Id } from "../betterAuth/_generated/dataModel";
 import { LIMITS } from "../lib/constants";
 import { paginationOptsValidator } from "convex/server";
 
 export const userSendRequest = mutation({
     args: {
-        orgId: v.id("organization"),
+        orgId: v.string(),
         message: v.optional(v.string()),
     },
     handler: async (ctx, { orgId, message }) => {
         const user = await requireUserAccess(ctx);
-        const trip = await getTripFromOrgId(ctx, orgId);
+        const trip = await getTripFromOrgId(ctx, orgId as Id<"organization">);
 
         if (!trip.isPublic) {
             throw new ConvexError({
@@ -252,10 +252,10 @@ export const userReviewInvite = mutation({
 export const adminSendInvite = mutation({
     args: {
         orgId: v.id("organization"),
-        userIds: v.array(v.string()),
+        emails: v.array(v.string()),
         message: v.optional(v.string()),
     },
-    handler: async (ctx, { orgId, userIds, message }) => {
+    handler: async (ctx, { orgId, emails, message }) => {
         const trip = await getTripFromOrgId(ctx, orgId);
         const { user: sender } = await requireTripPermission(
             ctx,
@@ -263,11 +263,14 @@ export const adminSendInvite = mutation({
             "member:invite"
         );
 
-        const uniqueUserIds = Array.from(new Set(userIds));
-        if (uniqueUserIds.length === 0) {
+        const uniqueEmails = Array.from(
+            new Set(emails.map((email) => email.trim().toLowerCase()))
+        ).filter(Boolean);
+
+        if (uniqueEmails.length === 0) {
             throw new ConvexError({
                 code: "BAD_REQUEST",
-                message: "No users provided",
+                message: "No emails provided",
             });
         }
 
@@ -278,7 +281,27 @@ export const adminSendInvite = mutation({
         }> = [];
         const skipped: Array<{ userId: string; reason: string }> = [];
 
-        for (const userId of uniqueUserIds) {
+        for (const email of uniqueEmails) {
+            const targetUser: DocAuth<"user"> | null = await ctx.runQuery(
+                components.betterAuth.adapter.findOne,
+                {
+                    model: "user",
+                    where: [
+                        { field: "email", value: email, operator: "eq" },
+                    ],
+                }
+            );
+
+            if (!targetUser) {
+                skipped.push({
+                    userId: email,
+                    reason: `No user found for ${email}`,
+                });
+                continue;
+            }
+
+            const userId = targetUser._id;
+
             const member: DocAuth<"member"> | null = await ctx.runQuery(
                 components.betterAuth.adapter.findOne,
                 {
@@ -295,7 +318,10 @@ export const adminSendInvite = mutation({
             );
 
             if (member) {
-                skipped.push({ userId, reason: "Already a member" });
+                skipped.push({
+                    userId: email,
+                    reason: `${targetUser.name ?? email} is already a member`,
+                });
                 continue;
             }
 
@@ -307,7 +333,10 @@ export const adminSendInvite = mutation({
                 .collect();
 
             if (existingForTrip.some((r) => r.status === "pending")) {
-                skipped.push({ userId, reason: "Invite already pending" });
+                skipped.push({
+                    userId: email,
+                    reason: `${targetUser.name ?? email} already has a pending invite`,
+                });
                 continue;
             }
 
@@ -331,19 +360,11 @@ export const adminSendInvite = mutation({
                 LIMITS.MAX_TRIPS_PER_USER
             ) {
                 skipped.push({
-                    userId,
+                    userId: email,
                     reason: "This user has reached the maximum number of trips.",
                 });
                 continue;
             }
-
-            const targetUser: DocAuth<"user"> | null = await ctx.runQuery(
-                components.betterAuth.adapter.findOne,
-                {
-                    model: "user",
-                    where: [{ field: "_id", value: userId, operator: "eq" }],
-                }
-            );
 
             const requestId = await ctx.db.insert("joinRequest", {
                 tripId: trip._id,
@@ -381,19 +402,19 @@ export const adminSendInvite = mutation({
         return {
             invited,
             skipped,
-            totalRequested: uniqueUserIds.length,
+            totalRequested: uniqueEmails.length,
         };
     },
 });
 
 export const adminListRequests = query({
     args: {
-        orgId: v.id("organization"),
+        orgId: v.string(),
         search: v.optional(v.string()),
         paginationOpts: paginationOptsValidator,
     },
     handler: async (ctx, { orgId, search, paginationOpts }) => {
-        const trip = await getTripFromOrgId(ctx, orgId);
+        const trip = await getTripFromOrgId(ctx, orgId as Id<"organization">);
         await requireTripPermission(ctx, trip._id, "member:invite");
         const searchTerm = search?.trim();
 

@@ -169,12 +169,13 @@ export function ChatInputToolbar({
     );
 
     const handleImageSend = useCallback(
-        async (file: File, caption: string) => {
-            const result = await onUploadFile(file);
-            if (result?.url) {
-                onSendImage(result.url, caption || undefined);
-                setPendingImageFile(null);
-            }
+        (file: File, caption: string) => {
+            setPendingImageFile(null);
+            onUploadFile(file).then((result) => {
+                if (result?.url) {
+                    onSendImage(result.url, caption || undefined);
+                }
+            });
         },
         [onUploadFile, onSendImage]
     );

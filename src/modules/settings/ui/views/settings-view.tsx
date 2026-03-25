@@ -16,6 +16,7 @@ import {
 import { ProfileSection } from "../components/profile-section";
 import { ThemeSelector } from "../components/theme-selector";
 import { NotificationsToggle } from "../components/notifications-toggle";
+import { TwoFactorToggle } from "../components/two-factor-toggle";
 import { SettingsFooter } from "../components/settings-footer";
 
 export function SettingsView() {
@@ -33,6 +34,10 @@ export function SettingsView() {
                 <Separator />
 
                 <NotificationsToggle />
+
+                <Separator />
+
+                <TwoFactorToggle />
 
                 <Separator />
 
