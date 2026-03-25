@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ShieldCheckIcon, CopyIcon, CheckIcon, Loader2Icon } from "lucide-react";
+import {
+    ShieldCheckIcon,
+    CopyIcon,
+    CheckIcon,
+    Loader2Icon,
+} from "lucide-react";
 import { toast } from "sonner";
 import QRCodeStyling from "qr-code-styling";
 import { Switch } from "@/components/ui/switch";
@@ -53,17 +58,14 @@ export function TwoFactorToggle() {
         setCopiedBackup(false);
     }, []);
 
-    const handleToggle = useCallback(
-        (checked: boolean) => {
-            setOpen(true);
-            if (checked) {
-                setStep("password");
-            } else {
-                setStep("disable-confirm");
-            }
-        },
-        []
-    );
+    const handleToggle = useCallback((checked: boolean) => {
+        setOpen(true);
+        if (checked) {
+            setStep("password");
+        } else {
+            setStep("disable-confirm");
+        }
+    }, []);
 
     const handleEnable = useCallback(async () => {
         if (!password.trim()) return;
@@ -213,19 +215,19 @@ export function TwoFactorToggle() {
                             {step === "disable-confirm"
                                 ? "Disable 2FA"
                                 : step === "qr"
-                                    ? "Scan QR Code"
-                                    : step === "verify"
-                                        ? "Verify Code"
-                                        : "Enable 2FA"}
+                                  ? "Scan QR Code"
+                                  : step === "verify"
+                                    ? "Verify Code"
+                                    : "Enable 2FA"}
                         </CredenzaTitle>
                         <CredenzaDescription>
                             {step === "disable-confirm"
                                 ? "Enter your password to disable two-factor authentication."
                                 : step === "password"
-                                    ? "Enter your password to set up two-factor authentication."
-                                    : step === "qr"
-                                        ? "Scan this QR code with your authenticator app."
-                                        : "Enter the 6-digit code from your authenticator app."}
+                                  ? "Enter your password to set up two-factor authentication."
+                                  : step === "qr"
+                                    ? "Scan this QR code with your authenticator app."
+                                    : "Enter the 6-digit code from your authenticator app."}
                         </CredenzaDescription>
                     </CredenzaHeader>
 
@@ -238,8 +240,16 @@ export function TwoFactorToggle() {
                                         className={`h-1 w-8 rounded-full transition-colors ${
                                             s === step
                                                 ? "bg-primary"
-                                                : ["password", "qr", "verify"].indexOf(s) <
-                                                    ["password", "qr", "verify"].indexOf(step)
+                                                : [
+                                                        "password",
+                                                        "qr",
+                                                        "verify",
+                                                    ].indexOf(s) <
+                                                    [
+                                                        "password",
+                                                        "qr",
+                                                        "verify",
+                                                    ].indexOf(step)
                                                   ? "bg-primary/40"
                                                   : "bg-muted"
                                         }`}
@@ -248,7 +258,8 @@ export function TwoFactorToggle() {
                             </div>
                         )}
 
-                        {(step === "password" || step === "disable-confirm") && (
+                        {(step === "password" ||
+                            step === "disable-confirm") && (
                             <div className="space-y-3">
                                 <Input
                                     type="password"

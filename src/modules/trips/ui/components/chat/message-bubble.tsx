@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, stringToHex } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +39,7 @@ import type { ChatMessage, Reaction } from "./types";
 import { formatMessageTime } from "./utils";
 import { QuickReactionPicker } from "./emoji-picker";
 import { useTheme } from "@/hooks/use-theme";
+import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
 
 interface MessageBubbleProps {
     message: ChatMessage;
@@ -73,6 +74,12 @@ export function MessageBubble({
     onReaction,
     onImageClick,
 }: MessageBubbleProps) {
+    const { user } = useAuthenticatedUser();
+
+    const { bg: avatarBgColor, text: avatarTextColor } = stringToHex(
+        user.username
+    );
+
     if (message.isSystem) {
         return <SystemMessage message={message} />;
     }
@@ -103,7 +110,13 @@ export function MessageBubble({
                                             src={message.senderImage}
                                         />
                                     ) : null}
-                                    <AvatarFallback>
+                                    <AvatarFallback
+                                        className="font-bold"
+                                        style={{
+                                            backgroundColor: avatarBgColor,
+                                            color: avatarTextColor,
+                                        }}
+                                    >
                                         {message.senderName
                                             .split(" ")
                                             .slice(0, 2)

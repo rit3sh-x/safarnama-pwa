@@ -73,9 +73,10 @@ export function InviteMembersModal({
 
     const handleSend = useCallback(async () => {
         const pending = input.trim().toLowerCase();
-        const finalEmails = pending && EMAIL_RE.test(pending) && !emails.includes(pending)
-            ? [...emails, pending]
-            : emails;
+        const finalEmails =
+            pending && EMAIL_RE.test(pending) && !emails.includes(pending)
+                ? [...emails, pending]
+                : emails;
 
         if (finalEmails.length === 0) return;
 
@@ -105,9 +106,13 @@ export function InviteMembersModal({
         if (input.trim()) addEmail(input);
     }, [input, addEmail]);
 
-    const totalCount = emails.length + (
-        input.trim() && EMAIL_RE.test(input.trim()) && !emails.includes(input.trim().toLowerCase()) ? 1 : 0
-    );
+    const totalCount =
+        emails.length +
+        (input.trim() &&
+        EMAIL_RE.test(input.trim()) &&
+        !emails.includes(input.trim().toLowerCase())
+            ? 1
+            : 0);
 
     return (
         <Credenza
@@ -125,18 +130,25 @@ export function InviteMembersModal({
                 <CredenzaHeader>
                     <CredenzaTitle>Invite Members</CredenzaTitle>
                     <CredenzaDescription>
-                        Enter email addresses to invite. Press Enter, Space, or comma to add each one.
+                        Enter email addresses to invite. Press Enter, Space, or
+                        comma to add each one.
                     </CredenzaDescription>
                 </CredenzaHeader>
 
                 <CredenzaBody className="space-y-3">
                     <div
-                        className="flex min-h-10 flex-wrap gap-1.5 rounded-md border border-input bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-ring cursor-text"
+                        className="flex min-h-10 cursor-text flex-wrap gap-1.5 rounded-md border border-input bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-ring"
                         onClick={() => inputRef.current?.focus()}
                     >
                         {emails.map((email) => (
-                            <Badge key={email} variant="secondary" className="gap-1 pr-1">
-                                <span className="max-w-40 truncate">{email}</span>
+                            <Badge
+                                key={email}
+                                variant="secondary"
+                                className="gap-1 pr-1"
+                            >
+                                <span className="max-w-40 truncate">
+                                    {email}
+                                </span>
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
@@ -158,7 +170,9 @@ export function InviteMembersModal({
                             }}
                             onKeyDown={handleKeyDown}
                             onBlur={handleBlur}
-                            placeholder={emails.length === 0 ? "name@example.com" : ""}
+                            placeholder={
+                                emails.length === 0 ? "name@example.com" : ""
+                            }
                             className="h-auto min-w-32 flex-1 border-none p-0 shadow-none focus-visible:ring-0"
                             autoFocus
                         />

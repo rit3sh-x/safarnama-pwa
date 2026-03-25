@@ -35,7 +35,9 @@ export const signInWithEmail = ({
     email: string;
     password: string;
     fetchOptions?: {
-        onSuccess?: (context: { data: { twoFactorRedirect?: boolean } }) => void;
+        onSuccess?: (context: {
+            data: { twoFactorRedirect?: boolean };
+        }) => void;
         onError?: ({ error }: { error: unknown }) => void;
     };
 }) => {

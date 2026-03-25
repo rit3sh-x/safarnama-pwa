@@ -12,6 +12,11 @@ import { PublicTripPreview } from "./public-trip-preview";
 import { TripExpenseView } from "@/modules/expense/ui/views/trip-expense-view";
 import { TripPlanView } from "./trip-plan-view";
 import { MessageSquare } from "lucide-react";
+import {
+    ResizableHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import type { TripPanelView } from "../../types";
 import type { Id } from "@backend/dataModel";
 
@@ -26,12 +31,28 @@ export function TripsSplitView() {
     }, [selectedTrip, setPanelView, setPublicPreview]);
 
     return (
-        <div className="grid h-full md:grid-cols-[3fr_5fr] lg:grid-cols-[1fr_2fr] xl:grid-cols-[1fr_3fr] 2xl:grid-cols-[1fr_4fr]">
-            <div className="relative overflow-hidden border-r border-border">
+        <ResizablePanelGroup
+            orientation="horizontal"
+            className="h-full w-full min-w-0"
+        >
+            <ResizablePanel
+                defaultSize="32%"
+                minSize="25%"
+                maxSize="45%"
+                collapsible={false}
+                className="relative min-w-[320px] overflow-hidden"
+            >
                 <TripsView />
-            </div>
+            </ResizablePanel>
 
-            <div className="overflow-hidden">
+            <ResizableHandle />
+
+            <ResizablePanel
+                defaultSize="68%"
+                minSize="40%"
+                collapsible={false}
+                className="min-w-0 overflow-hidden"
+            >
                 {publicPreviewId ? (
                     <PublicTripPreview
                         tripId={publicPreviewId}
@@ -46,8 +67,8 @@ export function TripsSplitView() {
                 ) : (
                     <EmptyChatPanel />
                 )}
-            </div>
-        </div>
+            </ResizablePanel>
+        </ResizablePanelGroup>
     );
 }
 

@@ -369,14 +369,14 @@
       align-items: flex-start;
       display: flex;
 
-      > label {
+      >label {
         flex: 0 0 auto;
         margin-right: 0.5rem;
         -webkit-user-select: none;
         user-select: none;
       }
 
-      > div {
+      >div {
         flex: 1 1 auto;
       }
     }
@@ -466,7 +466,7 @@
       position: relative;
       vertical-align: top;
 
-      > * {
+      >* {
         margin-bottom: 0;
       }
     }
@@ -509,4 +509,3 @@
     cursor: col-resize;
   }
 }
-

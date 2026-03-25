@@ -286,9 +286,7 @@ export const adminSendInvite = mutation({
                 components.betterAuth.adapter.findOne,
                 {
                     model: "user",
-                    where: [
-                        { field: "email", value: email, operator: "eq" },
-                    ],
+                    where: [{ field: "email", value: email, operator: "eq" }],
                 }
             );
 

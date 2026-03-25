@@ -94,7 +94,7 @@ export function PublicTripPreview({ tripId, onBack }: PublicTripPreviewProps) {
         );
     }
 
-    const bgColor = stringToHex(tripId);
+    const { bg: bgColor, text: textColor } = stringToHex(tripId);
     const isPending = requestStatus === "pending";
     const isAccepted = requestStatus === "accepted";
 
@@ -136,8 +136,8 @@ export function PublicTripPreview({ tripId, onBack }: PublicTripPreviewProps) {
                     className="flex flex-col items-center gap-5 px-6 pt-10 pb-8"
                 >
                     <div
-                        className="flex size-24 items-center justify-center rounded-full text-2xl font-bold text-white shadow-md"
-                        style={{ backgroundColor: bgColor }}
+                        className="flex size-24 items-center justify-center rounded-full text-2xl font-bold shadow-md"
+                        style={{ backgroundColor: bgColor, color: textColor }}
                     >
                         {trip.logo ? (
                             <img

@@ -66,7 +66,9 @@ export function CommentItem({
     const [isEditing, setIsEditing] = useState(false);
     const isOwn = user._id === comment.authorId;
     const isDeleted = !!comment.deletedAt;
-    const avatarBg = stringToHex(comment.author.username);
+    const { bg: avatarBg, text: avatarText } = stringToHex(
+        comment.author.username
+    );
 
     if (isDeleted) {
         return (
@@ -106,8 +108,8 @@ export function CommentItem({
                     />
                 ) : (
                     <AvatarFallback
-                        className="text-xs text-white"
-                        style={{ backgroundColor: avatarBg }}
+                        className="text-xs font-bold"
+                        style={{ backgroundColor: avatarBg, color: avatarText }}
                     >
                         {comment.author.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>

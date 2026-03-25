@@ -196,7 +196,7 @@ export function EditProfileCredenza({
         }
     };
 
-    const avatarBgColor = stringToHex(user.username);
+    const { bg: avatarBgColor } = stringToHex(user.username);
     const displayImage = croppedPreview ?? user.image;
 
     return (

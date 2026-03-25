@@ -62,7 +62,9 @@ export function DashboardUpcomingTrips({
             <div className="scrollbar-none flex gap-3 overflow-x-auto pb-1">
                 {trips.map((trip) => {
                     const days = daysUntil(trip.startDate);
-                    const bgColor = stringToHex(trip.tripId);
+                    const { bg: bgColor, text: textColor } = stringToHex(
+                        trip.tripId
+                    );
 
                     return (
                         <button
@@ -77,8 +79,11 @@ export function DashboardUpcomingTrips({
                         >
                             <div className="flex items-center gap-2">
                                 <div
-                                    className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                                    style={{ backgroundColor: bgColor }}
+                                    className="flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                    style={{
+                                        backgroundColor: bgColor,
+                                        color: textColor,
+                                    }}
                                 >
                                     {trip.logo ? (
                                         <img

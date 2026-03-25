@@ -45,7 +45,7 @@ function InviteListItem({
 }: InviteListItemProps) {
     const tripName = invite.trip?.title ?? "Unknown Trip";
     const initials = getInitials(tripName);
-    const bgColor = stringToHex(tripName);
+    const { bg: bgColor, text: textColor } = stringToHex(tripName);
 
     const timeLabel = formatDistanceToNow(new Date(invite._creationTime), {
         addSuffix: true,
@@ -56,8 +56,8 @@ function InviteListItem({
             <div className="flex items-start gap-3">
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full">
                     <div
-                        className="flex h-full w-full items-center justify-center text-lg font-bold text-white"
-                        style={{ backgroundColor: bgColor }}
+                        className="flex h-full w-full items-center justify-center text-lg font-bold"
+                        style={{ backgroundColor: bgColor, color: textColor }}
                     >
                         {initials}
                     </div>

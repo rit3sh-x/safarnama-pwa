@@ -33,7 +33,11 @@ export function TwoFactorView() {
         : {
               initial: { opacity: 0, scale: 0.9 } as const,
               animate: { opacity: 1, scale: 1 } as const,
-              transition: { duration: 0.6, delay: 0.2, ease: "easeOut" as const },
+              transition: {
+                  duration: 0.6,
+                  delay: 0.2,
+                  ease: "easeOut" as const,
+              },
           };
 
     const verify = useCallback(async (value: string) => {
@@ -45,9 +49,7 @@ export function TwoFactorView() {
                 trustDevice: false,
             });
             if (error) {
-                toast.error(
-                    error.message ?? "Invalid code, please try again."
-                );
+                toast.error(error.message ?? "Invalid code, please try again.");
                 setCode("");
                 return;
             }

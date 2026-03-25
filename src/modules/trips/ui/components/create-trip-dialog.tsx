@@ -41,7 +41,10 @@ import type { Doc } from "@backend/authDataModel";
 
 const schema = z
     .object({
-        title: z.string().min(1, "Title is required").max(100, "Title is too long"),
+        title: z
+            .string()
+            .min(1, "Title is required")
+            .max(100, "Title is too long"),
         destination: z
             .string()
             .min(1, "Destination is required")
@@ -68,7 +71,8 @@ const schema = z
                 ctx.addIssue({
                     code: "custom",
                     path: ["dateRange"],
-                    message: "Start and end dates are required for public trips.",
+                    message:
+                        "Start and end dates are required for public trips.",
                 });
             }
         }
@@ -240,7 +244,7 @@ export function CreateTripDialog({
                 onOpenChange(next);
             }}
         >
-            <CredenzaContent className="max-h-[90vh] sm:max-w-lg overflow-hidden">
+            <CredenzaContent className="max-h-[90vh] overflow-hidden sm:max-w-lg">
                 <CredenzaHeader>
                     <CredenzaTitle>New Trip</CredenzaTitle>
                     <CredenzaDescription>
@@ -248,7 +252,7 @@ export function CreateTripDialog({
                     </CredenzaDescription>
                 </CredenzaHeader>
 
-                <CredenzaBody className="space-y-4 overflow-y-auto overflow-x-hidden">
+                <CredenzaBody className="space-y-4 overflow-x-hidden overflow-y-auto">
                     {cropSrc && (
                         <div className="space-y-3">
                             <div className="relative aspect-square w-full min-w-0 overflow-hidden">
@@ -265,14 +269,22 @@ export function CreateTripDialog({
                             <Slider
                                 value={[zoom]}
                                 onValueChange={(value) =>
-                                    setZoom(Array.isArray(value) ? (value[0] ?? 1) : value)
+                                    setZoom(
+                                        Array.isArray(value)
+                                            ? (value[0] ?? 1)
+                                            : value
+                                    )
                                 }
                                 min={1}
                                 max={3}
                                 step={0.01}
                             />
                             <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="outline" onClick={cancelCrop}>
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={cancelCrop}
+                                >
                                     Cancel
                                 </Button>
                                 <Button size="sm" onClick={confirmCrop}>
@@ -386,17 +398,20 @@ export function CreateTripDialog({
                             const parsed = schema.safeParse(form.state.values);
                             const error = parsed.success
                                 ? null
-                                : parsed.error.issues.find((i) => i.path[0] === "description")
-                                    ?.message;
+                                : parsed.error.issues.find(
+                                      (i) => i.path[0] === "description"
+                                  )?.message;
                             const touched = field.state.meta.isTouched;
                             return (
                                 <Field>
                                     <FieldLabel>
                                         Description{" "}
                                         {isPublic ? (
-                                            <span className="text-destructive">*</span>
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
                                         ) : (
-                                            <span className="text-muted-foreground font-normal">
+                                            <span className="font-normal text-muted-foreground">
                                                 (optional)
                                             </span>
                                         )}
@@ -404,13 +419,19 @@ export function CreateTripDialog({
                                     <FieldContent>
                                         <Textarea
                                             value={field.state.value}
-                                            onChange={(e) => field.handleChange(e.target.value)}
+                                            onChange={(e) =>
+                                                field.handleChange(
+                                                    e.target.value
+                                                )
+                                            }
                                             onBlur={field.handleBlur}
                                             placeholder="What's this trip about?"
                                             rows={3}
                                         />
                                     </FieldContent>
-                                    {touched && error && <FieldError>{error}</FieldError>}
+                                    {touched && error && (
+                                        <FieldError>{error}</FieldError>
+                                    )}
                                 </Field>
                             );
                         }}
@@ -421,18 +442,23 @@ export function CreateTripDialog({
                             const parsed = schema.safeParse(form.state.values);
                             const error = parsed.success
                                 ? null
-                                : parsed.error.issues.find((i) => i.path[0] === "dateRange")
-                                    ?.message;
+                                : parsed.error.issues.find(
+                                      (i) => i.path[0] === "dateRange"
+                                  )?.message;
                             const touched = field.state.meta.isTouched;
-                            const dateRange = field.state.value as DateRange | undefined;
+                            const dateRange = field.state.value as
+                                | DateRange
+                                | undefined;
                             return (
                                 <Field>
                                     <FieldLabel>
                                         Trip Dates{" "}
                                         {isPublic ? (
-                                            <span className="text-destructive">*</span>
+                                            <span className="text-destructive">
+                                                *
+                                            </span>
                                         ) : (
-                                            <span className="text-muted-foreground font-normal">
+                                            <span className="font-normal text-muted-foreground">
                                                 (optional)
                                             </span>
                                         )}
@@ -458,13 +484,20 @@ export function CreateTripDialog({
                                                 <Button
                                                     variant="ghost"
                                                     size="icon-xs"
-                                                    onClick={() => field.handleChange(undefined)}
+                                                    onClick={() =>
+                                                        field.handleChange(
+                                                            undefined
+                                                        )
+                                                    }
                                                 >
                                                     <X className="size-4" />
                                                 </Button>
                                             )}
                                         </div>
-                                        <PopoverContent className="w-auto p-0" align="start">
+                                        <PopoverContent
+                                            className="w-auto p-0"
+                                            align="start"
+                                        >
                                             <Calendar
                                                 mode="range"
                                                 selected={dateRange}
@@ -472,12 +505,16 @@ export function CreateTripDialog({
                                                     field.handleChange(range);
                                                     field.handleBlur();
                                                 }}
-                                                disabled={{ before: new Date() }}
+                                                disabled={{
+                                                    before: new Date(),
+                                                }}
                                                 numberOfMonths={1}
                                             />
                                         </PopoverContent>
                                     </Popover>
-                                    {touched && error && <FieldError>{error}</FieldError>}
+                                    {touched && error && (
+                                        <FieldError>{error}</FieldError>
+                                    )}
                                 </Field>
                             );
                         }}
@@ -494,7 +531,9 @@ export function CreateTripDialog({
                                 </div>
                                 <Switch
                                     checked={field.state.value}
-                                    onCheckedChange={(checked) => field.handleChange(!!checked)}
+                                    onCheckedChange={(checked) =>
+                                        field.handleChange(!!checked)
+                                    }
                                 />
                             </div>
                         )}

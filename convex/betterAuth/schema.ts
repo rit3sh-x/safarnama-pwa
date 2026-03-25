@@ -20,7 +20,7 @@ export const tables = {
         .index("name", ["name"])
         .index("userId", ["userId"])
         .index("username", ["username"]),
-        
+
     session: defineTable({
         expiresAt: v.number(),
         token: v.string(),
@@ -76,9 +76,8 @@ export const tables = {
         secret: v.string(),
         backupCodes: v.string(),
         userId: v.string(),
-    })
-        .index("userId", ["userId"]),
-        
+    }).index("userId", ["userId"]),
+
     organization: defineTable({
         name: v.string(),
         slug: v.string(),

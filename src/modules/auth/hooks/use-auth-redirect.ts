@@ -11,9 +11,7 @@ function useRouteGroup() {
     const inAuth = matches.some((m) => m.routeId.startsWith("/(auth)"));
     const inCustom = matches.some((m) => m.routeId.startsWith("/(custom)"));
     const inOnboarding = matches.some((m) => m.routeId === "/onboarding");
-    const inTwoFactor = matches.some(
-        (m) => m.routeId === "/(auth)/two-factor"
-    );
+    const inTwoFactor = matches.some((m) => m.routeId === "/(auth)/two-factor");
 
     return { inHome, inAuth, inCustom, inOnboarding, inTwoFactor };
 }

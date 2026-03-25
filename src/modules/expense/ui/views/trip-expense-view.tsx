@@ -7,14 +7,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { InfiniteScrollTrigger } from "@/components/infinite-scroll-trigger";
 import { selectedTripAtom } from "@/modules/trips/atoms";
 import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
-import { useExpenses, useBalances } from "../../hooks/use-expenses";
+import {
+    useExpenses,
+    useBalances,
+    useRemoveExpense,
+} from "../../hooks/use-expenses";
 import { useTripMembers } from "../../hooks/use-trip-members";
 import { ExpenseListItem } from "../components/expense-list-item";
 import {
     BalanceSummary,
     BalanceSummarySkeleton,
 } from "../components/balance-summary";
-import { AddExpenseModal } from "../components/add-expense-modal";
+import { AddExpensePanel } from "../components/add-expense-panel";
 import { SettleUpModal } from "../components/settle-up-modal";
 import type { Id } from "@backend/dataModel";
 
@@ -28,29 +32,31 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
     const { user } = useAuthenticatedUser();
     const selectedTrip = useAtomValue(selectedTripAtom);
     const { expenses, isLoading, isDone, loadMore } = useExpenses(tripId);
-    const { balances } = useBalances(tripId);
+    const { balances, isLoading: isBalancesLoading } = useBalances(tripId);
     const { members } = useTripMembers(tripId);
 
+    const { mutate: removeExpense } = useRemoveExpense();
     const [showAddExpense, setShowAddExpense] = useState(false);
     const [showSettleUp, setShowSettleUp] = useState(false);
 
     const currentUserId = user._id;
 
     const userMap = useMemo(() => {
-        const map = new Map<string, string>();
-        for (const m of members) map.set(m.userId, `@${m.username}`);
+        const map = new Map<string, { name: string; username: string }>();
+        for (const m of members)
+            map.set(m.userId, { name: m.name, username: m.username });
         return map;
     }, [members]);
 
     const getPaidByName = (userId: string) => {
         if (userId === currentUserId) return "You";
-        return userMap.get(userId) ?? "Unknown";
+        return userMap.get(userId)?.name ?? "Unknown";
     };
 
     return (
-        <div className="flex h-full flex-col overflow-hidden bg-background">
+        <div className="relative flex h-full flex-col overflow-hidden bg-background">
             <div className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-1 pr-3">
-                <div className="flex items-center">
+                <div className="flex items-center gap-2 px-2">
                     <Button
                         variant="ghost"
                         size="icon"
@@ -82,14 +88,16 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                             Balances
                         </h2>
                     </div>
-                    {!balances ? (
+                    {isBalancesLoading ? (
                         <BalanceSummarySkeleton />
                     ) : (
-                        <BalanceSummary
-                            simplified={balances.simplified}
-                            userMap={userMap}
-                            currentUserId={currentUserId}
-                        />
+                        balances && (
+                            <BalanceSummary
+                                simplified={balances.simplified}
+                                userMap={userMap}
+                                currentUserId={currentUserId}
+                            />
+                        )
                     )}
                 </div>
 
@@ -116,10 +124,14 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                     {expenses.map((expense) => (
                         <ExpenseListItem
                             key={expense._id}
+                            expenseId={expense._id}
                             title={expense.title}
                             amount={expense.amount}
                             paidByName={getPaidByName(expense.paidBy)}
                             date={expense.date}
+                            notes={expense.notes}
+                            canEdit
+                            onDelete={(id) => removeExpense({ expenseId: id })}
                         />
                     ))}
 
@@ -145,9 +157,9 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                 </Button>
             </div>
 
-            <AddExpenseModal
+            <AddExpensePanel
                 open={showAddExpense}
-                onOpenChange={setShowAddExpense}
+                onClose={() => setShowAddExpense(false)}
                 tripId={tripId}
                 members={members}
                 currentUserId={currentUserId}

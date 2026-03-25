@@ -1,5 +1,9 @@
 import { createAuthClient } from "better-auth/react";
-import { usernameClient, organizationClient, twoFactorClient } from "better-auth/client/plugins";
+import {
+    usernameClient,
+    organizationClient,
+    twoFactorClient,
+} from "better-auth/client/plugins";
 import {
     convexClient,
     crossDomainClient,

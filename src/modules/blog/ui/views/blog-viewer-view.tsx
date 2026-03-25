@@ -45,12 +45,12 @@ export function BlogViewerView({ blogId }: BlogViewerViewProps) {
 
     const initialContent = blog.content
         ? (() => {
-            try {
-                return JSON.parse(blog.content);
-            } catch {
-                return blog.content;
-            }
-        })()
+              try {
+                  return JSON.parse(blog.content);
+              } catch {
+                  return blog.content;
+              }
+          })()
         : undefined;
 
     const publishedDate = blog.publishedAt

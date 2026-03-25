@@ -38,10 +38,17 @@ export const create = mutation({
 
         if (fields.isPublic) {
             if (!fields.description?.trim()) {
-                throw new ConvexError({ code: "BAD_REQUEST", message: "Description is required for public trips." });
+                throw new ConvexError({
+                    code: "BAD_REQUEST",
+                    message: "Description is required for public trips.",
+                });
             }
             if (!fields.startDate || !fields.endDate) {
-                throw new ConvexError({ code: "BAD_REQUEST", message: "Start and end dates are required for public trips." });
+                throw new ConvexError({
+                    code: "BAD_REQUEST",
+                    message:
+                        "Start and end dates are required for public trips.",
+                });
             }
         }
 
@@ -173,12 +180,12 @@ export const list = query({
                     },
                     ...(search
                         ? [
-                            {
-                                field: "name",
-                                value: search.toLowerCase(),
-                                operator: "contains" as const,
-                            },
-                        ]
+                              {
+                                  field: "name",
+                                  value: search.toLowerCase(),
+                                  operator: "contains" as const,
+                              },
+                          ]
                         : []),
                 ],
                 paginationOpts,
@@ -246,10 +253,10 @@ export const list = query({
                     updatedAt: lastMsg ? lastMsg._creationTime : trip.updatedAt,
                     lastMessage: lastMsg
                         ? {
-                            content: lastMsg.content,
-                            senderId: lastMsg.senderId,
-                            deletedAt: lastMsg.deletedAt,
-                        }
+                              content: lastMsg.content,
+                              senderId: lastMsg.senderId,
+                              deletedAt: lastMsg.deletedAt,
+                          }
                         : null,
                     unreadCount,
                     destination: trip.destination,
@@ -266,7 +273,14 @@ export const listPublic = query({
         paginationOpts: paginationOptsValidator,
     },
     handler: async (ctx, { search, paginationOpts }) => {
+        const user = await requireUserAccess(ctx);
         const s = search?.trim().toLowerCase();
+
+        const userTripMembers = await ctx.db
+            .query("tripMember")
+            .withIndex("userId", (q) => q.eq("userId", user._id))
+            .collect();
+        const userTripIds = new Set(userTripMembers.map((m) => m.tripId));
 
         const trips = await ctx.db
             .query("trip")
@@ -274,13 +288,15 @@ export const listPublic = query({
             .filter((q2) =>
                 s
                     ? q2.or(
-                        q2.gte(q2.field("title"), s),
-                        q2.gte(q2.field("destination"), s)
-                    )
+                          q2.gte(q2.field("title"), s),
+                          q2.gte(q2.field("destination"), s)
+                      )
                     : q2.eq(q2.field("isPublic"), true)
             )
             .order("desc")
             .paginate(paginationOpts);
+
+        trips.page = trips.page.filter((t) => !userTripIds.has(t._id));
 
         const orgIds = trips.page.map((t) => t.orgId);
 
@@ -517,9 +533,9 @@ export const dashboardSummary = query({
         }[] =
             senderIds.length > 0
                 ? await ctx.runQuery(
-                    components.betterAuth.methods.users.getUsersByIds,
-                    { userIds: senderIds as Id<"user">[] }
-                )
+                      components.betterAuth.methods.users.getUsersByIds,
+                      { userIds: senderIds as Id<"user">[] }
+                  )
                 : [];
         const userMap = new Map(users.map((u) => [u.userId, u]));
 

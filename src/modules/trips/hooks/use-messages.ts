@@ -181,7 +181,11 @@ export const useAddReaction = () => {
 
         updateMessageInStore(localStore, args.messageId, (msg) => {
             const reactions = [
-                ...((msg.reactions as { emoji: string; userIds: string[]; count: number }[]) ?? []),
+                ...((msg.reactions as {
+                    emoji: string;
+                    userIds: string[];
+                    count: number;
+                }[]) ?? []),
             ];
             const existing = reactions.find((r) => r.emoji === args.emoji);
             if (existing) {
@@ -231,7 +235,11 @@ export const useRemoveReaction = () => {
 
         updateMessageInStore(localStore, args.messageId, (msg) => {
             const reactions = (
-                (msg.reactions as { emoji: string; userIds: string[]; count: number }[]) ?? []
+                (msg.reactions as {
+                    emoji: string;
+                    userIds: string[];
+                    count: number;
+                }[]) ?? []
             )
                 .map((r) => {
                     if (r.emoji !== args.emoji) return r;

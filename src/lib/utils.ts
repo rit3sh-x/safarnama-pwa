@@ -41,12 +41,21 @@ export function useUploadFileToConvex(): (
     };
 }
 
-export function stringToHex(str: string): string {
+export function stringToHex(str: string): {
+    bg: string;
+    text: string;
+} {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return `#${((hash >>> 0) & 0xffffff).toString(16).padStart(6, "0")}`;
+
+    const base = `#${((hash >>> 0) & 0xffffff).toString(16).padStart(6, "0")}`;
+
+    return {
+        bg: `${base}33`,
+        text: base,
+    };
 }
 
 export function getInitials(name: string) {

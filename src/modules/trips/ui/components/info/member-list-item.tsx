@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getInitials } from "@/lib/utils";
+import { getInitials, stringToHex } from "@/lib/utils";
+import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
 import { Crown } from "lucide-react";
 
 interface MemberListItemProps {
@@ -16,11 +17,24 @@ export function MemberListItem({
     image,
     isOwner,
 }: MemberListItemProps) {
+    const { user } = useAuthenticatedUser();
+
+    const { bg: avatarBgColor, text: avatarTextColor } = stringToHex(
+        user.username
+    );
     return (
         <div className="flex items-center gap-3 px-4 py-2.5">
             <Avatar size="lg">
                 {image && <AvatarImage src={image} alt={name} />}
-                <AvatarFallback>{getInitials(name)}</AvatarFallback>
+                <AvatarFallback
+                    className="font-bold"
+                    style={{
+                        backgroundColor: avatarBgColor,
+                        color: avatarTextColor,
+                    }}
+                >
+                    {getInitials(name)}
+                </AvatarFallback>
             </Avatar>
 
             <div className="min-w-0 flex-1">

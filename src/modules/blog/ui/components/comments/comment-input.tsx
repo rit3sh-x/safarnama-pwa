@@ -76,18 +76,18 @@ export function CommentInput({
         }
     };
 
-    const avatarBg = stringToHex(user.username);
+    const { bg: avatarBg, text: avatarText } = stringToHex(user.username);
 
     return (
         <div className="flex gap-3">
-            <Avatar
-                className="size-8 shrink-0"
-                style={{ backgroundColor: avatarBg }}
-            >
+            <Avatar className="size-8 shrink-0">
                 {user.image ? (
                     <AvatarImage src={user.image} alt={user.username} />
                 ) : (
-                    <AvatarFallback className="text-xs text-white">
+                    <AvatarFallback
+                        className="text-xs font-bold"
+                        style={{ backgroundColor: avatarBg, color: avatarText }}
+                    >
                         {user.username.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                 )}

@@ -52,7 +52,7 @@ interface TripListItemProps {
 function TripListItem({ trip, isSelected, onPress }: TripListItemProps) {
     const { user } = useAuthenticatedUser();
     const initials = getInitials(trip.name);
-    const bgColor = stringToHex(trip.name);
+    const { bg: bgColor, text: textColor } = stringToHex(trip.name);
 
     const timeLabel = formatDistanceToNow(new Date(trip.updatedAt), {
         addSuffix: true,
@@ -94,8 +94,8 @@ function TripListItem({ trip, isSelected, onPress }: TripListItemProps) {
                     />
                 ) : (
                     <div
-                        className="flex h-full w-full items-center justify-center text-lg font-bold text-white"
-                        style={{ backgroundColor: bgColor }}
+                        className="flex h-full w-full items-center justify-center text-lg font-bold"
+                        style={{ backgroundColor: bgColor, color: textColor }}
                     >
                         {initials}
                     </div>

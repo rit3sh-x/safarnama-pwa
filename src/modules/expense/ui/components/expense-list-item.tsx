@@ -1,12 +1,36 @@
+import { useState } from "react";
+import { MoreVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
 import { getExpenseCategory } from "../../constants";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { EditExpenseModal } from "./edit-expense-modal";
+import type { Id } from "@backend/dataModel";
 
 interface ExpenseListItemProps {
+    expenseId: Id<"expense">;
     title: string;
     amount: number;
     paidByName: string;
     date: number;
-    onClick?: () => void;
+    notes?: string;
+    canEdit?: boolean;
+    onDelete?: (expenseId: Id<"expense">) => void;
 }
 
 function formatDate(timestamp: number) {
@@ -17,41 +41,107 @@ function formatDate(timestamp: number) {
 }
 
 export function ExpenseListItem({
+    expenseId,
     title,
     amount,
     paidByName,
     date,
-    onClick,
+    notes,
+    canEdit = false,
+    onDelete,
 }: ExpenseListItemProps) {
     const category = getExpenseCategory(title);
     const Icon = category.icon;
 
+    const [showEdit, setShowEdit] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
     return (
-        <button
-            onClick={onClick}
-            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
-        >
-            <div
-                className={cn(
-                    "flex size-10 shrink-0 items-center justify-center rounded-full bg-muted",
-                    category.color
+        <>
+            <div className="flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+                <div
+                    className={cn(
+                        "flex size-10 shrink-0 items-center justify-center rounded-full bg-muted",
+                        category.color
+                    )}
+                >
+                    <Icon className="size-5" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">
+                        {title}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                        {paidByName} paid &middot; {formatDate(date)}
+                    </p>
+                </div>
+
+                <span className="shrink-0 text-sm font-semibold text-foreground tabular-nums">
+                    ₹{amount.toFixed(2)}
+                </span>
+
+                {canEdit && (
+                    <DropdownMenu>
+                        <DropdownMenuTrigger
+                            render={
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-8 shrink-0"
+                                    aria-label="Expense options"
+                                />
+                            }
+                        >
+                            <MoreVerticalIcon className="size-4" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" sideOffset={4}>
+                            <DropdownMenuItem onClick={() => setShowEdit(true)}>
+                                <PencilIcon className="size-4" />
+                                Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className="text-destructive focus:text-destructive"
+                            >
+                                <Trash2Icon className="size-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 )}
+            </div>
+
+            {showEdit && (
+                <EditExpenseModal
+                    open={showEdit}
+                    onOpenChange={setShowEdit}
+                    expense={{ _id: expenseId, title, amount, date, notes }}
+                />
+            )}
+
+            <AlertDialog
+                open={showDeleteConfirm}
+                onOpenChange={setShowDeleteConfirm}
             >
-                <Icon className="size-5" />
-            </div>
-
-            <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">
-                    {title}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                    {paidByName} paid &middot; {formatDate(date)}
-                </p>
-            </div>
-
-            <span className="shrink-0 text-sm font-semibold text-foreground">
-                ₹{amount.toFixed(2)}
-            </span>
-        </button>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete expense?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete "{title}" and all its
+                            splits. This cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => onDelete?.(expenseId)}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }

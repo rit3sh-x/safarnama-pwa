@@ -10,19 +10,24 @@ export function ProfileSection() {
     const { user } = useAuthenticatedUser();
     const [editOpen, setEditOpen] = useState(false);
 
-    const avatarBgColor = stringToHex(user.username);
+    const { bg: avatarBgColor, text: avatarTextColor } = stringToHex(
+        user.username
+    );
 
     return (
         <div className="flex flex-col items-center gap-4 py-2">
             <div className="relative">
-                <Avatar
-                    className="size-12 sm:size-16 md:size-20 lg:size-24"
-                    style={{ backgroundColor: avatarBgColor }}
-                >
+                <Avatar className="size-12 sm:size-16 md:size-20 lg:size-24">
                     {user.image ? (
                         <AvatarImage src={user.image} alt={user.username} />
                     ) : (
-                        <AvatarFallback className="text-sm text-white sm:text-base md:text-lg">
+                        <AvatarFallback
+                            className="text-sm font-bold sm:text-base md:text-lg"
+                            style={{
+                                backgroundColor: avatarBgColor,
+                                color: avatarTextColor,
+                            }}
+                        >
                             {getInitials(user.username)}
                         </AvatarFallback>
                     )}

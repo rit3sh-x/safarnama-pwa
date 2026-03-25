@@ -113,7 +113,7 @@ export function TripPlanView({ tripId, onBack }: TripPlanViewProps) {
 
     return (
         <div className="relative flex h-full flex-col overflow-hidden bg-background">
-            <div className="flex h-14 shrink-0 items-center border-b bg-card px-1">
+            <div className="flex h-14 shrink-0 items-center gap-2 border-b bg-card px-4">
                 <Button
                     variant="ghost"
                     size="icon"

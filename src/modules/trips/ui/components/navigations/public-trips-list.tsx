@@ -37,7 +37,7 @@ interface PublicTripItemProps {
 
 function PublicTripItem({ trip, onPress }: PublicTripItemProps) {
     const initials = getInitials(trip.name);
-    const bgColor = stringToHex(trip.name);
+    const { bg: bgColor, text: textColor } = stringToHex(trip.name);
 
     return (
         <button
@@ -53,8 +53,8 @@ function PublicTripItem({ trip, onPress }: PublicTripItemProps) {
                     />
                 ) : (
                     <div
-                        className="flex h-full w-full items-center justify-center text-lg font-bold text-white"
-                        style={{ backgroundColor: bgColor }}
+                        className="flex h-full w-full items-center justify-center text-lg font-bold"
+                        style={{ backgroundColor: bgColor, color: textColor }}
                     >
                         {initials}
                     </div>

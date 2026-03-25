@@ -45,6 +45,7 @@ export const listAll = query({
             .filter((u) => u.username)
             .map((u) => ({
                 userId: u._id,
+                name: u.name,
                 username: u.username as string,
             }));
     },

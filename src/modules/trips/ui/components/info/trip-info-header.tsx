@@ -27,7 +27,7 @@ export function TripInfoHeader({
 }: TripInfoHeaderProps) {
     const { trip } = useTripDetails(tripId);
     const initials = getInitials(name);
-    const bgColor = stringToHex(tripId);
+    const { bg: bgColor, text: textColor } = stringToHex(tripId);
 
     const dateRange =
         trip?.startDate && trip?.endDate
@@ -47,8 +47,8 @@ export function TripInfoHeader({
                     />
                 ) : (
                     <div
-                        className="flex size-full items-center justify-center text-2xl font-bold text-white"
-                        style={{ backgroundColor: bgColor }}
+                        className="flex size-full items-center justify-center text-2xl font-bold"
+                        style={{ backgroundColor: bgColor, color: textColor }}
                     >
                         {initials}
                     </div>

@@ -45,7 +45,7 @@ export function ChatHeader({
 }: ChatHeaderProps) {
     const navigate = useNavigate();
     const initials = getInitials(name);
-    const bgColor = stringToHex(tripId);
+    const { bg: bgColor, text: textColor } = stringToHex(tripId);
     const setPanelView = useSetAtom(tripPanelViewAtom);
     const selectedTrip = useAtomValue(selectedTripAtom);
     const isOwner = selectedTrip?.role === "owner";
@@ -99,8 +99,11 @@ export function ChatHeader({
                             />
                         ) : (
                             <div
-                                className="flex h-full w-full items-center justify-center text-sm font-bold text-white"
-                                style={{ backgroundColor: bgColor }}
+                                className="flex h-full w-full items-center justify-center text-sm font-bold"
+                                style={{
+                                    backgroundColor: bgColor,
+                                    color: textColor,
+                                }}
                             >
                                 {initials}
                             </div>

@@ -49,7 +49,9 @@ export function TripExpenseBreakdown({
             <h3 className="text-sm font-semibold">By Trip</h3>
             <div className="space-y-2">
                 {trips.map((trip) => {
-                    const bgColor = stringToHex(trip.tripId);
+                    const { bg: bgColor, text: textColor } = stringToHex(
+                        trip.tripId
+                    );
                     const barWidth = (trip.totalExpenses / maxExpense) * 100;
 
                     return (
@@ -66,8 +68,11 @@ export function TripExpenseBreakdown({
                             className="flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition-colors hover:bg-muted/50 active:bg-muted"
                         >
                             <div
-                                className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                                style={{ backgroundColor: bgColor }}
+                                className="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                style={{
+                                    backgroundColor: bgColor,
+                                    color: textColor,
+                                }}
                             >
                                 {getInitials(trip.tripTitle)}
                             </div>

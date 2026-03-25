@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { InfiniteScrollTrigger } from "@/components/infinite-scroll-trigger";
 import type { Id } from "@backend/authDataModel";
+import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
 
 interface JoinRequestsSectionProps {
     orgId: Id<"organization">;
@@ -21,6 +22,11 @@ export function JoinRequestsSection({ orgId }: JoinRequestsSectionProps) {
         orgId,
     });
     const { mutate: reviewRequest, isPending } = useReviewRequest();
+    const { user } = useAuthenticatedUser();
+
+    const { bg: avatarBgColor, text: avatarTextColor } = stringToHex(
+        user.username
+    );
 
     const pendingCount = requests.length;
 
@@ -65,71 +71,70 @@ export function JoinRequestsSection({ orgId }: JoinRequestsSectionProps) {
 
             {pendingCount > 0 && (
                 <div className="space-y-2">
-                    {requests.map((req) => {
-                        const bgColor = stringToHex(req.userId ?? "");
-
-                        return (
-                            <div
-                                key={req._id}
-                                className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted/50"
-                            >
-                                <Avatar
-                                    className="size-9"
-                                    style={{ backgroundColor: bgColor }}
+                    {requests.map((req) => (
+                        <div
+                            key={req._id}
+                            className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted/50"
+                        >
+                            <Avatar className="size-9">
+                                <AvatarFallback
+                                    className="text-xs font-bold"
+                                    style={{
+                                        backgroundColor: avatarBgColor,
+                                        color: avatarTextColor,
+                                    }}
                                 >
-                                    <AvatarFallback className="text-xs text-white">
-                                        {(req.userName ?? "?")
-                                            .slice(0, 2)
-                                            .toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
+                                    {(req.userName ?? "?")
+                                        .slice(0, 2)
+                                        .toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
 
-                                <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm font-medium">
-                                        {req.userName}
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-medium">
+                                    {req.userName}
+                                </p>
+                                {req.message && (
+                                    <p className="truncate text-xs text-muted-foreground">
+                                        {req.message}
                                     </p>
-                                    {req.message && (
-                                        <p className="truncate text-xs text-muted-foreground">
-                                            {req.message}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="flex gap-1.5">
-                                    <Button
-                                        aria-label="Accept request"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-9 text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400"
-                                        disabled={isPending}
-                                        onClick={() =>
-                                            reviewRequest({
-                                                requestId: req._id,
-                                                action: "accept",
-                                            })
-                                        }
-                                    >
-                                        <CheckIcon className="size-4" />
-                                    </Button>
-                                    <Button
-                                        aria-label="Reject request"
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-9 text-red-500 hover:bg-red-500/10 hover:text-red-500"
-                                        disabled={isPending}
-                                        onClick={() =>
-                                            reviewRequest({
-                                                requestId: req._id,
-                                                action: "reject",
-                                            })
-                                        }
-                                    >
-                                        <XIcon className="size-4" />
-                                    </Button>
-                                </div>
+                                )}
                             </div>
-                        );
-                    })}
+
+                            <div className="flex gap-1.5">
+                                <Button
+                                    aria-label="Accept request"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-9 text-green-600 hover:bg-green-500/10 hover:text-green-600 dark:text-green-400"
+                                    disabled={isPending}
+                                    onClick={() =>
+                                        reviewRequest({
+                                            requestId: req._id,
+                                            action: "accept",
+                                        })
+                                    }
+                                >
+                                    <CheckIcon className="size-4" />
+                                </Button>
+                                <Button
+                                    aria-label="Reject request"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-9 text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                                    disabled={isPending}
+                                    onClick={() =>
+                                        reviewRequest({
+                                            requestId: req._id,
+                                            action: "reject",
+                                        })
+                                    }
+                                >
+                                    <XIcon className="size-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             )}
 

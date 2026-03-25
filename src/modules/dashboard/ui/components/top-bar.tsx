@@ -29,7 +29,7 @@ export function TopBar({ title, className }: TopBarProps) {
         );
     }
 
-    const avatarBgColor = stringToHex(user.username);
+    const { bg, text } = stringToHex(user.username);
 
     return (
         <div
@@ -45,7 +45,7 @@ export function TopBar({ title, className }: TopBarProps) {
                 size="icon"
                 onClick={() => navigate({ to: "/settings" })}
                 className="rounded-full p-0"
-                style={{ backgroundColor: avatarBgColor }}
+                style={{ backgroundColor: bg }}
             >
                 {user.image ? (
                     <img
@@ -54,7 +54,10 @@ export function TopBar({ title, className }: TopBarProps) {
                         className="h-full w-full rounded-full object-cover"
                     />
                 ) : (
-                    <UserCircle2Icon className="h-7 w-7 text-white/90" />
+                    <UserCircle2Icon
+                        className="h-7 w-7"
+                        style={{ color: text }}
+                    />
                 )}
             </Button>
         </div>

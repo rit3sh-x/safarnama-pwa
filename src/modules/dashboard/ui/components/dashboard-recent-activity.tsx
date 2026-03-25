@@ -59,7 +59,9 @@ export function DashboardRecentActivity({
             <h2 className="text-base font-semibold">Recent Activity</h2>
             <div className="space-y-1">
                 {messages.map((msg, i) => {
-                    const bgColor = stringToHex(msg.tripId);
+                    const { bg: bgColor, text: textColor } = stringToHex(
+                        msg.tripId
+                    );
 
                     return (
                         <button
@@ -76,7 +78,10 @@ export function DashboardRecentActivity({
                                 className="flex size-9 shrink-0 items-center justify-center rounded-full"
                                 style={{ backgroundColor: bgColor }}
                             >
-                                <MessageSquareIcon className="size-4 text-white/90" />
+                                <MessageSquareIcon
+                                    className="size-4"
+                                    style={{ color: textColor }}
+                                />
                             </div>
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between gap-2">
