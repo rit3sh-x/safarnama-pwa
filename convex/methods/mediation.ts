@@ -2,28 +2,25 @@
 
 import { v } from "convex/values";
 import { internalAction } from "../_generated/server";
-import Groq from "groq-sdk";
-import { PROFANITY_CHECK_PROMPT } from "convex/lib/prompt";
+import OpenAI from "openai";
+import { PROFANITY_CHECK_PROMPT } from "../lib/prompt";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const client = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENROUTER_API_KEY,
+});
 
 export const advancedModerate = internalAction({
     args: { text: v.string() },
     handler: async (_ctx, { text }) => {
-        const completion = await groq.chat.completions.create({
-            model: "meta-llama/llama-4-scout-17b-16e-instruct",
+        const completion = await client.chat.completions.create({
+            model: "nvidia/nemotron-3-nano-30b-a3b:free",
             max_tokens: 120,
             temperature: 0,
             response_format: { type: "json_object" },
             messages: [
-                {
-                    role: "system",
-                    content: PROFANITY_CHECK_PROMPT,
-                },
-                {
-                    role: "user",
-                    content: text,
-                },
+                { role: "system", content: PROFANITY_CHECK_PROMPT },
+                { role: "user", content: text },
             ],
         });
 

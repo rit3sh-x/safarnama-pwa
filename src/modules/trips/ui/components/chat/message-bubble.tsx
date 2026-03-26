@@ -33,6 +33,10 @@ import {
     SmileIcon,
     CheckCheckIcon,
     Clock3Icon,
+    LogOutIcon,
+    MailPlusIcon,
+    ReceiptIcon,
+    UserPlus2Icon,
 } from "lucide-react";
 import { HighlightSearchText } from "./message-search";
 import type { ChatMessage, Reaction } from "./types";
@@ -275,11 +279,27 @@ export function MessageBubble({
 }
 
 function SystemMessage({ message }: { message: ChatMessage }) {
+    const iconMap: Record<
+        string,
+        { icon: typeof UserPlus2Icon; color: string }
+    > = {
+        member_joined: { icon: UserPlus2Icon, color: "text-emerald-500" },
+        member_left: { icon: LogOutIcon, color: "text-muted-foreground" },
+        member_invited: { icon: MailPlusIcon, color: "text-blue-500" },
+        expense_event: { icon: ReceiptIcon, color: "text-amber-500" },
+    };
+
+    const config = iconMap[message.original.type ?? ""] ?? null;
+    const Icon = config?.icon;
+
     return (
-        <div className="my-3 flex justify-center px-4">
-            <span className="rounded-lg bg-muted/80 px-3 py-1 text-center text-[13px] text-muted-foreground italic">
-                {message.content}
-            </span>
+        <div className="my-2 flex justify-center px-4">
+            <div className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1">
+                {Icon && <Icon className={cn("size-3", config.color)} />}
+                <span className="text-xs text-muted-foreground">
+                    {message.content}
+                </span>
+            </div>
         </div>
     );
 }

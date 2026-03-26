@@ -12,6 +12,7 @@ import {
     Lightbulb,
     CloudSun,
     ChevronDown,
+    ImageOff,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -84,6 +85,40 @@ interface ItineraryItemProps {
     isLast?: boolean;
 }
 
+function ItemImage({ src, alt }: { src: string; alt: string }) {
+    const [status, setStatus] = useState<"loading" | "loaded" | "error">(
+        "loading"
+    );
+
+    return (
+        <div className="relative mt-2.5 aspect-16/10 overflow-hidden rounded-lg bg-muted">
+            {status === "loading" && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="size-5 animate-spin rounded-full border-2 border-muted-foreground/20 border-t-muted-foreground/60" />
+                </div>
+            )}
+            {status === "error" ? (
+                <div className="flex size-full items-center justify-center gap-1.5 text-xs text-muted-foreground/50">
+                    <ImageOff className="size-4" />
+                    <span>Image unavailable</span>
+                </div>
+            ) : (
+                <img
+                    src={src}
+                    alt={alt}
+                    className={cn(
+                        "size-full object-cover transition-opacity duration-300",
+                        status === "loaded" ? "opacity-100" : "opacity-0"
+                    )}
+                    loading="lazy"
+                    onLoad={() => setStatus("loaded")}
+                    onError={() => setStatus("error")}
+                />
+            )}
+        </div>
+    );
+}
+
 export function ItineraryItem({
     time,
     duration,
@@ -100,9 +135,9 @@ export function ItineraryItem({
     isLast,
 }: ItineraryItemProps) {
     const [open, setOpen] = useState(false);
-    const [imgError, setImgError] = useState(false);
     const config = CATEGORY_CONFIG[category] ?? CATEGORY_CONFIG.other;
     const Icon = config.icon;
+    const hasImage = imageUrl?.trim().length > 0;
 
     const hasDetails =
         (rating !== undefined && rating > 0) ||
@@ -123,33 +158,47 @@ export function ItineraryItem({
                 >
                     <Icon className={cn("size-4", config.color)} />
                 </div>
-                {!isLast && <div className="w-px flex-1 bg-border" />}
+                {!isLast && <div className="w-px flex-1 bg-border/60" />}
             </div>
 
             <Collapsible
                 open={open}
                 onOpenChange={setOpen}
-                className="mb-4 flex-1"
+                className="mb-4 min-w-0 flex-1"
             >
                 <CollapsibleTrigger
                     className={cn(
-                        "w-full rounded-xl border bg-card p-3 text-left transition-all duration-200",
+                        "w-full rounded-xl border bg-card p-3 text-left",
+                        "transition-all duration-200 ease-out",
                         "hover:bg-accent/50 active:scale-[0.99]",
                         open && "bg-accent/30 ring-1 ring-border"
                     )}
                 >
+                    {/* Header row */}
                     <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                            <h4 className="text-sm leading-tight font-semibold text-foreground">
-                                {title}
-                            </h4>
+                            <div className="flex items-center gap-2">
+                                <h4 className="truncate text-sm leading-tight font-semibold text-foreground">
+                                    {title}
+                                </h4>
+                                <Badge
+                                    variant="outline"
+                                    className={cn(
+                                        "shrink-0 border-0 px-1.5 py-0 text-[10px] font-medium",
+                                        config.bg,
+                                        config.color
+                                    )}
+                                >
+                                    {config.label}
+                                </Badge>
+                            </div>
                             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
-                                    <Clock className="size-3" />
+                                    <Clock className="size-3 shrink-0" />
                                     {time} · {duration}
                                 </span>
-                                <span className="flex items-center gap-1">
-                                    <MapPin className="size-3" />
+                                <span className="flex min-w-0 items-center gap-1">
+                                    <MapPin className="size-3 shrink-0" />
                                     <span className="truncate">{location}</span>
                                 </span>
                             </div>
@@ -159,9 +208,9 @@ export function ItineraryItem({
                             {pricing.amount > 0 && (
                                 <Badge
                                     variant="secondary"
-                                    className="text-[10px]"
+                                    className="text-[10px] font-semibold tabular-nums"
                                 >
-                                    {pricing.currency} {pricing.amount}
+                                    ₹{pricing.amount.toLocaleString("en-IN")}
                                 </Badge>
                             )}
                             {hasDetails && (
@@ -175,19 +224,14 @@ export function ItineraryItem({
                         </div>
                     </div>
 
-                    {imageUrl && !imgError && (
-                        <div className="mt-2.5 aspect-video overflow-hidden rounded-lg bg-muted">
-                            <img
-                                src={imageUrl}
-                                alt={title}
-                                className="size-full object-cover"
-                                loading="lazy"
-                                onError={() => setImgError(true)}
-                            />
-                        </div>
-                    )}
+                    {hasImage && <ItemImage src={imageUrl} alt={title} />}
 
-                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                    <p
+                        className={cn(
+                            "line-clamp-2 text-xs leading-relaxed text-muted-foreground",
+                            hasImage ? "mt-2" : "mt-1.5"
+                        )}
+                    >
                         {description}
                     </p>
                 </CollapsibleTrigger>
@@ -196,29 +240,35 @@ export function ItineraryItem({
                     <CollapsibleContent className="-mt-4 rounded-b-xl border border-t-0 bg-card px-3 pb-3">
                         <Separator className="mb-3" />
 
-                        <div className="space-y-2.5">
-                            {rating !== undefined && rating > 0 && (
-                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <Star className="size-3 fill-amber-400 text-amber-400" />
-                                    <span>{rating.toFixed(1)} rating</span>
-                                </div>
-                            )}
-
-                            {weather && (
-                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                                    <CloudSun className="size-3" />
-                                    <span>{weather}</span>
+                        <div className="space-y-2">
+                            {((rating !== undefined && rating > 0) ||
+                                weather) && (
+                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                                    {rating !== undefined && rating > 0 && (
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <Star className="size-3 fill-amber-400 text-amber-400" />
+                                            <span className="font-medium">
+                                                {rating.toFixed(1)}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {weather && (
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                            <CloudSun className="size-3" />
+                                            <span>{weather}</span>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
                             {pricing.note && (
-                                <p className="text-xs text-muted-foreground italic">
+                                <p className="text-xs text-muted-foreground/80 italic">
                                     {pricing.note}
                                 </p>
                             )}
 
                             {tips.length > 0 && (
-                                <div className="space-y-1">
+                                <div className="space-y-1 rounded-lg bg-amber-500/5 px-2.5 py-2">
                                     {tips.map((tip, i) => (
                                         <div
                                             key={i}
@@ -237,8 +287,10 @@ export function ItineraryItem({
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
                                 >
-                                    Book now <ExternalLink className="size-3" />
+                                    Book now
+                                    <ExternalLink className="size-3" />
                                 </a>
                             )}
                         </div>

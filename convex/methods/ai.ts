@@ -3,14 +3,15 @@
 import { internalAction } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { ConvexError, v } from "convex/values";
-import Groq from "groq-sdk";
+import OpenAI from "openai";
 import { tavily } from "@tavily/core";
 import { SYSTEM_PROMPT, buildUserPrompt } from "../lib/prompt";
 import { coerceItem, extractJson } from "../lib/utils";
 import type { RawItem } from "../lib/types";
 
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
+const client = new OpenAI({
+    baseURL: "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY });
@@ -25,7 +26,7 @@ async function searchDestination(destination: string, month: string) {
     const results = await Promise.all(
         queries.map((q) =>
             tvly.search(q, {
-                maxResults: 5,
+                maxResults: 8,
                 includeImages: true,
                 includeImageDescriptions: true,
                 searchDepth: "advanced",
@@ -78,8 +79,8 @@ export const planTrip = internalAction({
 
             const webContext = `\n\n--- WEB RESEARCH ---\n${searchContext}\n\n--- IMAGE URLs FOUND ---\n${images.join("\n")}\n\nUse the above real data and image URLs in your response.`;
 
-            const response = await groq.chat.completions.create({
-                model: "llama-3.3-70b-versatile",
+            const response = await client.chat.completions.create({
+                model: "openai/gpt-oss-20b:free",
                 messages: [
                     { role: "system", content: SYSTEM_PROMPT },
                     { role: "user", content: userPrompt + webContext },
@@ -95,6 +96,7 @@ export const planTrip = internalAction({
                     message: "Model returned empty response",
                 });
 
+            console.log(JSON.stringify(rawText, null, 2));
             let plan: Record<string, unknown>;
             try {
                 plan = JSON.parse(extractJson(rawText));

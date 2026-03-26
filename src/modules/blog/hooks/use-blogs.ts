@@ -123,7 +123,28 @@ export const useSaveBlog = () => {
 
 export const useRemoveBlog = () => {
     const [isPending, setIsPending] = useState(false);
-    const removeBlog = useMutation(api.methods.blogs.remove);
+    const removeBlog = useMutation(
+        api.methods.blogs.remove
+    ).withOptimisticUpdate((localStore, args) => {
+        const allPages = localStore.getAllQueries(api.methods.blogs.browse);
+        for (const { args: queryArgs, value } of allPages) {
+            if (!queryArgs || !value) continue;
+            const page = value.page as Record<string, unknown>[];
+            const filtered = page.filter((b) => b.tripId !== args.tripId);
+            if (filtered.length !== page.length) {
+                localStore.setQuery(api.methods.blogs.browse, queryArgs, {
+                    ...value,
+                    page: filtered,
+                } as typeof value);
+            }
+        }
+
+        localStore.setQuery(
+            api.methods.blogs.get,
+            { tripId: args.tripId },
+            null
+        );
+    });
 
     const mutate = async (
         args: FunctionArgs<typeof api.methods.blogs.remove>

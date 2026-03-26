@@ -104,7 +104,7 @@ export function SettleUpModal({
                                     {otherMembers.map((m) => (
                                         <SelectItem
                                             key={m.userId}
-                                            value={m.userId}
+                                            value={m.username}
                                         >
                                             @{m.username}
                                         </SelectItem>

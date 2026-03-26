@@ -1,14 +1,14 @@
-import { create } from "zustand";
+import { atom, useAtom } from "jotai";
 import type { Editor } from "@tiptap/react";
 
-interface EditorState {
-    editor: Editor | null;
-    setEditor: (editor: Editor | null) => void;
-    unsetEditor: () => void;
-}
+const editorAtom = atom<Editor | null>(null);
 
-export const useEditorStore = create<EditorState>((set) => ({
-    editor: null,
-    setEditor: (editor) => set({ editor }),
-    unsetEditor: () => set({ editor: null }),
-}));
+export function useEditorStore() {
+    const [editor, setEditor] = useAtom(editorAtom);
+
+    return {
+        editor,
+        setEditor,
+        unsetEditor: () => setEditor(null),
+    };
+}
