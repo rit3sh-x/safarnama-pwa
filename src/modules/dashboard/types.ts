@@ -7,3 +7,4 @@ export type DashboardSummary = FunctionReturnType<
 
 export type RecentMessage = DashboardSummary["recentMessages"][number];
 export type UpcomingTrip = DashboardSummary["upcomingTrips"][number];
+export type ActiveTrip = DashboardSummary["activeTrips"][number];

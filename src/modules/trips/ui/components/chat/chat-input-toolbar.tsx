@@ -14,6 +14,7 @@ import {
     ReplyIcon,
     PencilIcon,
     Loader2Icon,
+    BarChart3Icon,
 } from "lucide-react";
 import { EmojiPicker } from "./emoji-picker";
 import { ImagePreviewDrawer } from "./image-preview-drawer";
@@ -28,6 +29,7 @@ interface ChatInputToolbarProps {
     onClearReply: () => void;
     onClearEdit: () => void;
     onUploadFile: (file: File) => Promise<{ url: string | null } | null>;
+    onOpenPollDialog?: () => void;
 }
 
 export function ChatInputToolbar({
@@ -39,6 +41,7 @@ export function ChatInputToolbar({
     onClearReply,
     onClearEdit,
     onUploadFile,
+    onOpenPollDialog,
 }: ChatInputToolbarProps) {
     const [composeText, setComposeText] = useState("");
     const [editDrafts, setEditDrafts] = useState<Record<string, string>>({});
@@ -198,6 +201,7 @@ export function ChatInputToolbar({
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Cancel reply"
                         className="h-7 w-7 shrink-0"
                         onClick={onClearReply}
                     >
@@ -220,6 +224,7 @@ export function ChatInputToolbar({
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Cancel edit"
                         className="h-7 w-7 shrink-0"
                         onClick={() => {
                             clearEditDraft(editingMessage._id);
@@ -244,12 +249,25 @@ export function ChatInputToolbar({
                 <Button
                     variant="ghost"
                     size="icon"
+                    aria-label="Attach file"
                     className="mb-0.5 h-9 w-9 shrink-0 rounded-full"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
                 >
                     <PaperclipIcon className="size-5 text-muted-foreground" />
                 </Button>
+
+                {onOpenPollDialog && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Create poll"
+                        className="mb-0.5 h-9 w-9 shrink-0 rounded-full"
+                        onClick={onOpenPollDialog}
+                    >
+                        <BarChart3Icon className="size-5 text-muted-foreground" />
+                    </Button>
+                )}
 
                 <Input
                     ref={fileInputRef}
@@ -285,6 +303,7 @@ export function ChatInputToolbar({
 
                 <Button
                     size="icon"
+                    aria-label="Send message"
                     className="mb-0.5 h-9 w-9 shrink-0 rounded-full"
                     onClick={handleSend}
                     disabled={!canSend}

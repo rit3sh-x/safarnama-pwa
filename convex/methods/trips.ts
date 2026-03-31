@@ -1,4 +1,4 @@
-import { components, internal } from "@backend/api";
+import { components } from "@backend/api";
 import { ConvexError, v } from "convex/values";
 import { nanoid } from "nanoid";
 import { mutation, query } from "../_generated/server";
@@ -90,10 +90,15 @@ export const create = mutation({
             },
         });
 
+        const searchText = [title, fields.destination, fields.description]
+            .filter(Boolean)
+            .join(" ");
+
         const tripId = await ctx.db.insert("trip", {
             orgId: org._id,
             title,
             ...fields,
+            searchText,
             createdBy: user._id,
             updatedAt: now,
         });
@@ -167,6 +172,17 @@ export const list = query({
             memberships.map((m) => [m.organizationId, m.role])
         );
 
+        const s = search?.trim();
+
+        let matchedTripIds: Set<string> | null = null;
+        if (s) {
+            const searchResults = await ctx.db
+                .query("trip")
+                .withSearchIndex("search", (q) => q.search("searchText", s))
+                .take(100);
+            matchedTripIds = new Set(searchResults.map((t) => t._id));
+        }
+
         const orgs: PaginationResult<Doc<"organization">> = await ctx.runQuery(
             components.betterAuth.adapter.findMany,
             {
@@ -178,15 +194,6 @@ export const list = query({
                         operator: "in" as const,
                         connector: "AND" as const,
                     },
-                    ...(search
-                        ? [
-                              {
-                                  field: "name",
-                                  value: search.toLowerCase(),
-                                  operator: "contains" as const,
-                              },
-                          ]
-                        : []),
                 ],
                 paginationOpts,
             }
@@ -200,6 +207,8 @@ export const list = query({
                     .unique();
 
                 if (!trip) return null;
+                if (matchedTripIds && !matchedTripIds.has(trip._id))
+                    return null;
 
                 const [lastMsg, cursor] = await Promise.all([
                     ctx.db
@@ -274,7 +283,7 @@ export const listPublic = query({
     },
     handler: async (ctx, { search, paginationOpts }) => {
         const user = await requireUserAccess(ctx);
-        const s = search?.trim().toLowerCase();
+        const s = search?.trim();
 
         const userTripMembers = await ctx.db
             .query("tripMember")
@@ -282,19 +291,18 @@ export const listPublic = query({
             .collect();
         const userTripIds = new Set(userTripMembers.map((m) => m.tripId));
 
-        const trips = await ctx.db
-            .query("trip")
-            .withIndex("isPublic", (q) => q.eq("isPublic", true))
-            .filter((q2) =>
-                s
-                    ? q2.or(
-                          q2.gte(q2.field("title"), s),
-                          q2.gte(q2.field("destination"), s)
-                      )
-                    : q2.eq(q2.field("isPublic"), true)
-            )
-            .order("desc")
-            .paginate(paginationOpts);
+        const trips = s
+            ? await ctx.db
+                  .query("trip")
+                  .withSearchIndex("search", (q) =>
+                      q.search("searchText", s).eq("isPublic", true)
+                  )
+                  .paginate(paginationOpts)
+            : await ctx.db
+                  .query("trip")
+                  .withIndex("isPublic", (q) => q.eq("isPublic", true))
+                  .order("desc")
+                  .paginate(paginationOpts);
 
         trips.page = trips.page.filter((t) => !userTripIds.has(t._id));
 
@@ -349,9 +357,20 @@ export const update = mutation({
             });
         }
 
+        const updatedTitle = title ?? trip.title;
+        const updatedDest = fields.destination ?? trip.destination;
+        const updatedDesc =
+            fields.description !== undefined
+                ? fields.description
+                : trip.description;
+        const searchText = [updatedTitle, updatedDest, updatedDesc]
+            .filter(Boolean)
+            .join(" ");
+
         await ctx.db.patch(tripId, {
             ...(title !== undefined && { title }),
             ...fields,
+            searchText,
             updatedAt: Date.now(),
         });
     },
@@ -371,6 +390,10 @@ export const remove = mutation({
                 | "joinRequest"
                 | "blog"
                 | "messageReadCursor"
+                | "poll"
+                | "pollVote"
+                | "day"
+                | "place"
         ) => {
             const docs = await ctx.db
                 .query(table)
@@ -399,6 +422,10 @@ export const remove = mutation({
             deleteByTripIndex("joinRequest"),
             deleteByTripIndex("blog"),
             deleteByTripIndex("messageReadCursor"),
+            deleteByTripIndex("poll"),
+            deleteByTripIndex("pollVote"),
+            deleteByTripIndex("day"),
+            deleteByTripIndex("place"),
         ]);
 
         const tripMembers = await ctx.db
@@ -413,34 +440,6 @@ export const remove = mutation({
         );
 
         await ctx.db.delete(tripId);
-    },
-});
-
-export const generateItinerary = mutation({
-    args: {
-        tripId: v.id("trip"),
-        userPrompt: v.optional(v.string()),
-    },
-    handler: async (ctx, { tripId, userPrompt }) => {
-        const { trip } = await requireTripMember(ctx, tripId);
-
-        if (!trip.startDate || !trip.endDate) {
-            throw new ConvexError({
-                code: "BAD_REQUEST",
-                message:
-                    "Trip must have start and end dates to generate an itinerary.",
-            });
-        }
-
-        await ctx.db.patch(tripId, { itineraryStatus: "planning" });
-
-        await ctx.scheduler.runAfter(0, internal.methods.ai.planTrip, {
-            tripId,
-            destination: trip.destination,
-            startDate: trip.startDate,
-            endDate: trip.endDate,
-            userPrompt,
-        });
     },
 });
 
@@ -485,6 +484,25 @@ export const dashboardSummary = query({
         const orgMap = new Map(orgs.page.map((o) => [o._id, o]));
 
         const now = Date.now();
+
+        const activeTrips = trips
+            .filter(
+                (t) =>
+                    t.startDate &&
+                    t.endDate &&
+                    t.startDate <= now &&
+                    t.endDate >= now
+            )
+            .sort((a, b) => (a.endDate ?? 0) - (b.endDate ?? 0))
+            .slice(0, 5)
+            .map((t) => ({
+                tripId: t._id,
+                title: t.title,
+                destination: t.destination,
+                startDate: t.startDate!,
+                endDate: t.endDate!,
+                logo: orgMap.get(t.orgId as Id<"organization">)?.logo,
+            }));
 
         const upcomingTrips = trips
             .filter((t) => t.startDate && t.startDate > now)
@@ -559,21 +577,11 @@ export const dashboardSummary = query({
 
         return {
             totalTrips: trips.length,
+            activeTrips,
             upcomingTrips,
             recentTrips,
             recentMessages: messagesWithSender,
             totalBlogs: userBlogCount,
         };
-    },
-});
-
-export const getItinerary = query({
-    args: { tripId: v.id("trip") },
-    handler: async (ctx, { tripId }) => {
-        return await ctx.db
-            .query("itinerary")
-            .withIndex("by_trip", (q) => q.eq("tripId", tripId))
-            .order("asc")
-            .collect();
     },
 });

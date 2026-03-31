@@ -27,3 +27,4 @@ dev-dist
 coverage
 .claude
 cache/
+env.d.ts

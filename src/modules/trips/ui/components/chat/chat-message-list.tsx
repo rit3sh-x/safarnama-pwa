@@ -23,6 +23,8 @@ interface ChatMessageListProps {
     onPin: (messageId: Id<"message">) => void;
     onReaction: (messageId: Id<"message">, emoji: string) => void;
     onImageClick: (url: string) => void;
+    onVotePoll?: (pollId: Id<"poll">, optionIndex: number) => void;
+    onClosePoll?: (pollId: Id<"poll">) => void;
 }
 
 export function ChatMessageList({
@@ -39,6 +41,8 @@ export function ChatMessageList({
     onPin,
     onReaction,
     onImageClick,
+    onVotePoll,
+    onClosePoll,
 }: ChatMessageListProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -133,6 +137,8 @@ export function ChatMessageList({
                                                 onReaction(msg._id, emoji)
                                             }
                                             onImageClick={onImageClick}
+                                            onVotePoll={onVotePoll}
+                                            onClosePoll={onClosePoll}
                                         />
                                     );
                                 })}

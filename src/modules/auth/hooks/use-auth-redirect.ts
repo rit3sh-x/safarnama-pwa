@@ -7,11 +7,11 @@ type AuthState = "onboarding" | "auth" | "username" | "home" | "unknown";
 function useRouteGroup() {
     const matches = useMatches();
 
-    const inHome = matches.some((m) => m.routeId.startsWith("/(home)"));
-    const inAuth = matches.some((m) => m.routeId.startsWith("/(auth)"));
-    const inCustom = matches.some((m) => m.routeId.startsWith("/(custom)"));
+    const inHome = matches.some((m) => m.routeId.includes("/(home)"));
+    const inAuth = matches.some((m) => m.routeId.includes("/(auth)"));
+    const inCustom = matches.some((m) => m.routeId.includes("/(custom)"));
     const inOnboarding = matches.some((m) => m.routeId === "/onboarding");
-    const inTwoFactor = matches.some((m) => m.routeId === "/(auth)/two-factor");
+    const inTwoFactor = matches.some((m) => m.routeId.includes("/(auth)/two-factor"));
 
     return { inHome, inAuth, inCustom, inOnboarding, inTwoFactor };
 }

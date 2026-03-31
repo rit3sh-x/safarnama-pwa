@@ -62,13 +62,14 @@ export const useSendMessage = () => {
                 if (!queryArgs || !value || queryArgs.tripId !== args.tripId)
                     continue;
 
+                const isPoll = !!(args.pollQuestion && args.pollOptions);
                 const optimisticMessage = {
                     _id: nanoid(10) as Id<"message">,
                     _creationTime: Date.now(),
                     tripId: args.tripId,
                     senderId: currentUser._id,
-                    type: "message" as const,
-                    content: args.content,
+                    type: isPoll ? ("poll" as const) : ("message" as const),
+                    content: isPoll ? args.pollQuestion! : args.content,
                     replyToId: args.replyToId,
                     attachmentUrl: args.attachmentUrl,
                     attachmentType: args.attachmentType,
@@ -78,6 +79,19 @@ export const useSendMessage = () => {
                         name: currentUser.name,
                         image: currentUser.image ?? null,
                     },
+                    poll: isPoll
+                        ? {
+                              _id: nanoid(10) as Id<"poll">,
+                              question: args.pollQuestion!,
+                              options: args.pollOptions!,
+                              allowMultiple: args.pollAllowMultiple ?? false,
+                              isAnonymous: args.pollIsAnonymous ?? false,
+                              closedAt: undefined,
+                              votes: [],
+                              totalVotes: 0,
+                              currentUserVotes: [],
+                          }
+                        : undefined,
                     _optimistic: true,
                 };
 
@@ -262,6 +276,167 @@ export const useRemoveReaction = () => {
         } catch (err) {
             toast.error(
                 err instanceof Error ? err.message : "Failed to remove reaction"
+            );
+        } finally {
+            setIsPending(false);
+        }
+    };
+
+    return { mutate, isPending };
+};
+
+export const useVotePoll = () => {
+    const [isPending, setIsPending] = useState(false);
+    const votePoll = useMutation(
+        api.methods.messages.votePoll
+    ).withOptimisticUpdate((localStore, args) => {
+        const currentUser = localStore.getQuery(
+            api.methods.users.currentUser,
+            {}
+        );
+        if (!currentUser) return;
+
+        const allPages = localStore.getAllQueries(api.methods.messages.list);
+        for (const { args: queryArgs, value } of allPages) {
+            if (!queryArgs || !value) continue;
+            const page = value.page as Record<string, unknown>[];
+            const idx = page.findIndex(
+                (m) =>
+                    m.poll &&
+                    (m.poll as Record<string, unknown>)._id === args.pollId
+            );
+            if (idx === -1) continue;
+            const updated = [...page];
+            const msg = { ...updated[idx] };
+            const poll = {
+                ...(msg.poll as Record<string, unknown>),
+            };
+            const votes = [
+                ...((poll.votes as {
+                    optionIndex: number;
+                    userIds: string[];
+                    count: number;
+                }[]) ?? []),
+            ];
+            const currentUserVotes = [
+                ...((poll.currentUserVotes as number[]) ?? []),
+            ];
+            const allowMultiple = poll.allowMultiple as boolean;
+
+            const existingVoteIdx = currentUserVotes.indexOf(args.optionIndex);
+            if (existingVoteIdx !== -1) {
+                currentUserVotes.splice(existingVoteIdx, 1);
+                const voteEntry = votes.find(
+                    (v) => v.optionIndex === args.optionIndex
+                );
+                if (voteEntry) {
+                    voteEntry.userIds = voteEntry.userIds.filter(
+                        (id) => id !== currentUser._id
+                    );
+                    voteEntry.count = voteEntry.userIds.length;
+                }
+                poll.totalVotes = (poll.totalVotes as number) - 1;
+            } else {
+                if (!allowMultiple) {
+                    for (const prevIdx of currentUserVotes) {
+                        const prevEntry = votes.find(
+                            (v) => v.optionIndex === prevIdx
+                        );
+                        if (prevEntry) {
+                            prevEntry.userIds = prevEntry.userIds.filter(
+                                (id) => id !== currentUser._id
+                            );
+                            prevEntry.count = prevEntry.userIds.length;
+                            poll.totalVotes = (poll.totalVotes as number) - 1;
+                        }
+                    }
+                    currentUserVotes.length = 0;
+                }
+
+                currentUserVotes.push(args.optionIndex);
+                const voteEntry = votes.find(
+                    (v) => v.optionIndex === args.optionIndex
+                );
+                if (voteEntry) {
+                    voteEntry.userIds = [...voteEntry.userIds, currentUser._id];
+                    voteEntry.count = voteEntry.userIds.length;
+                } else {
+                    votes.push({
+                        optionIndex: args.optionIndex,
+                        userIds: [currentUser._id],
+                        count: 1,
+                    });
+                }
+                poll.totalVotes = (poll.totalVotes as number) + 1;
+            }
+
+            poll.votes = votes.filter((v) => v.count > 0);
+            poll.currentUserVotes = currentUserVotes;
+            msg.poll = poll;
+            updated[idx] = msg;
+            localStore.setQuery(api.methods.messages.list, queryArgs, {
+                ...value,
+                page: updated,
+            } as typeof value);
+            break;
+        }
+    });
+
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.messages.votePoll>
+    ) => {
+        setIsPending(true);
+        try {
+            await votePoll(args);
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to vote");
+        } finally {
+            setIsPending(false);
+        }
+    };
+
+    return { mutate, isPending };
+};
+
+export const useClosePoll = () => {
+    const [isPending, setIsPending] = useState(false);
+    const closePoll = useMutation(
+        api.methods.messages.closePoll
+    ).withOptimisticUpdate((localStore, args) => {
+        const allPages = localStore.getAllQueries(api.methods.messages.list);
+        for (const { args: queryArgs, value } of allPages) {
+            if (!queryArgs || !value) continue;
+            const page = value.page as Record<string, unknown>[];
+            const idx = page.findIndex(
+                (m) =>
+                    m.poll &&
+                    (m.poll as Record<string, unknown>)._id === args.pollId
+            );
+            if (idx === -1) continue;
+            const updated = [...page];
+            const msg = { ...updated[idx] };
+            msg.poll = {
+                ...(msg.poll as Record<string, unknown>),
+                closedAt: Date.now(),
+            };
+            updated[idx] = msg;
+            localStore.setQuery(api.methods.messages.list, queryArgs, {
+                ...value,
+                page: updated,
+            } as typeof value);
+            break;
+        }
+    });
+
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.messages.closePoll>
+    ) => {
+        setIsPending(true);
+        try {
+            await closePoll(args);
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Failed to close poll"
             );
         } finally {
             setIsPending(false);

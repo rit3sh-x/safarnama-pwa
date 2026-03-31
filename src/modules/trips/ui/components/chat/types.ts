@@ -7,6 +7,18 @@ export interface Reaction {
     userIds: string[];
 }
 
+export interface PollData {
+    _id: Id<"poll">;
+    question: string;
+    options: string[];
+    allowMultiple: boolean;
+    isAnonymous: boolean;
+    closedAt?: number;
+    votes: { optionIndex: number; userIds: string[]; count: number }[];
+    totalVotes: number;
+    currentUserVotes: number[];
+}
+
 export interface ChatMessage {
     _id: Id<"message">;
     content: string;
@@ -19,9 +31,11 @@ export interface ChatMessage {
     isEdited: boolean;
     isPinned: boolean;
     isPending: boolean;
+    isPoll: boolean;
     imageUrl?: string;
     replyToId?: Id<"message">;
     reactions: Reaction[];
+    poll?: PollData;
     original: Message;
 }
 
@@ -47,12 +61,14 @@ export function toChatMessage(msg: Message): ChatMessage {
         isEdited: !!msg.editedAt && !msg.deletedAt,
         isPinned: !!msg.pinnedAt,
         isPending: isOptimistic,
+        isPoll: msg.type === "poll",
         imageUrl:
             msg.attachmentType === "image" && msg.attachmentUrl
                 ? msg.attachmentUrl
                 : undefined,
         replyToId: msg.replyToId ?? undefined,
         reactions: msg.reactions ?? [],
+        poll: msg.poll as PollData | undefined,
         original: msg,
     };
 }

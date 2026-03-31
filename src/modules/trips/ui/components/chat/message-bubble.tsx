@@ -39,11 +39,13 @@ import {
     UserPlus2Icon,
 } from "lucide-react";
 import { HighlightSearchText } from "./message-search";
+import { PollBubble } from "./poll-bubble";
 import type { ChatMessage, Reaction } from "./types";
 import { formatMessageTime } from "./utils";
 import { QuickReactionPicker } from "./emoji-picker";
 import { useTheme } from "@/hooks/use-theme";
 import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
+import type { Id } from "@backend/dataModel";
 
 interface MessageBubbleProps {
     message: ChatMessage;
@@ -60,6 +62,8 @@ interface MessageBubbleProps {
     onPin: () => void;
     onReaction: (emoji: string) => void;
     onImageClick: (url: string) => void;
+    onVotePoll?: (pollId: Id<"poll">, optionIndex: number) => void;
+    onClosePoll?: (pollId: Id<"poll">) => void;
 }
 
 export function MessageBubble({
@@ -77,6 +81,8 @@ export function MessageBubble({
     onPin,
     onReaction,
     onImageClick,
+    onVotePoll,
+    onClosePoll,
 }: MessageBubbleProps) {
     const { user } = useAuthenticatedUser();
 
@@ -209,22 +215,44 @@ export function MessageBubble({
                                 </button>
                             )}
 
-                            {(!message.imageUrl ||
-                                message.content !== "📷 Photo") && (
-                                <p className="text-[15px] leading-relaxed wrap-break-word whitespace-pre-wrap">
-                                    {message.isDeleted ? (
-                                        <span className="italic opacity-60">
-                                            [deleted]
-                                        </span>
-                                    ) : searchQuery ? (
-                                        <HighlightSearchText
-                                            query={searchQuery}
-                                            text={message.content}
-                                        />
-                                    ) : (
-                                        message.content
+                            {message.isPoll && message.poll ? (
+                                <PollBubble
+                                    poll={message.poll}
+                                    isOwn={isOwn}
+                                    isCreator={
+                                        message.senderId === currentUserId
+                                    }
+                                    isAdmin={isAdmin}
+                                    onVote={(optionIndex) =>
+                                        onVotePoll?.(
+                                            message.poll!._id,
+                                            optionIndex
+                                        )
+                                    }
+                                    onClose={() =>
+                                        onClosePoll?.(message.poll!._id)
+                                    }
+                                />
+                            ) : (
+                                <>
+                                    {(!message.imageUrl ||
+                                        message.content !== "📷 Photo") && (
+                                        <p className="text-[15px] leading-relaxed wrap-break-word whitespace-pre-wrap">
+                                            {message.isDeleted ? (
+                                                <span className="italic opacity-60">
+                                                    [deleted]
+                                                </span>
+                                            ) : searchQuery ? (
+                                                <HighlightSearchText
+                                                    query={searchQuery}
+                                                    text={message.content}
+                                                />
+                                            ) : (
+                                                message.content
+                                            )}
+                                        </p>
                                     )}
-                                </p>
+                                </>
                             )}
 
                             <div

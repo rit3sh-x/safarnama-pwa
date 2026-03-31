@@ -100,6 +100,44 @@ export default defineConfig({
                             cacheableResponse: { statuses: [0, 200] },
                         },
                     },
+                    {
+                        urlPattern:
+                            /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\/.*/i,
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "map-tiles",
+                            expiration: {
+                                maxEntries: 1000,
+                                maxAgeSeconds: ONE_MONTH,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern:
+                            /^https:\/\/[a-c]\.tile\.openstreetmap\.org\/.*/i,
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "map-tiles",
+                            expiration: {
+                                maxEntries: 1000,
+                                maxAgeSeconds: ONE_MONTH,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern: /^https:\/\/unpkg\.com\/.*/i,
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "cdn-libs",
+                            expiration: {
+                                maxEntries: 30,
+                                maxAgeSeconds: ONE_YEAR,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
                 ],
             },
         }),

@@ -12,6 +12,7 @@ export default defineSchema({
         isPublic: v.boolean(),
         createdBy: v.string(),
         updatedAt: v.number(),
+        searchText: v.optional(v.string()),
         itineraryStatus: v.optional(
             v.union(
                 v.literal("empty"),
@@ -25,49 +26,14 @@ export default defineSchema({
         .index("isPublic", ["isPublic"])
         .index("createdBy", ["createdBy"])
         .searchIndex("search", {
-            searchField: "title",
-            filterFields: ["createdBy"],
+            searchField: "searchText",
+            filterFields: ["isPublic"],
         }),
 
     tripMember: defineTable({
         tripId: v.id("trip"),
         userId: v.string(),
     }).index("userId", ["userId"]),
-
-    itinerary: defineTable({
-        tripId: v.id("trip"),
-        day: v.number(),
-        date: v.string(),
-        dayTheme: v.optional(v.string()),
-        items: v.array(
-            v.object({
-                time: v.string(),
-                duration: v.string(),
-                category: v.union(
-                    v.literal("food"),
-                    v.literal("activity"),
-                    v.literal("transport"),
-                    v.literal("accommodation"),
-                    v.literal("shopping"),
-                    v.literal("other")
-                ),
-                title: v.string(),
-                description: v.string(),
-                location: v.string(),
-                pricing: v.object({
-                    amount: v.number(),
-                    currency: v.string(),
-                    note: v.string(),
-                }),
-                weather: v.string(),
-                tips: v.array(v.string()),
-                imageUrl: v.string(),
-                imageSource: v.optional(v.string()),
-                rating: v.optional(v.number()),
-                bookingUrl: v.optional(v.string()),
-            })
-        ),
-    }).index("by_trip", ["tripId"]),
 
     blog: defineTable({
         tripId: v.id("trip"),
@@ -136,6 +102,7 @@ export default defineSchema({
         senderId: v.string(),
         type: v.union(
             v.literal("message"),
+            v.literal("poll"),
             v.literal("expense_event"),
             v.literal("member_joined"),
             v.literal("member_left"),
@@ -143,6 +110,7 @@ export default defineSchema({
         ),
         content: v.string(),
         expenseId: v.optional(v.id("expense")),
+        pollId: v.optional(v.id("poll")),
         replyToId: v.optional(v.id("message")),
         attachmentUrl: v.optional(v.string()),
         attachmentType: v.optional(
@@ -199,6 +167,56 @@ export default defineSchema({
     })
         .index("messageId", ["messageId"])
         .index("messageId_userId_emoji", ["messageId", "userId", "emoji"]),
+
+    day: defineTable({
+        tripId: v.id("trip"),
+        dayNumber: v.number(),
+        date: v.optional(v.string()),
+        title: v.optional(v.string()),
+        note: v.optional(v.string()),
+    })
+        .index("tripId", ["tripId"])
+        .index("tripId_dayNumber", ["tripId", "dayNumber"]),
+
+    place: defineTable({
+        tripId: v.id("trip"),
+        dayId: v.optional(v.id("day")),
+        order: v.optional(v.number()),
+        name: v.string(),
+        description: v.optional(v.string()),
+        lat: v.optional(v.number()),
+        lng: v.optional(v.number()),
+        address: v.optional(v.string()),
+        imageUrl: v.optional(v.string()),
+        osmId: v.optional(v.string()),
+        placeTime: v.optional(v.number()),
+        endTime: v.optional(v.number()),
+    })
+        .index("tripId", ["tripId"])
+        .index("dayId", ["dayId"]),
+
+    poll: defineTable({
+        messageId: v.id("message"),
+        tripId: v.id("trip"),
+        createdBy: v.string(),
+        question: v.string(),
+        options: v.array(v.string()),
+        allowMultiple: v.boolean(),
+        isAnonymous: v.boolean(),
+        closedAt: v.optional(v.number()),
+    })
+        .index("messageId", ["messageId"])
+        .index("tripId", ["tripId"]),
+
+    pollVote: defineTable({
+        pollId: v.id("poll"),
+        tripId: v.id("trip"),
+        userId: v.string(),
+        optionIndex: v.number(),
+    })
+        .index("pollId", ["pollId"])
+        .index("pollId_userId", ["pollId", "userId"])
+        .index("tripId", ["tripId"]),
 
     messageReadCursor: defineTable({
         tripId: v.id("trip"),

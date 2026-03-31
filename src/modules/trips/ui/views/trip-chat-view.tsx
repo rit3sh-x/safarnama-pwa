@@ -9,6 +9,8 @@ import {
     usePinMessage,
     useUnpinMessage,
     useMarkRead,
+    useVotePoll,
+    useClosePoll,
 } from "../../hooks/use-messages";
 import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
 import { useUploadFileToConvex } from "@/lib/utils";
@@ -18,6 +20,7 @@ import {
     ImageLightbox,
     MessageSearch,
     DeleteMessageDialog,
+    CreatePollDialog,
     toChatMessage,
 } from "../components/chat";
 import type { ChatMessage } from "../components/chat";
@@ -50,6 +53,8 @@ export function TripChatView({
     const { mutate: removeReaction } = useRemoveReaction();
     const { mutate: pinMessage } = usePinMessage();
     const { mutate: unpinMessage } = useUnpinMessage();
+    const { mutate: votePoll } = useVotePoll();
+    const { mutate: closePoll } = useClosePoll();
     const markRead = useMarkRead(tripId);
     const uploadFile = useUploadFileToConvex();
 
@@ -66,6 +71,7 @@ export function TripChatView({
     const [searchQuery, setSearchQuery] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [showInvite, setShowInvite] = useState(false);
+    const [showPollDialog, setShowPollDialog] = useState(false);
 
     useEffect(() => {
         if (messages.length > 0) markRead();
@@ -170,6 +176,39 @@ export function TripChatView({
         [messageMap, pinMessage, unpinMessage]
     );
 
+    const handleCreatePoll = useCallback(
+        (data: {
+            question: string;
+            options: string[];
+            allowMultiple: boolean;
+            isAnonymous: boolean;
+        }) => {
+            sendMessage({
+                tripId,
+                content: data.question,
+                pollQuestion: data.question,
+                pollOptions: data.options,
+                pollAllowMultiple: data.allowMultiple,
+                pollIsAnonymous: data.isAnonymous,
+            });
+        },
+        [tripId, sendMessage]
+    );
+
+    const handleVotePoll = useCallback(
+        (pollId: Id<"poll">, optionIndex: number) => {
+            votePoll({ pollId, optionIndex });
+        },
+        [votePoll]
+    );
+
+    const handleClosePoll = useCallback(
+        (pollId: Id<"poll">) => {
+            closePoll({ pollId });
+        },
+        [closePoll]
+    );
+
     const handleNavigateToMessage = useCallback((messageId: string) => {
         const el = document.getElementById(`msg-${messageId}`);
         if (el) {
@@ -226,6 +265,8 @@ export function TripChatView({
                 onPin={handlePin}
                 onReaction={handleReaction}
                 onImageClick={setLightboxSrc}
+                onVotePoll={handleVotePoll}
+                onClosePoll={handleClosePoll}
             />
 
             <ChatInputToolbar
@@ -237,6 +278,13 @@ export function TripChatView({
                 onClearReply={() => setReplyTo(null)}
                 onClearEdit={() => setEditingMessage(null)}
                 onUploadFile={handleUploadFile}
+                onOpenPollDialog={() => setShowPollDialog(true)}
+            />
+
+            <CreatePollDialog
+                open={showPollDialog}
+                onOpenChange={setShowPollDialog}
+                onCreatePoll={handleCreatePoll}
             />
 
             <ImageLightbox

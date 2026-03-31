@@ -36,7 +36,7 @@ export const TRIP_TABS = [
         name: "plan",
         title: "Plan",
         icon: MapIcon,
-        route: "/trips/$tripId/plan",
+        route: "/plan/$tripId",
     },
     {
         name: "info",

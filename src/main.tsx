@@ -13,6 +13,7 @@ import { ThemeProvider } from "./components/theme-provider";
 import { Provider as JotaiProvider } from "jotai";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache";
+import "leaflet/dist/leaflet.css";
 
 import { Toaster } from "@/components/ui/sonner";
 import "./index.css";

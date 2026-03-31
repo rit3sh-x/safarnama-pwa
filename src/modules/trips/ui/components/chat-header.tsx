@@ -144,7 +144,14 @@ export function ChatHeader({
                             <WalletIcon className="size-4" />
                             Expenses
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setPanelView("plan")}>
+                        <DropdownMenuItem
+                            onClick={() =>
+                                navigate({
+                                    to: "/plan/$tripId",
+                                    params: { tripId },
+                                })
+                            }
+                        >
                             <MapIcon className="size-4" />
                             Plan Trip
                         </DropdownMenuItem>

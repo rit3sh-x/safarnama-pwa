@@ -10,7 +10,6 @@ import { TripChatView } from "./trip-chat-view";
 import { TripInfoView } from "./trip-info-view";
 import { PublicTripPreview } from "./public-trip-preview";
 import { TripExpenseView } from "@/modules/expense/ui/views/trip-expense-view";
-import { TripPlanView } from "./trip-plan-view";
 import { MessageSquare } from "lucide-react";
 import {
     ResizableHandle,
@@ -92,13 +91,6 @@ function TripPanel({
         case "expenses":
             return (
                 <TripExpenseView
-                    tripId={tripId}
-                    onBack={() => onViewChange("chat")}
-                />
-            );
-        case "plan":
-            return (
-                <TripPlanView
                     tripId={tripId}
                     onBack={() => onViewChange("chat")}
                 />

@@ -13,17 +13,7 @@ export interface SelectedTrip {
 
 export type NavOption = "trips" | "invites" | "public_trips";
 
-export type TripPanelView =
-    | "chat"
-    | "info"
-    | "expenses"
-    | "plan"
-    | "public_preview";
-
-type TripsPlanResult = FunctionReturnType<
-    typeof api.methods.trips.getItinerary
->;
-export type DayItem = TripsPlanResult[number]["items"][number];
+export type TripPanelView = "chat" | "info" | "expenses" | "public_preview";
 
 type TripsListResult = FunctionReturnType<typeof api.methods.trips.list>;
 export type TripOrg = TripsListResult["page"][number];
