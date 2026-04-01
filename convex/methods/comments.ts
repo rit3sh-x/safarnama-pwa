@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { internal } from "../_generated/api";
 import { requireUserAccess } from "../lib/utils";
 import { components } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
@@ -119,6 +120,29 @@ export const create = mutation({
             content: content.trim(),
             parentId,
         });
+
+        const blog = await ctx.db.get(blogId);
+        if (blog) {
+            const trip = await ctx.db.get(blog.tripId);
+            const blogOwnerTrip = trip;
+            if (blogOwnerTrip && blogOwnerTrip.createdBy !== user._id) {
+                const preview =
+                    content.length > 60 ? content.slice(0, 60) + "…" : content;
+                await ctx.scheduler.runAfter(
+                    0,
+                    internal.methods.notifications.createNotification,
+                    {
+                        userId: blogOwnerTrip.createdBy,
+                        type: "comment",
+                        tripId: blog.tripId,
+                        referenceId: blogId,
+                        title: blog.title,
+                        body: `${user.name ?? "Someone"} commented: ${preview}`,
+                        url: `/blogs/${blogId}`,
+                    }
+                );
+            }
+        }
     },
 });
 

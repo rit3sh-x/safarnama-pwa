@@ -25,6 +25,7 @@ export default defineConfig({
             manifestFilename: "manifest.webmanifest",
 
             workbox: {
+                importScripts: ["/push-sw.js"],
                 globPatterns: [
                     "**/*.{js,css,html,ico,png,svg,webp,woff2,woff,ttf,otf,riv}",
                 ],

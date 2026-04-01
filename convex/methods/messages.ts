@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { internal } from "../_generated/api";
 import { requireTripMember } from "../lib/utils";
 import { paginationOptsValidator, type PaginationResult } from "convex/server";
 import { components } from "../_generated/api";
@@ -162,6 +163,10 @@ export const send = mutation({
     ) => {
         const { user } = await requireTripMember(ctx, tripId);
 
+        const trip = await ctx.db.get(tripId);
+        const tripTitle = trip?.title ?? "Trip";
+        const senderName = user.name ?? "Someone";
+
         if (pollQuestion && pollOptions && pollOptions.length >= 2) {
             const messageId = await ctx.db.insert("message", {
                 tripId,
@@ -179,15 +184,50 @@ export const send = mutation({
                 isAnonymous: pollIsAnonymous ?? false,
             });
             await ctx.db.patch(messageId, { pollId });
+
+            await ctx.scheduler.runAfter(
+                0,
+                internal.methods.notifications.notifyTripMembers,
+                {
+                    tripId,
+                    excludeUserId: user._id,
+                    type: "poll",
+                    referenceId: messageId,
+                    title: tripTitle,
+                    body: `${senderName} created a poll: ${pollQuestion}`,
+                    url: `/trips/${tripId}/chat`,
+                }
+            );
+
             return messageId;
         }
 
-        return ctx.db.insert("message", {
+        const messageId = await ctx.db.insert("message", {
             tripId,
             senderId: user._id,
             type: "message",
             ...rest,
         });
+
+        const preview =
+            rest.content.length > 80
+                ? rest.content.slice(0, 80) + "…"
+                : rest.content;
+        await ctx.scheduler.runAfter(
+            0,
+            internal.methods.notifications.notifyTripMembers,
+            {
+                tripId,
+                excludeUserId: user._id,
+                type: "message",
+                referenceId: messageId,
+                title: tripTitle,
+                body: `${senderName}: ${preview}`,
+                url: `/trips/${tripId}/chat`,
+            }
+        );
+
+        return messageId;
     },
 });
 

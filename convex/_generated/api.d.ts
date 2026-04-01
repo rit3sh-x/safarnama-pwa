@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_debtSimplification from "../lib/debtSimplification.js";
@@ -23,6 +24,8 @@ import type * as methods_file from "../methods/file.js";
 import type * as methods_mediation from "../methods/mediation.js";
 import type * as methods_members from "../methods/members.js";
 import type * as methods_messages from "../methods/messages.js";
+import type * as methods_nodes from "../methods/nodes.js";
+import type * as methods_notifications from "../methods/notifications.js";
 import type * as methods_places from "../methods/places.js";
 import type * as methods_ratings from "../methods/ratings.js";
 import type * as methods_requests from "../methods/requests.js";
@@ -37,6 +40,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  crons: typeof crons;
   http: typeof http;
   "lib/constants": typeof lib_constants;
   "lib/debtSimplification": typeof lib_debtSimplification;
@@ -52,6 +56,8 @@ declare const fullApi: ApiFromModules<{
   "methods/mediation": typeof methods_mediation;
   "methods/members": typeof methods_members;
   "methods/messages": typeof methods_messages;
+  "methods/nodes": typeof methods_nodes;
+  "methods/notifications": typeof methods_notifications;
   "methods/places": typeof methods_places;
   "methods/ratings": typeof methods_ratings;
   "methods/requests": typeof methods_requests;

@@ -16,6 +16,7 @@ import { ConvexQueryCacheProvider } from "convex-helpers/react/cache";
 import "leaflet/dist/leaflet.css";
 
 import { Toaster } from "@/components/ui/sonner";
+import { PushSync } from "./components/push-sync";
 import "./index.css";
 
 const CACHE_EXPIRATION_TIME = 300000;
@@ -58,6 +59,7 @@ if (!rootElement.innerHTML) {
                                     expiration={CACHE_EXPIRATION_TIME}
                                 >
                                     <AuthenticationProvider>
+                                        <PushSync />
                                         <RouterProvider router={router} />
                                         <NetworkModal />
                                         <Toaster />

@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { internal } from "../_generated/api";
 import {
     requireTripPermission,
     requireUserAccess,
@@ -245,6 +246,19 @@ export const userReviewInvite = mutation({
                 tripId: req.tripId,
                 userId: req.userId,
             });
+
+            await ctx.scheduler.runAfter(
+                0,
+                internal.methods.notifications.notifyTripMembers,
+                {
+                    tripId: req.tripId,
+                    excludeUserId: user._id,
+                    type: "member_joined",
+                    title: req.tripTitle,
+                    body: `${user.name ?? "Someone"} joined the trip`,
+                    url: `/trips/${req.tripId}/info`,
+                }
+            );
         }
     },
 });
@@ -380,6 +394,20 @@ export const adminSendInvite = mutation({
                 requestId,
                 userName: targetUser?.name ?? "a user",
             });
+
+            await ctx.scheduler.runAfter(
+                0,
+                internal.methods.notifications.createNotification,
+                {
+                    userId,
+                    type: "join_request",
+                    tripId: trip._id,
+                    referenceId: requestId,
+                    title: "Trip Invite",
+                    body: `${sender.name ?? "Someone"} invited you to ${trip.title}`,
+                    url: `/trips`,
+                }
+            );
         }
 
         if (invited.length > 0) {
@@ -544,6 +572,19 @@ export const adminReviewRequest = mutation({
                 tripId: req.tripId,
                 userId: req.userId,
             });
+
+            await ctx.scheduler.runAfter(
+                0,
+                internal.methods.notifications.createNotification,
+                {
+                    userId: req.userId,
+                    type: "join_request",
+                    tripId: req.tripId,
+                    title: "Request Accepted",
+                    body: `Your request to join ${req.tripTitle} was accepted`,
+                    url: `/trips/${req.tripId}/chat`,
+                }
+            );
         }
     },
 });

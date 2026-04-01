@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { internal } from "../_generated/api";
 import { requireTripMember, requireUserAccess } from "../lib/utils";
 import { components } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
@@ -63,6 +64,21 @@ export const create = mutation({
             expenseId,
             content: `added expense: ${fields.title} — ₹${fields.amount.toFixed(2)}`,
         });
+
+        const trip = await ctx.db.get(tripId);
+        await ctx.scheduler.runAfter(
+            0,
+            internal.methods.notifications.notifyTripMembers,
+            {
+                tripId,
+                excludeUserId: user._id,
+                type: "expense",
+                referenceId: expenseId,
+                title: trip?.title ?? "Trip",
+                body: `${user.name ?? "Someone"} added ₹${fields.amount.toFixed(0)} for ${fields.title}`,
+                url: `/trips/${tripId}/expenses`,
+            }
+        );
 
         return expenseId;
     },
@@ -271,13 +287,30 @@ export const createSettlement = mutation({
                 })
         );
 
-        return ctx.db.insert("settlement", {
+        const settlementId = await ctx.db.insert("settlement", {
             tripId,
             fromUserId: user._id,
             toUserId,
             amount: owedAmount,
             note,
         });
+
+        const trip = await ctx.db.get(tripId);
+        await ctx.scheduler.runAfter(
+            0,
+            internal.methods.notifications.createNotification,
+            {
+                userId: toUserId,
+                type: "settlement",
+                tripId,
+                referenceId: settlementId,
+                title: trip?.title ?? "Trip",
+                body: `${user.name ?? "Someone"} settled ₹${owedAmount.toFixed(0)} with you`,
+                url: `/trips/${tripId}/expenses`,
+            }
+        );
+
+        return settlementId;
     },
 });
 

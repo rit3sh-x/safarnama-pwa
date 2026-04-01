@@ -236,4 +236,37 @@ export default defineSchema({
         .index("tripId", ["tripId"])
         .index("fromUserId", ["fromUserId"])
         .index("toUserId", ["toUserId"]),
+
+    notification: defineTable({
+        userId: v.string(),
+        type: v.union(
+            v.literal("message"),
+            v.literal("expense"),
+            v.literal("join_request"),
+            v.literal("poll"),
+            v.literal("comment"),
+            v.literal("settlement"),
+            v.literal("member_joined")
+        ),
+        tripId: v.id("trip"),
+        referenceId: v.optional(v.string()),
+        title: v.string(),
+        body: v.string(),
+        url: v.optional(v.string()),
+        isRead: v.boolean(),
+        createdAt: v.number(),
+    })
+        .index("userId", ["userId"])
+        .index("userId_isRead", ["userId", "isRead"])
+        .index("createdAt", ["createdAt"]),
+
+    pushSubscription: defineTable({
+        userId: v.string(),
+        endpoint: v.string(),
+        p256dh: v.string(),
+        auth: v.string(),
+        createdAt: v.number(),
+    })
+        .index("userId", ["userId"])
+        .index("endpoint", ["endpoint"]),
 });

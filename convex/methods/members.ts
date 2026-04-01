@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import { internal } from "../_generated/api";
 import {
     requireTripAdmin,
     requireTripMember,
@@ -177,6 +178,19 @@ export const remove = mutation({
             type: "member_left",
             content: `removed a member`,
         });
+
+        await ctx.scheduler.runAfter(
+            0,
+            internal.methods.notifications.createNotification,
+            {
+                userId: targetUserId,
+                type: "member_joined",
+                tripId,
+                title: trip.title,
+                body: `You were removed from ${trip.title}`,
+                url: `/trips`,
+            }
+        );
     },
 });
 

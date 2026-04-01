@@ -1,24 +1,9 @@
-import { useState } from "react";
-import { BellIcon } from "lucide-react";
+import { BellIcon, Loader2Icon } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { useNotifications } from "../../hooks/use-notifications";
 
 export function NotificationsToggle() {
-    const supported = typeof window !== "undefined" && "Notification" in window;
-
-    const [enabled, setEnabled] = useState(
-        () => supported && Notification.permission === "granted"
-    );
-
-    const handleToggle = async (checked: boolean) => {
-        if (!supported) return;
-
-        if (checked) {
-            const permission = await Notification.requestPermission();
-            setEnabled(permission === "granted");
-        } else {
-            setEnabled(false);
-        }
-    };
+    const { supported, enabled, isPending, toggle } = useNotifications();
 
     return (
         <div className="space-y-3">
@@ -41,11 +26,15 @@ export function NotificationsToggle() {
                         </p>
                     </div>
                 </div>
-                <Switch
-                    checked={enabled}
-                    onCheckedChange={handleToggle}
-                    disabled={!supported}
-                />
+                {isPending ? (
+                    <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                ) : (
+                    <Switch
+                        checked={enabled}
+                        onCheckedChange={toggle}
+                        disabled={!supported || isPending}
+                    />
+                )}
             </div>
         </div>
     );
