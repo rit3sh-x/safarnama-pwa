@@ -7,7 +7,6 @@ const SECRETS: Record<string, string> = {
     GOOGLE_CLIENT_SECRET: ENV.GOOGLE_CLIENT_SECRET,
     OPENROUTER_API_KEY: ENV.OPENROUTER_API_KEY,
     SITE_URL: ENV.SITE_URL,
-    TAVILY_API_KEY: ENV.TAVILY_API_KEY,
 };
 
 const isProd = process.argv.slice(2).includes("--prod");

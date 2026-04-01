@@ -169,8 +169,10 @@ export function BlogEditorView({ blogId }: BlogEditorViewProps) {
             {!isMobile && <EditorToolbar />}
 
             <div className="flex-1 overflow-y-auto">
-                <BlogTitleInput value={title} onChange={setTitle} />
-                <Editor initialContent={initialContent} editable />
+                <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+                    <BlogTitleInput value={title} onChange={setTitle} />
+                    <Editor initialContent={initialContent} editable />
+                </div>
             </div>
 
             {isMobile && (

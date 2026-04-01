@@ -8,7 +8,6 @@ import {
 import { InfiniteScrollTrigger } from "@/components/infinite-scroll-trigger";
 import { CommentInput } from "./comment-input";
 import { CommentThread } from "./comment-thread";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CommentData } from "./comment-item";
 import type { Id } from "@backend/dataModel";
@@ -48,9 +47,7 @@ export function CommentSection({ blogId }: CommentSectionProps) {
     };
 
     return (
-        <div className="mx-auto w-full max-w-3xl px-4 pb-12 sm:px-6">
-            <Separator className="mb-8" />
-
+        <div className="py-12">
             <div className="mb-6 flex items-center gap-2">
                 <MessageSquareIcon className="size-5 text-muted-foreground" />
                 <h2 className="text-lg font-semibold">Comments</h2>

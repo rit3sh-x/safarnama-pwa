@@ -58,9 +58,7 @@ export function DayCard({
     const [editOpen, setEditOpen] = useState(false);
 
     const rawDate = day.date || dateProp;
-    const dateStr = rawDate
-        ? format(new Date(rawDate), "EEE, MMM d")
-        : null;
+    const dateStr = rawDate ? format(new Date(rawDate), "EEE, MMM d") : null;
     const displayTitle = day.title || `Day ${index + 1}`;
 
     return (
@@ -102,7 +100,7 @@ export function DayCard({
                                 <p className="truncate text-xs font-semibold">
                                     {displayTitle}
                                 </p>
-                                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                                     {dateStr && <span>{dateStr}</span>}
                                     {dateStr && places.length > 0 && (
                                         <span>·</span>
@@ -117,25 +115,34 @@ export function DayCard({
                                     )}
                                 </div>
                                 {day.note && (
-                                    <p className="mt-0.5 truncate text-[10px] italic text-muted-foreground/60">
+                                    <p className="mt-0.5 truncate text-xs text-muted-foreground/60 italic">
                                         {day.note}
                                     </p>
                                 )}
                             </div>
 
                             {(onUpdateTitle || onUpdateNote) && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
+                                <div
+                                    role="button"
+                                    tabIndex={0}
                                     aria-label="Edit day"
-                                    className="size-6 shrink-0"
+                                    className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setEditOpen(true);
                                     }}
+                                    onKeyDown={(e) => {
+                                        if (
+                                            e.key === "Enter" ||
+                                            e.key === " "
+                                        ) {
+                                            e.stopPropagation();
+                                            setEditOpen(true);
+                                        }
+                                    }}
                                 >
                                     <Pencil className="size-3 text-muted-foreground" />
-                                </Button>
+                                </div>
                             )}
                         </div>
                     </AccordionTrigger>
@@ -144,14 +151,12 @@ export function DayCard({
                         {places.length === 0 ? (
                             <div
                                 className={cn(
-                                    "py-3 text-center text-[11px] text-muted-foreground",
+                                    "py-3 text-center text-xs text-muted-foreground",
                                     isOver &&
-                                    "rounded-lg border-2 border-dashed border-primary/30"
+                                        "rounded-lg border-2 border-dashed border-primary/30"
                                 )}
                             >
-                                {isOver
-                                    ? "Drop here"
-                                    : "Drag places here"}
+                                {isOver ? "Drop here" : "Drag places here"}
                             </div>
                         ) : (
                             <SortableContext
@@ -260,17 +265,15 @@ export function DayEditDialog({
                 </div>
                 <DialogFooter>
                     <Button
-                        className={"flex-1"}
+                        className="flex-1"
                         variant="outline"
                         onClick={() => onOpenChange(false)}
                     >
                         Cancel
                     </Button>
                     <Button
-                        className={"flex-1"}
-                        onClick={() =>
-                            onSave(title.trim(), note.trim())
-                        }
+                        className="flex-1"
+                        onClick={() => onSave(title.trim(), note.trim())}
                     >
                         Save
                     </Button>

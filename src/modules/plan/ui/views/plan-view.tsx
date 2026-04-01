@@ -13,6 +13,8 @@ import { DayPlanSidebar } from "../components/day-plan-sidebar";
 import { PlacesSidebar } from "../components/places-sidebar";
 import { PlaceInspector } from "../components/place-inspector";
 import { DayDetailPanel } from "../components/day-detail-panel";
+import { PlanHeader } from "../components/plan-header";
+import { PinButton } from "../components/pin-button";
 import {
     PlaceFormDialog,
     type PlaceFormOutput,
@@ -20,7 +22,12 @@ import {
 import { useSettings } from "@/modules/settings/hooks/use-settings";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTripDetails } from "@/modules/trips/hooks/use-trips";
-import { useDays, useUpdateDay, useUpsertDay, useUpdateDayNote } from "../../hooks/use-days";
+import {
+    useDays,
+    useUpdateDay,
+    useUpsertDay,
+    useUpdateDayNote,
+} from "../../hooks/use-days";
 import {
     usePlaces,
     useAddPlaceWithPhoto,
@@ -33,6 +40,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import type L from "leaflet";
 import type { Doc, Id } from "@backend/dataModel";
 
 interface PlanViewProps {
@@ -72,6 +80,7 @@ export function PlanView({ tripId }: PlanViewProps) {
         null
     );
     const [fitKey, setFitKey] = useState(0);
+    const [pinMode, setPinMode] = useState(false);
     const [showPlaceForm, setShowPlaceForm] = useState(false);
     const [editingPlace, setEditingPlace] = useState<Doc<"place"> | null>(null);
     const [prefillCoords, setPrefillCoords] = useState<{
@@ -141,9 +150,20 @@ export function PlanView({ tripId }: PlanViewProps) {
         setSelectedPlaceId((prev) => (prev === placeId ? null : placeId));
     }, []);
 
-    const handleMapClick = useCallback(() => {
-        setSelectedPlaceId(null);
-    }, []);
+    const handleMapClick = useCallback(
+        (e?: L.LeafletMouseEvent) => {
+            if (pinMode && e) {
+                const { lat, lng } = e.latlng;
+                setPrefillCoords({ lat, lng });
+                setEditingPlace(null);
+                setShowPlaceForm(true);
+                setPinMode(false);
+                return;
+            }
+            setSelectedPlaceId(null);
+        },
+        [pinMode]
+    );
 
     const handleEnsureDay = useCallback(
         async (dayNumber: number) => {
@@ -262,248 +282,283 @@ export function PlanView({ tripId }: PlanViewProps) {
     const RIGHT_WIDTH = 320;
 
     return (
-        <div className="relative h-full w-full overflow-hidden">
-            <div className="absolute inset-0 z-0">
-                <MapView
-                    places={mapPlaces}
-                    dayPlaces={dayPlaces}
-                    selectedPlaceId={selectedPlaceId}
-                    onMarkerClick={handleMarkerClick}
-                    onMapClick={handleMapClick}
-                    center={[48.8566, 2.3522]}
-                    zoom={defaultZoom}
-                    fitKey={fitKey}
-                    dayOrderMap={dayOrderMap}
-                    leftWidth={leftCollapsed ? 0 : LEFT_WIDTH}
-                    rightWidth={rightCollapsed ? 0 : RIGHT_WIDTH}
-                    hasInspector={!!selectedPlace}
-                />
-            </div>
-
-            <div className="pointer-events-none absolute inset-y-2.5 left-2.5 z-20 hidden md:block">
-                <Button
-                    variant={leftCollapsed ? "default" : "secondary"}
-                    size="icon"
-                    className={cn(
-                        "pointer-events-auto absolute top-3 z-10 size-9 rounded-lg",
-                        leftCollapsed ? "left-0" : "-right-11"
-                    )}
-                    onClick={() => setLeftCollapsed((c) => !c)}
-                >
-                    {leftCollapsed ? (
-                        <PanelLeftOpen className="size-4" />
-                    ) : (
-                        <PanelLeftClose className="size-4" />
-                    )}
-                </Button>
-
+        <div className="flex h-full w-full flex-col overflow-hidden">
+            {typedTrip && <PlanHeader trip={typedTrip} tripId={tripId} />}
+            <div className="relative min-h-0 flex-1">
                 <div
                     className={cn(
-                        "h-full transition-all duration-300",
-                        leftCollapsed ? "w-0 opacity-0" : "opacity-100"
+                        "absolute inset-0 z-0",
+                        pinMode && "[&_.leaflet-container]:cursor-crosshair"
                     )}
-                    style={{ width: leftCollapsed ? 0 : LEFT_WIDTH }}
                 >
-                    {!leftCollapsed && (
-                        <DayPlanSidebar
-                            trip={typedTrip}
-                            days={days}
-                            placesByDay={placesByDay}
-                            selectedDayId={selectedDayId}
-                            selectedPlaceId={selectedPlaceId}
-                            onSelectDay={handleSelectDay}
-                            onSelectPlace={(id) => handleSelectPlace(id)}
-                            onRemovePlace={handleRemoveFromDay}
-                            onReorderPlaces={handleReorderPlaces}
-                            onMovePlaceToDay={handleAssignToDay}
-                            onUpdateDayTitle={handleUpdateDayTitle}
-                            onUpdateDayNote={handleUpdateDayNote}
-                            onEnsureDay={handleEnsureDay}
-                            className="h-full"
-                        />
-                    )}
+                    <MapView
+                        places={mapPlaces}
+                        dayPlaces={dayPlaces}
+                        selectedPlaceId={selectedPlaceId}
+                        onMarkerClick={handleMarkerClick}
+                        onMapClick={handleMapClick}
+                        center={[48.8566, 2.3522]}
+                        zoom={defaultZoom}
+                        fitKey={fitKey}
+                        dayOrderMap={dayOrderMap}
+                        leftWidth={leftCollapsed ? 0 : LEFT_WIDTH}
+                        rightWidth={rightCollapsed ? 0 : RIGHT_WIDTH}
+                        hasInspector={!!selectedPlace}
+                    />
                 </div>
-            </div>
 
-            <div className="pointer-events-none absolute inset-y-2.5 right-2.5 z-20 hidden md:block">
-                <Button
-                    variant={rightCollapsed ? "default" : "secondary"}
-                    size="icon"
-                    className={cn(
-                        "pointer-events-auto absolute top-3 z-10 size-9 rounded-lg",
-                        rightCollapsed ? "right-0" : "-left-11"
-                    )}
-                    onClick={() => setRightCollapsed((c) => !c)}
-                >
-                    {rightCollapsed ? (
-                        <PanelRightOpen className="size-4" />
-                    ) : (
-                        <PanelRightClose className="size-4" />
-                    )}
-                </Button>
-
-                <div
-                    className={cn(
-                        "h-full transition-all duration-300",
-                        rightCollapsed ? "w-0 opacity-0" : "opacity-100"
-                    )}
-                    style={{ width: rightCollapsed ? 0 : RIGHT_WIDTH }}
-                >
-                    {!rightCollapsed && (
-                        <PlacesSidebar
-                            places={places}
-                            days={days}
-                            selectedDayId={selectedDayId}
-                            selectedPlaceId={selectedPlaceId}
-                            onSelectPlace={handleSelectPlace}
-                            onAddPlace={handleAddPlace}
-                            onDeletePlace={handleDeletePlace}
-                            onAssignToDay={handleAssignToDay}
-                            className="h-full"
-                        />
-                    )}
-                </div>
-            </div>
-
-            {isMobile && !mobileSidebar && (
-                <div className="absolute inset-x-3 top-3 z-30 flex justify-between md:hidden">
+                <div className="pointer-events-none absolute inset-y-2.5 left-2.5 z-20 hidden md:block">
                     <Button
-                        variant="secondary"
-                        className="gap-1.5 shadow-lg"
-                        onClick={() => setMobileSidebar("left")}
+                        variant={leftCollapsed ? "default" : "secondary"}
+                        size="icon"
+                        aria-label={
+                            leftCollapsed
+                                ? "Open day plan sidebar"
+                                : "Close day plan sidebar"
+                        }
+                        className={cn(
+                            "pointer-events-auto absolute top-3 z-10 size-9 rounded-lg",
+                            leftCollapsed ? "left-0" : "-right-11"
+                        )}
+                        onClick={() => setLeftCollapsed((c) => !c)}
                     >
-                        <MapIcon className="size-4" />
-                        Plan
+                        {leftCollapsed ? (
+                            <PanelLeftOpen className="size-4" />
+                        ) : (
+                            <PanelLeftClose className="size-4" />
+                        )}
                     </Button>
-                    <Button
-                        variant="secondary"
-                        className="gap-1.5 shadow-lg"
-                        onClick={() => setMobileSidebar("right")}
-                    >
-                        <ListIcon className="size-4" />
-                        Places
-                    </Button>
-                </div>
-            )}
 
-            <Sheet
-                open={mobileSidebar !== null}
-                onOpenChange={(open) => !open && setMobileSidebar(null)}
-            >
-                <SheetContent
-                    side="left"
-                    className="w-full max-w-sm p-0 sm:max-w-md [&>button]:hidden"
-                >
-                    <div className="flex h-full flex-col">
-                        <div className="flex items-center justify-between border-b px-4 py-3">
-                            <span className="text-sm font-semibold">
-                                {mobileSidebar === "left"
-                                    ? "Day Plan"
-                                    : "Places"}
-                            </span>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-7 rounded-full"
-                                onClick={() => setMobileSidebar(null)}
-                            >
-                                <X className="size-4" />
-                            </Button>
-                        </div>
-                        <div className="min-h-0 flex-1 overflow-hidden">
-                            {mobileSidebar === "left" ? (
-                                <DayPlanSidebar
-                                    trip={typedTrip}
-                                    days={days}
-                                    placesByDay={placesByDay}
-                                    selectedDayId={selectedDayId}
-                                    selectedPlaceId={selectedPlaceId}
-                                    onSelectDay={handleSelectDay}
-                                    onSelectPlace={(id) => {
-                                        handleSelectPlace(id);
-                                        setMobileSidebar(null);
-                                    }}
-                                    onRemovePlace={handleRemoveFromDay}
-                                    onReorderPlaces={handleReorderPlaces}
-                                    onMovePlaceToDay={handleAssignToDay}
-                                    onUpdateDayTitle={handleUpdateDayTitle}
-                                    onUpdateDayNote={handleUpdateDayNote}
-                                    onEnsureDay={handleEnsureDay}
-                                    className="h-full rounded-none border-0 shadow-none"
-                                />
-                            ) : (
-                                <PlacesSidebar
-                                    places={places}
-                                    days={days}
-                                    selectedDayId={selectedDayId}
-                                    selectedPlaceId={selectedPlaceId}
-                                    isMobile
-                                    onSelectPlace={(id) => {
-                                        handleSelectPlace(id);
-                                        setMobileSidebar(null);
-                                    }}
-                                    onAddPlace={handleAddPlace}
-                                    onDeletePlace={handleDeletePlace}
-                                    onAssignToDay={handleAssignToDay}
-                                    className="h-full rounded-none border-0 shadow-none"
-                                />
-                            )}
-                        </div>
+                    <div
+                        className={cn(
+                            "h-full transition-all duration-300",
+                            leftCollapsed ? "w-0 opacity-0" : "opacity-100"
+                        )}
+                        style={{ width: leftCollapsed ? 0 : LEFT_WIDTH }}
+                    >
+                        {!leftCollapsed && (
+                            <DayPlanSidebar
+                                trip={typedTrip}
+                                days={days}
+                                placesByDay={placesByDay}
+                                selectedDayId={selectedDayId}
+                                selectedPlaceId={selectedPlaceId}
+                                onSelectDay={handleSelectDay}
+                                onSelectPlace={(id) => handleSelectPlace(id)}
+                                onRemovePlace={handleRemoveFromDay}
+                                onReorderPlaces={handleReorderPlaces}
+                                onMovePlaceToDay={handleAssignToDay}
+                                onUpdateDayTitle={handleUpdateDayTitle}
+                                onUpdateDayNote={handleUpdateDayNote}
+                                onEnsureDay={handleEnsureDay}
+                                className="h-full"
+                            />
+                        )}
                     </div>
-                </SheetContent>
-            </Sheet>
+                </div>
 
-            {showDayDetail && !selectedPlace && (
-                <DayDetailPanel
-                    day={showDayDetail}
-                    dayIndex={days.findIndex(
-                        (d) => d._id === showDayDetail._id
-                    )}
-                    placeCount={(placesByDay[showDayDetail._id] ?? []).length}
-                    lat={dayPlaces[0]?.lat}
-                    lng={dayPlaces[0]?.lng}
-                    onClose={() => setShowDayDetail(null)}
+                <div className="pointer-events-none absolute inset-y-2.5 right-2.5 z-20 hidden md:block">
+                    <Button
+                        variant={rightCollapsed ? "default" : "secondary"}
+                        size="icon"
+                        aria-label={
+                            rightCollapsed
+                                ? "Open places sidebar"
+                                : "Close places sidebar"
+                        }
+                        className={cn(
+                            "pointer-events-auto absolute top-3 z-10 size-9 rounded-lg",
+                            rightCollapsed ? "right-0" : "-left-11"
+                        )}
+                        onClick={() => setRightCollapsed((c) => !c)}
+                    >
+                        {rightCollapsed ? (
+                            <PanelRightOpen className="size-4" />
+                        ) : (
+                            <PanelRightClose className="size-4" />
+                        )}
+                    </Button>
+
+                    <div
+                        className={cn(
+                            "h-full transition-all duration-300",
+                            rightCollapsed ? "w-0 opacity-0" : "opacity-100"
+                        )}
+                        style={{ width: rightCollapsed ? 0 : RIGHT_WIDTH }}
+                    >
+                        {!rightCollapsed && (
+                            <PlacesSidebar
+                                places={places}
+                                days={days}
+                                selectedDayId={selectedDayId}
+                                selectedPlaceId={selectedPlaceId}
+                                onSelectPlace={handleSelectPlace}
+                                onAddPlace={handleAddPlace}
+                                onDeletePlace={handleDeletePlace}
+                                onAssignToDay={handleAssignToDay}
+                                className="h-full"
+                            />
+                        )}
+                    </div>
+                </div>
+
+                <div
+                    className="pointer-events-none absolute bottom-6 z-30 transition-all duration-300"
+                    style={{
+                        right:
+                            rightCollapsed || isMobile ? 16 : RIGHT_WIDTH + 26,
+                    }}
+                >
+                    <PinButton
+                        active={pinMode}
+                        onClick={() => setPinMode((p) => !p)}
+                    />
+                </div>
+
+                {isMobile && !mobileSidebar && (
+                    <div className="absolute inset-x-3 top-3 z-30 flex justify-between md:hidden">
+                        <Button
+                            variant="secondary"
+                            className="gap-1.5 shadow-lg"
+                            onClick={() => setMobileSidebar("left")}
+                        >
+                            <MapIcon className="size-4" />
+                            Plan
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            className="gap-1.5 shadow-lg"
+                            onClick={() => setMobileSidebar("right")}
+                        >
+                            <ListIcon className="size-4" />
+                            Places
+                        </Button>
+                    </div>
+                )}
+
+                <Sheet
+                    open={mobileSidebar !== null}
+                    onOpenChange={(open) => !open && setMobileSidebar(null)}
+                >
+                    <SheetContent
+                        side="left"
+                        className="w-full max-w-sm p-0 sm:max-w-md [&>button]:hidden"
+                    >
+                        <div className="flex h-full flex-col">
+                            <div className="flex items-center justify-between border-b px-4 py-3">
+                                <span className="text-sm font-semibold">
+                                    {mobileSidebar === "left"
+                                        ? "Day Plan"
+                                        : "Places"}
+                                </span>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    aria-label="Close sidebar"
+                                    className="size-8 rounded-full"
+                                    onClick={() => setMobileSidebar(null)}
+                                >
+                                    <X className="size-4" />
+                                </Button>
+                            </div>
+                            <div className="min-h-0 flex-1 overflow-hidden">
+                                {mobileSidebar === "left" ? (
+                                    <DayPlanSidebar
+                                        trip={typedTrip}
+                                        days={days}
+                                        placesByDay={placesByDay}
+                                        selectedDayId={selectedDayId}
+                                        selectedPlaceId={selectedPlaceId}
+                                        onSelectDay={handleSelectDay}
+                                        onSelectPlace={(id) => {
+                                            handleSelectPlace(id);
+                                            setMobileSidebar(null);
+                                        }}
+                                        onRemovePlace={handleRemoveFromDay}
+                                        onReorderPlaces={handleReorderPlaces}
+                                        onMovePlaceToDay={handleAssignToDay}
+                                        onUpdateDayTitle={handleUpdateDayTitle}
+                                        onUpdateDayNote={handleUpdateDayNote}
+                                        onEnsureDay={handleEnsureDay}
+                                        className="h-full rounded-none border-0 shadow-none"
+                                    />
+                                ) : (
+                                    <PlacesSidebar
+                                        places={places}
+                                        days={days}
+                                        selectedDayId={selectedDayId}
+                                        selectedPlaceId={selectedPlaceId}
+                                        isMobile
+                                        onSelectPlace={(id) => {
+                                            handleSelectPlace(id);
+                                            setMobileSidebar(null);
+                                        }}
+                                        onAddPlace={handleAddPlace}
+                                        onDeletePlace={handleDeletePlace}
+                                        onAssignToDay={handleAssignToDay}
+                                        className="h-full rounded-none border-0 shadow-none"
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    </SheetContent>
+                </Sheet>
+
+                {showDayDetail && !selectedPlace && (
+                    <DayDetailPanel
+                        day={showDayDetail}
+                        dayIndex={days.findIndex(
+                            (d) => d._id === showDayDetail._id
+                        )}
+                        placeCount={
+                            (placesByDay[showDayDetail._id] ?? []).length
+                        }
+                        lat={dayPlaces[0]?.lat}
+                        lng={dayPlaces[0]?.lng}
+                        onClose={() => setShowDayDetail(null)}
+                    />
+                )}
+
+                {selectedPlace && (
+                    <PlaceInspector
+                        place={selectedPlace}
+                        day={selectedDay}
+                        isAssignedToDay={
+                            !!selectedDayId &&
+                            (placesByDay[selectedDayId] ?? []).some(
+                                (p) => p._id === selectedPlace._id
+                            )
+                        }
+                        onClose={() => setSelectedPlaceId(null)}
+                        onEdit={() => handleEditPlace(selectedPlace)}
+                        onDelete={() => handleDeletePlace(selectedPlace._id)}
+                        onAssignToDay={
+                            selectedDayId
+                                ? (placeId) =>
+                                      handleAssignToDay(placeId, selectedDayId)
+                                : undefined
+                        }
+                        onRemoveFromDay={handleRemoveFromDay}
+                        onUpdatePlace={handleUpdatePlace}
+                    />
+                )}
+
+                <PlaceFormDialog
+                    open={showPlaceForm}
+                    onOpenChange={(open) => {
+                        setShowPlaceForm(open);
+                        if (!open) {
+                            setEditingPlace(null);
+                            setPrefillCoords(null);
+                            setPinMode(false);
+                        }
+                    }}
+                    onSave={handleSavePlace}
+                    place={editingPlace}
+                    prefillCoords={prefillCoords}
+                    isSaving={isAddingPlace}
                 />
-            )}
-
-            {selectedPlace && (
-                <PlaceInspector
-                    place={selectedPlace}
-                    day={selectedDay}
-                    isAssignedToDay={
-                        !!selectedDayId &&
-                        (placesByDay[selectedDayId] ?? []).some(
-                            (p) => p._id === selectedPlace._id
-                        )
-                    }
-                    onClose={() => setSelectedPlaceId(null)}
-                    onEdit={() => handleEditPlace(selectedPlace)}
-                    onDelete={() => handleDeletePlace(selectedPlace._id)}
-                    onAssignToDay={
-                        selectedDayId
-                            ? (placeId) =>
-                                  handleAssignToDay(placeId, selectedDayId)
-                            : undefined
-                    }
-                    onRemoveFromDay={handleRemoveFromDay}
-                    onUpdatePlace={handleUpdatePlace}
-                />
-            )}
-
-            <PlaceFormDialog
-                open={showPlaceForm}
-                onOpenChange={(open) => {
-                    setShowPlaceForm(open);
-                    if (!open) {
-                        setEditingPlace(null);
-                        setPrefillCoords(null);
-                    }
-                }}
-                onSave={handleSavePlace}
-                place={editingPlace}
-                prefillCoords={prefillCoords}
-                isSaving={isAddingPlace}
-            />
+            </div>
         </div>
     );
 }

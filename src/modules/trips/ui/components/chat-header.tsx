@@ -46,6 +46,7 @@ export function ChatHeader({
     const navigate = useNavigate();
     const initials = getInitials(name);
     const { bg: bgColor, text: textColor } = stringToHex(tripId);
+    const panelView = useAtomValue(tripPanelViewAtom);
     const setPanelView = useSetAtom(tripPanelViewAtom);
     const selectedTrip = useAtomValue(selectedTripAtom);
     const isOwner = selectedTrip?.role === "owner";
@@ -78,6 +79,7 @@ export function ChatHeader({
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Go back"
                         onClick={onBack}
                         className="h-10 w-10"
                     >
@@ -88,7 +90,7 @@ export function ChatHeader({
 
                 <button
                     onClick={onGroupPress}
-                    className="flex flex-1 cursor-pointer items-center gap-3 overflow-hidden rounded-full p-1 pr-2 text-left hover:bg-muted"
+                    className="flex flex-1 cursor-pointer items-center gap-3 overflow-hidden rounded-full p-1 pr-2 text-left transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
                 >
                     <div className="h-10 w-10 overflow-hidden rounded-full">
                         {logo ? (
@@ -117,12 +119,25 @@ export function ChatHeader({
                     </div>
                 </button>
 
+                {panelView !== "expenses" && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Expenses"
+                        className="size-10 shrink-0"
+                        onClick={() => setPanelView("expenses")}
+                    >
+                        <WalletIcon className="size-5 text-foreground" />
+                    </Button>
+                )}
+
                 <DropdownMenu>
                     <DropdownMenuTrigger
                         render={
                             <Button
                                 variant="ghost"
                                 size="icon"
+                                aria-label="More options"
                                 className="h-10 w-10"
                             />
                         }
@@ -132,17 +147,11 @@ export function ChatHeader({
                     <DropdownMenuContent
                         align="end"
                         sideOffset={4}
-                        className={"w-64"}
+                        className="w-64"
                     >
                         <DropdownMenuItem onClick={() => setPanelView("info")}>
                             <InfoIcon className="size-4" />
                             Trip Info
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => setPanelView("expenses")}
-                        >
-                            <WalletIcon className="size-4" />
-                            Expenses
                         </DropdownMenuItem>
                         <DropdownMenuItem
                             onClick={() =>
@@ -165,7 +174,7 @@ export function ChatHeader({
                             <DropdownMenuItem onClick={onSearchPress}>
                                 <SearchIcon className="size-4" />
                                 Search Messages
-                                <span className="ml-auto text-[10px] text-muted-foreground">
+                                <span className="ml-auto text-xs text-muted-foreground">
                                     Ctrl+Shift+F
                                 </span>
                             </DropdownMenuItem>

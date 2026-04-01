@@ -230,6 +230,36 @@ export const useCreateSettlement = () => {
         );
         if (!currentUser) return;
 
+        let settleAmount = 0;
+        const allBalances = localStore.getAllQueries(
+            api.methods.expenses.balances
+        );
+        for (const { args: queryArgs, value } of allBalances) {
+            if (!queryArgs || !value || queryArgs.tripId !== args.tripId)
+                continue;
+            const balances = value as {
+                netBalance: Record<string, number>;
+                simplified: { from: string; to: string; amount: number }[];
+            };
+            const debt = balances.simplified.find(
+                (s) => s.from === currentUser._id && s.to === args.toUserId
+            );
+            settleAmount = debt?.amount ?? 0;
+            const updated = {
+                ...balances,
+                simplified: balances.simplified.filter(
+                    (s) =>
+                        !(s.from === currentUser._id && s.to === args.toUserId)
+                ),
+            };
+            localStore.setQuery(
+                api.methods.expenses.balances,
+                queryArgs,
+                updated as typeof value
+            );
+            break;
+        }
+
         const allSettlements = localStore.getAllQueries(
             api.methods.expenses.listSettlements
         );
@@ -243,7 +273,7 @@ export const useCreateSettlement = () => {
                 tripId: args.tripId,
                 fromUserId: currentUser._id,
                 toUserId: args.toUserId,
-                amount: args.amount,
+                amount: settleAmount,
                 note: args.note,
                 _optimistic: true,
             };

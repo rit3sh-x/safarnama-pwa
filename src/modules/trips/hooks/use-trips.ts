@@ -3,7 +3,7 @@ import { api } from "@backend/api";
 import { useMutation, usePaginatedQuery } from "convex/react";
 import { useQuery } from "convex-helpers/react/cache";
 import type { FunctionArgs } from "convex/server";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "./use-search-params";
 import type { Id } from "@backend/dataModel";
@@ -37,17 +37,37 @@ export const useTripDetails = (tripId: Id<"trip">) => {
 
 export function usePublicTrips(active = true) {
     const { search } = useSearchParams();
+    const s = search?.trim() || undefined;
+    const addToHistory = useMutation(api.methods.trips.addToHistory);
+    const lastRecorded = useRef("");
+
     const { results, status, loadMore } = usePaginatedQuery(
         api.methods.trips.listPublic,
-        active ? { search: search?.trim() || undefined } : "skip",
+        active ? { search: s } : "skip",
         { initialNumItems: PAGINATION.TRIPS_PAGE_SIZE }
     );
+
+    useEffect(() => {
+        if (s && s !== lastRecorded.current) {
+            lastRecorded.current = s;
+            addToHistory({ query: s });
+        }
+    }, [s, addToHistory]);
 
     return {
         trips: results,
         isLoading: status === "LoadingFirstPage",
         isDone: status === "Exhausted",
         loadMore: () => loadMore(PAGINATION.TRIPS_PAGE_SIZE),
+    };
+}
+
+export function useFeed() {
+    const data = useQuery(api.methods.trips.feed, {});
+
+    return {
+        recommendations: data ?? [],
+        isLoading: data === undefined,
     };
 }
 

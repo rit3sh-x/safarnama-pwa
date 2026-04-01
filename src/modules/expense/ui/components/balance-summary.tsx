@@ -1,11 +1,13 @@
 import { ArrowRightIcon, CheckCircle2, HandCoinsIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export interface BalanceSummaryProps {
     simplified: Array<{ from: string; to: string; amount: number }>;
     userMap: Map<string, { name: string; username: string }>;
     currentUserId: string;
+    onSettleUp?: (to: string, amount: number) => void;
 }
 
 function getUserDisplay(
@@ -22,6 +24,7 @@ export function BalanceSummary({
     simplified,
     userMap,
     currentUserId,
+    onSettleUp,
 }: BalanceSummaryProps) {
     if (simplified.length === 0) {
         return (
@@ -79,7 +82,7 @@ export function BalanceSummary({
                                         You owe {other.name}
                                     </p>
                                     {other.username && (
-                                        <p className="text-[10px] text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground">
                                             @{other.username}
                                         </p>
                                     )}
@@ -90,7 +93,7 @@ export function BalanceSummary({
                                         {other.name} owes you
                                     </p>
                                     {other.username && (
-                                        <p className="text-[10px] text-muted-foreground">
+                                        <p className="text-xs text-muted-foreground">
                                             @{other.username}
                                         </p>
                                     )}
@@ -128,6 +131,18 @@ export function BalanceSummary({
                         >
                             ₹{txn.amount.toFixed(2)}
                         </span>
+
+                        {isYouOwe && onSettleUp && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="ml-1 h-7 shrink-0 gap-1 px-2 text-xs"
+                                onClick={() => onSettleUp(txn.to, txn.amount)}
+                            >
+                                <HandCoinsIcon className="size-3" />
+                                Settle
+                            </Button>
+                        )}
                     </div>
                 );
             })}

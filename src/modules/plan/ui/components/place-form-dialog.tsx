@@ -166,8 +166,9 @@ export function PlaceFormDialog({
         },
     });
 
-    const handleOpenChange = (v: boolean) => {
-        if (v && place) {
+    const prevOpenRef = useRef(false);
+    if (open && !prevOpenRef.current) {
+        if (place) {
             form.reset();
             form.setFieldValue("name", place.name);
             form.setFieldValue("description", place.description ?? "");
@@ -175,43 +176,19 @@ export function PlaceFormDialog({
             form.setFieldValue("lat", place.lat?.toString() ?? "");
             form.setFieldValue("lng", place.lng?.toString() ?? "");
             form.setFieldValue("osmId", place.osmId ?? "");
-            if (place.placeTime) {
-                const d = new Date(place.placeTime);
-                setDateFrom(d);
-                setTimeFrom(
-                    `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
-                );
-            } else {
-                setDateFrom(undefined);
-                setTimeFrom("");
-            }
-            if (place.endTime) {
-                const d = new Date(place.endTime);
-                setDateTo(d);
-                setTimeTo(
-                    `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
-                );
-            } else {
-                setDateTo(undefined);
-                setTimeTo("");
-            }
-        } else if (v && prefillCoords) {
+        } else if (prefillCoords) {
             form.reset();
             form.setFieldValue("name", prefillCoords.name ?? "");
             form.setFieldValue("address", prefillCoords.address ?? "");
             form.setFieldValue("lat", String(prefillCoords.lat));
             form.setFieldValue("lng", String(prefillCoords.lng));
-            setDateFrom(undefined);
-            setTimeFrom(nowTime);
-            setDateTo(undefined);
-            setTimeTo(nowTime);
-        } else if (v) {
+        } else {
             form.reset();
-            setDateFrom(undefined);
-            setTimeFrom(nowTime);
-            setDateTo(undefined);
-            setTimeTo(nowTime);
         }
+    }
+    prevOpenRef.current = open;
+
+    const handleOpenChange = (v: boolean) => {
         if (!v) {
             setSearchQuery("");
             clearSearch();
@@ -291,7 +268,7 @@ export function PlaceFormDialog({
                                                                         result
                                                                     )
                                                                 }
-                                                                className="flex flex-col items-start gap-0.5"
+                                                                className="flex flex-col items-start gap-1"
                                                             >
                                                                 <span className="text-xs font-medium">
                                                                     {
@@ -577,13 +554,13 @@ export function PlaceFormDialog({
                 <DialogFooter>
                     <Button
                         variant="outline"
-                        className={"flex-1"}
+                        className="flex-1"
                         onClick={() => handleOpenChange(false)}
                     >
                         Cancel
                     </Button>
                     <Button
-                        className={"flex-1"}
+                        className="flex-1"
                         onClick={form.handleSubmit}
                         disabled={
                             isSaving || form.state.isSubmitting || !!timeError

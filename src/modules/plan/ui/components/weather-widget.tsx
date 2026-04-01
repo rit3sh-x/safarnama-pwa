@@ -11,6 +11,7 @@ import {
     Sunset,
 } from "lucide-react";
 import { useWeather } from "../../hooks/use-weather";
+import { cn } from "@/lib/utils";
 import { useSettings } from "@/modules/settings/hooks/use-settings";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -95,7 +96,7 @@ export function WeatherWidget({
                 </div>
                 <div>
                     <div className="flex items-baseline gap-1.5">
-                        <span className="text-lg font-bold leading-none">
+                        <span className="text-lg leading-none font-bold">
                             {isClimate && "Ø "}
                             {temp}
                             {unit}
@@ -108,7 +109,7 @@ export function WeatherWidget({
                         )}
                     </div>
                     {weather.description && (
-                        <p className="text-xs capitalize text-muted-foreground">
+                        <p className="text-xs text-muted-foreground capitalize">
                             {weather.description}
                         </p>
                     )}
@@ -159,15 +160,17 @@ export function WeatherWidget({
 
             {weather.hourly && weather.hourly.length > 0 && (
                 <div className="scrollbar-none -mx-1 overflow-x-auto px-1">
-                    <div className="inline-flex gap-0.5">
+                    <div className="inline-flex gap-1">
                         {weather.hourly
                             .filter((_, i) => i % 2 === 0)
                             .map((h) => (
                                 <div
                                     key={h.hour}
-                                    className={`flex w-10 flex-col items-center gap-0.5 rounded-md py-1 ${
-                                        h.precipitationProbability > 50 && "bg-blue-500/5"
-                                    }`}
+                                    className={cn(
+                                        "flex w-10 flex-col items-center gap-1 rounded-md py-1",
+                                        h.precipitationProbability > 50 &&
+                                            "bg-blue-500/5"
+                                    )}
                                 >
                                     <span className="text-xs text-muted-foreground">
                                         {String(h.hour).padStart(2, "0")}
@@ -191,7 +194,7 @@ export function WeatherWidget({
             )}
 
             {isClimate && (
-                <p className="text-xs italic text-muted-foreground">
+                <p className="text-xs text-muted-foreground italic">
                     Based on historical averages
                 </p>
             )}
@@ -214,7 +217,7 @@ function WeatherSkeleton() {
                 <Skeleton className="h-5 w-16 rounded-full" />
                 <Skeleton className="h-5 w-12 rounded-full" />
             </div>
-            <div className="flex gap-0.5">
+            <div className="flex gap-1">
                 {Array.from({ length: 6 }).map((_, i) => (
                     <Skeleton key={i} className="h-14 w-10 rounded-md" />
                 ))}

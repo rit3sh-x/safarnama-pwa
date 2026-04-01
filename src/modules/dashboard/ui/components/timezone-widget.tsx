@@ -195,7 +195,10 @@ export default function TimezoneWidget() {
                             </p>
                         )}
 
-                        <Button onClick={addCustomZone} className="w-full transition-colors">
+                        <Button
+                            onClick={addCustomZone}
+                            className="w-full transition-colors"
+                        >
                             Add
                         </Button>
 

@@ -32,7 +32,6 @@
     "@tanstack/react-form": "^1.28.5",
     "@tanstack/react-router": "^1.167.1",
     "@tanstack/react-router-devtools": "^1.166.8",
-    "@tavily/core": "^0.7.2",
     "@tiptap/core": "^3.20.4",
     "@tiptap/extension-color": "^3.20.4",
     "@tiptap/extension-font-family": "^3.20.4",

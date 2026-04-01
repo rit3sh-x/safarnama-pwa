@@ -365,6 +365,7 @@ export function MapView({
             center={center}
             zoom={zoom}
             zoomControl={false}
+            attributionControl={false}
             className="size-full bg-gray-200"
             minZoom={2}
             maxZoom={20}

@@ -266,9 +266,7 @@ export const useReorderPlaces = () => {
     const reorder = useMutation(
         api.methods.places.reorder
     ).withOptimisticUpdate((localStore, args) => {
-        const queries = localStore.getAllQueries(
-            api.methods.places.listByDay
-        );
+        const queries = localStore.getAllQueries(api.methods.places.listByDay);
         for (const { args: qArgs, value } of queries) {
             if (!qArgs || !value || qArgs.dayId !== args.dayId) continue;
             const places = value as Record<string, unknown>[];

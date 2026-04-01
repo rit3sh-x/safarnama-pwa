@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { ArrowRightLeft, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import {
     Select,
@@ -127,10 +128,15 @@ export function CurrencyWidget() {
                     <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                         Currency
                     </span>
-                    <Button variant="ghost" size="icon" aria-label="Refresh rate" onClick={fetchRate}>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Refresh rate"
+                        onClick={fetchRate}
+                    >
                         <RefreshCw
                             size={14}
-                            className={loading ? "animate-spin" : ""}
+                            className={cn(loading && "animate-spin")}
                         />
                     </Button>
                 </div>
@@ -156,7 +162,13 @@ export function CurrencyWidget() {
                             ))}
                         </SelectContent>
                     </Select>
-                    <Button variant="outline" size="icon" aria-label="Swap currencies" className="transition-colors" onClick={swap}>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label="Swap currencies"
+                        className="transition-colors"
+                        onClick={swap}
+                    >
                         <ArrowRightLeft size={14} />
                     </Button>
                     <Select

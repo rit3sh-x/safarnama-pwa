@@ -93,39 +93,40 @@ export function BlogViewerView({ blogId }: BlogViewerViewProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                {blog.coverImage && (
-                    <div className="mx-auto w-full max-w-3xl px-4 pt-6 sm:px-6">
-                        <img
-                            src={blog.coverImage}
-                            alt={blog.title}
-                            loading="lazy"
-                            className="w-full rounded-xl object-cover"
-                            style={{ maxHeight: "400px" }}
-                        />
-                    </div>
-                )}
+                <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+                    {blog.coverImage && (
+                        <div className="pt-6">
+                            <img
+                                src={blog.coverImage}
+                                alt={blog.title}
+                                loading="lazy"
+                                className="max-h-100 w-full rounded-xl object-cover"
+                            />
+                        </div>
+                    )}
 
-                <div className="mx-auto w-full max-w-3xl px-4 pt-8 sm:px-6 md:pt-12">
-                    <h1 className="font-serif text-3xl leading-tight font-bold text-foreground sm:text-4xl md:text-5xl">
-                        {blog.title}
-                    </h1>
+                    <div className="pt-8 md:pt-12">
+                        <h1 className="font-serif text-3xl leading-tight font-bold text-foreground sm:text-4xl md:text-5xl">
+                            {blog.title}
+                        </h1>
 
-                    <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{blog.tripDestination}</span>
-                        {publishedDate && (
-                            <span className="flex items-center gap-1">
-                                <CalendarIcon className="size-3.5" />
-                                {publishedDate}
-                            </span>
-                        )}
+                        <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{blog.tripDestination}</span>
+                            {publishedDate && (
+                                <span className="flex items-center gap-1">
+                                    <CalendarIcon className="size-3.5" />
+                                    {publishedDate}
+                                </span>
+                            )}
+                        </div>
                     </div>
+
+                    <Editor initialContent={initialContent} editable={false} />
+
+                    <BlogRatingSection blogId={blog._id} />
+
+                    <CommentSection blogId={blog._id} />
                 </div>
-
-                <Editor initialContent={initialContent} editable={false} />
-
-                <BlogRatingSection blogId={blog._id} />
-
-                <CommentSection blogId={blog._id} />
             </div>
         </div>
     );

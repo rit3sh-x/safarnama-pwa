@@ -12,7 +12,6 @@ import { addDays, format, differenceInCalendarDays } from "date-fns";
 import { Pencil } from "lucide-react";
 import { SidebarHeader } from "./sidebar-header";
 import { DayCard, DayEditDialog } from "./day-card";
-import { Button } from "@/components/ui/button";
 import {
     Accordion,
     AccordionItem,
@@ -49,10 +48,7 @@ interface DayPlanSidebarProps {
     className?: string;
 }
 
-function buildDaySlots(
-    trip: Doc<"trip">,
-    dbDays: Doc<"day">[]
-): DaySlot[] {
+function buildDaySlots(trip: Doc<"trip">, dbDays: Doc<"day">[]): DaySlot[] {
     if (!trip.startDate || !trip.endDate) {
         return dbDays.map((d) => ({
             _id: d._id,
@@ -138,22 +134,38 @@ export function DayPlanSidebar({
 
             let activeDay: Doc<"day"> | null = null;
             for (const day of days) {
-                if ((placesByDay[day._id] ?? []).some((p) => p._id === activeId)) {
+                if (
+                    (placesByDay[day._id] ?? []).some((p) => p._id === activeId)
+                ) {
                     activeDay = day;
                     break;
                 }
             }
 
-            if (overId.startsWith("day-") && !overId.startsWith("day-virtual")) {
+            if (
+                overId.startsWith("day-") &&
+                !overId.startsWith("day-virtual")
+            ) {
                 const targetDayId = overId.replace("day-", "") as Id<"day">;
-                if (activeDay && activeDay._id !== targetDayId && onMovePlaceToDay) {
+                if (
+                    activeDay &&
+                    activeDay._id !== targetDayId &&
+                    onMovePlaceToDay
+                ) {
                     onMovePlaceToDay(activeId, targetDayId);
                 }
                 return;
             }
 
-            if (overId.startsWith("virtual-day-") && onEnsureDay && onMovePlaceToDay) {
-                const dayNumber = parseInt(overId.replace("virtual-day-", ""), 10);
+            if (
+                overId.startsWith("virtual-day-") &&
+                onEnsureDay &&
+                onMovePlaceToDay
+            ) {
+                const dayNumber = parseInt(
+                    overId.replace("virtual-day-", ""),
+                    10
+                );
                 if (!isNaN(dayNumber)) {
                     onEnsureDay(dayNumber).then((dayId) => {
                         onMovePlaceToDay(activeId, dayId);
@@ -164,7 +176,9 @@ export function DayPlanSidebar({
 
             let overDay: Doc<"day"> | null = null;
             for (const day of days) {
-                if ((placesByDay[day._id] ?? []).some((p) => p._id === overId)) {
+                if (
+                    (placesByDay[day._id] ?? []).some((p) => p._id === overId)
+                ) {
                     overDay = day;
                     break;
                 }
@@ -174,7 +188,9 @@ export function DayPlanSidebar({
 
             if (activeDay._id === overDay._id && onReorderPlaces) {
                 const dayPlaces = placesByDay[activeDay._id] ?? [];
-                const activeIdx = dayPlaces.findIndex((p) => p._id === activeId);
+                const activeIdx = dayPlaces.findIndex(
+                    (p) => p._id === activeId
+                );
                 const overIdx = dayPlaces.findIndex((p) => p._id === overId);
                 if (activeIdx !== -1 && overIdx !== -1) {
                     const ids = dayPlaces.map((p) => p._id);
@@ -229,12 +245,8 @@ export function DayPlanSidebar({
                                         day={day}
                                         index={slot.dayNumber - 1}
                                         date={slot.date}
-                                        places={
-                                            placesByDay[slot._id] ?? []
-                                        }
-                                        isSelected={
-                                            slot._id === selectedDayId
-                                        }
+                                        places={placesByDay[slot._id] ?? []}
+                                        isSelected={slot._id === selectedDayId}
                                         selectedPlaceId={selectedPlaceId}
                                         onSelectDay={onSelectDay}
                                         onSelectPlace={onSelectPlace}
@@ -319,17 +331,27 @@ function VirtualDayCard({
                                 </div>
                             </div>
                             {onEnsureDay && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-6 shrink-0"
+                                <div
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label="Edit day"
+                                    className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setEditOpen(true);
                                     }}
+                                    onKeyDown={(e) => {
+                                        if (
+                                            e.key === "Enter" ||
+                                            e.key === " "
+                                        ) {
+                                            e.stopPropagation();
+                                            setEditOpen(true);
+                                        }
+                                    }}
                                 >
                                     <Pencil className="size-3 text-muted-foreground" />
-                                </Button>
+                                </div>
                             )}
                         </div>
                     </AccordionTrigger>

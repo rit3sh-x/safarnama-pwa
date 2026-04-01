@@ -225,16 +225,57 @@ export const createSettlement = mutation({
     args: {
         tripId: v.id("trip"),
         toUserId: v.string(),
-        amount: v.number(),
         note: v.optional(v.string()),
     },
-    handler: async (ctx, { tripId, toUserId, amount, note }) => {
+    handler: async (ctx, { tripId, toUserId, note }) => {
         const { user } = await requireTripMember(ctx, tripId);
+
+        const splits = await ctx.db
+            .query("expenseSplit")
+            .withIndex("tripId_userId", (q) => q.eq("tripId", tripId))
+            .collect();
+
+        let owedAmount = 0;
+        for (const split of splits) {
+            if (split.settled || split.userId !== user._id) continue;
+            const expense = await ctx.db.get(split.expenseId);
+            if (!expense || expense.paidBy !== toUserId) continue;
+            owedAmount += split.owedAmount;
+        }
+
+        if (owedAmount <= 0)
+            throw new ConvexError({
+                code: "BAD_REQUEST",
+                message: "Nothing owed to this user",
+            });
+
+        const unsettledSplits = await ctx.db
+            .query("expenseSplit")
+            .withIndex("tripId_userId", (q) => q.eq("tripId", tripId))
+            .collect();
+
+        await Promise.all(
+            unsettledSplits
+                .filter((s) => {
+                    if (s.settled || s.userId !== user._id) return false;
+                    return true;
+                })
+                .map(async (s) => {
+                    const expense = await ctx.db.get(s.expenseId);
+                    if (expense?.paidBy === toUserId) {
+                        await ctx.db.patch(s._id, {
+                            settled: true,
+                            settledAt: Date.now(),
+                        });
+                    }
+                })
+        );
+
         return ctx.db.insert("settlement", {
             tripId,
             fromUserId: user._id,
             toUserId,
-            amount,
+            amount: owedAmount,
             note,
         });
     },

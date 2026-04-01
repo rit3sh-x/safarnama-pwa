@@ -10,6 +10,7 @@ import {
 import { LIMITS } from "../lib/constants";
 import { paginationOptsValidator, type PaginationResult } from "convex/server";
 import type { Doc, Id } from "../betterAuth/_generated/dataModel";
+import type { Doc as SchemaDoc } from "../_generated/dataModel";
 import type { Org } from "../betterAuth/methods/types";
 
 export const create = mutation({
@@ -143,7 +144,6 @@ export const get = query({
             isPublic: trip.isPublic,
             orgId: trip.orgId as Id<"organization">,
             logo: org.logo,
-            itineraryStatus: trip.itineraryStatus,
             title: trip.title,
         };
 
@@ -285,24 +285,26 @@ export const listPublic = query({
         const user = await requireUserAccess(ctx);
         const s = search?.trim();
 
+        if (!s) {
+            return {
+                page: [],
+                isDone: true,
+                continueCursor: "",
+            };
+        }
+
         const userTripMembers = await ctx.db
             .query("tripMember")
             .withIndex("userId", (q) => q.eq("userId", user._id))
             .collect();
         const userTripIds = new Set(userTripMembers.map((m) => m.tripId));
 
-        const trips = s
-            ? await ctx.db
-                  .query("trip")
-                  .withSearchIndex("search", (q) =>
-                      q.search("searchText", s).eq("isPublic", true)
-                  )
-                  .paginate(paginationOpts)
-            : await ctx.db
-                  .query("trip")
-                  .withIndex("isPublic", (q) => q.eq("isPublic", true))
-                  .order("desc")
-                  .paginate(paginationOpts);
+        const trips = await ctx.db
+            .query("trip")
+            .withSearchIndex("search", (q) =>
+                q.search("searchText", s).eq("isPublic", true)
+            )
+            .paginate(paginationOpts);
 
         trips.page = trips.page.filter((t) => !userTripIds.has(t._id));
 
@@ -583,5 +585,136 @@ export const dashboardSummary = query({
             recentMessages: messagesWithSender,
             totalBlogs: userBlogCount,
         };
+    },
+});
+
+export const feed = query({
+    args: {},
+    handler: async (ctx) => {
+        const user = await requireUserAccess(ctx);
+
+        const searches = await ctx.db
+            .query("searchHistory")
+            .withIndex("userId_searchedAt", (q) => q.eq("userId", user._id))
+            .order("desc")
+            .take(10);
+
+        const memberships: Doc<"member">[] = await ctx.runQuery(
+            components.betterAuth.methods.orgs.listUserMemberships,
+            { userId: user._id }
+        );
+        const userOrgIds = new Set(memberships.map((m) => m.organizationId));
+
+        const candidates: SchemaDoc<"trip">[] = [];
+
+        if (searches.length > 0) {
+            const seen = new Set<string>();
+            for (const search of searches) {
+                const results = await ctx.db
+                    .query("trip")
+                    .withSearchIndex("search", (q) =>
+                        q
+                            .search("searchText", search.query)
+                            .eq("isPublic", true)
+                    )
+                    .take(20);
+
+                for (const trip of results) {
+                    if (!seen.has(trip._id) && !userOrgIds.has(trip.orgId)) {
+                        seen.add(trip._id);
+                        candidates.push(trip);
+                    }
+                }
+            }
+        }
+
+        if (candidates.length < 20) {
+            const latest = await ctx.db
+                .query("trip")
+                .withIndex("isPublic", (q) => q.eq("isPublic", true))
+                .order("desc")
+                .take(30);
+
+            const seen = new Set(candidates.map((c) => c._id));
+            for (const trip of latest) {
+                if (!seen.has(trip._id) && !userOrgIds.has(trip.orgId)) {
+                    seen.add(trip._id);
+                    candidates.push(trip);
+                }
+                if (candidates.length >= 20) break;
+            }
+        }
+
+        for (let i = candidates.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+        }
+
+        const selected = candidates.slice(0, 10);
+
+        const orgIds = [...new Set(selected.map((t) => t.orgId))];
+        const orgs: PaginationResult<Doc<"organization">> =
+            orgIds.length > 0
+                ? await ctx.runQuery(components.betterAuth.adapter.findMany, {
+                      model: "organization",
+                      where: [
+                          {
+                              field: "_id",
+                              value: orgIds,
+                              operator: "in" as const,
+                              connector: "AND" as const,
+                          },
+                      ],
+                      paginationOpts: {
+                          numItems: orgIds.length,
+                          cursor: null,
+                      },
+                  })
+                : { page: [], isDone: true, continueCursor: "" };
+        const orgMap = new Map(orgs.page.map((o) => [o._id, o]));
+
+        return selected.map((trip) => ({
+            tripId: trip._id,
+            title: trip.title,
+            destination: trip.destination,
+            description: trip.description,
+            logo: orgMap.get(trip.orgId as Id<"organization">)!.logo,
+            startDate: trip.startDate,
+            endDate: trip.endDate,
+        }));
+    },
+});
+
+export const addToHistory = mutation({
+    args: {
+        query: v.string(),
+    },
+    handler: async (ctx, { query }) => {
+        const user = await requireUserAccess(ctx);
+        const trimmed = query.trim().toLowerCase();
+        if (!trimmed) return;
+
+        const existing = await ctx.db
+            .query("searchHistory")
+            .withIndex("userId_searchedAt", (q) => q.eq("userId", user._id))
+            .order("desc")
+            .collect();
+
+        const duplicate = existing.find((e) => e.query === trimmed);
+        if (duplicate) {
+            await ctx.db.patch(duplicate._id, { searchedAt: Date.now() });
+            return;
+        }
+
+        await ctx.db.insert("searchHistory", {
+            userId: user._id,
+            query: trimmed,
+            searchedAt: Date.now(),
+        });
+
+        if (existing.length >= 10) {
+            const oldest = existing[existing.length - 1];
+            await ctx.db.delete(oldest._id);
+        }
     },
 });

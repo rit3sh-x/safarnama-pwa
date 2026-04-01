@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAtomValue } from "jotai";
-import { ArrowLeft, Plus, HandCoins, Receipt } from "lucide-react";
+import { ArrowLeft, Plus, Receipt } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,7 +37,10 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
 
     const { mutate: removeExpense } = useRemoveExpense();
     const [showAddExpense, setShowAddExpense] = useState(false);
-    const [showSettleUp, setShowSettleUp] = useState(false);
+    const [settleTarget, setSettleTarget] = useState<{
+        toUserId: string;
+        amount: number;
+    } | null>(null);
 
     const currentUserId = user._id;
 
@@ -55,11 +58,12 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
 
     return (
         <div className="relative flex h-full flex-col overflow-hidden bg-background">
-            <div className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-1 pr-3">
+            <div className="flex h-14 shrink-0 items-center border-b bg-card px-1">
                 <div className="flex items-center gap-2 px-2">
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Go back"
                         className="size-10"
                         onClick={onBack ?? (() => router.history.back())}
                     >
@@ -69,16 +73,6 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                         {selectedTrip?.name ?? "Expenses"}
                     </span>
                 </div>
-
-                <Button
-                    size="sm"
-                    variant="outline"
-                    className="gap-1.5"
-                    onClick={() => setShowSettleUp(true)}
-                >
-                    <HandCoins className="size-4" />
-                    Settle Up
-                </Button>
             </div>
 
             <div className="flex-1 overflow-y-auto">
@@ -96,6 +90,9 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                                 simplified={balances.simplified}
                                 userMap={userMap}
                                 currentUserId={currentUserId}
+                                onSettleUp={(to, amount) =>
+                                    setSettleTarget({ toUserId: to, amount })
+                                }
                             />
                         )
                     )}
@@ -165,14 +162,18 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                 currentUserId={currentUserId}
             />
 
-            <SettleUpModal
-                open={showSettleUp}
-                onOpenChange={setShowSettleUp}
-                tripId={tripId}
-                members={members}
-                currentUserId={currentUserId}
-                simplified={balances?.simplified ?? []}
-            />
+            {settleTarget?.toUserId && (
+                <SettleUpModal
+                    open={!!settleTarget}
+                    onOpenChange={(open) => {
+                        if (!open) setSettleTarget(null);
+                    }}
+                    tripId={tripId}
+                    toUserId={settleTarget.toUserId}
+                    toUsername={userMap.get(settleTarget.toUserId)!.username}
+                    amount={settleTarget?.amount ?? 0}
+                />
+            )}
         </div>
     );
 }

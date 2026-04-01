@@ -113,9 +113,7 @@ export function PollBubble({
 
             <div className="mt-2 flex items-center justify-between">
                 <div
-                    className={cn(
-                        "flex items-center gap-2 text-xs opacity-60"
-                    )}
+                    className={cn("flex items-center gap-2 text-xs opacity-60")}
                 >
                     <span>
                         {poll.totalVotes}{" "}
@@ -127,13 +125,13 @@ export function PollBubble({
                         </span>
                     )}
                     {poll.isAnonymous && (
-                        <span className="flex items-center gap-0.5">
+                        <span className="flex items-center gap-1">
                             <EyeOffIcon className="size-2.5" />
                             anonymous
                         </span>
                     )}
                     {isClosed && (
-                        <span className="flex items-center gap-0.5">
+                        <span className="flex items-center gap-1">
                             <LockIcon className="size-2.5" />
                             closed
                         </span>

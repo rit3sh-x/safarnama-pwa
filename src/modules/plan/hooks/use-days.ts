@@ -112,36 +112,39 @@ export const useAddDay = () => {
 
 export const useUpsertDay = () => {
     const [isPending, setIsPending] = useState(false);
-    const upsertDay = useMutation(
-        api.methods.days.upsert
-    ).withOptimisticUpdate((localStore, args) => {
-        const queries = localStore.getAllQueries(api.methods.days.list);
-        for (const { args: qArgs, value } of queries) {
-            if (!qArgs || !value || qArgs.tripId !== args.tripId) continue;
-            const days = value as Record<string, unknown>[];
-            const exists = days.some(
-                (d) =>
-                    (d as { dayNumber: number }).dayNumber === args.dayNumber
-            );
-            if (exists) break;
-            const optimisticDay = {
-                _id: nanoid(10) as Id<"day">,
-                _creationTime: Date.now(),
-                tripId: args.tripId,
-                dayNumber: args.dayNumber,
-                date: args.date,
-                title: args.title,
-                note: args.note,
-            };
-            localStore.setQuery(api.methods.days.list, qArgs, [
-                ...days,
-                optimisticDay,
-            ] as typeof value);
-            break;
+    const upsertDay = useMutation(api.methods.days.upsert).withOptimisticUpdate(
+        (localStore, args) => {
+            const queries = localStore.getAllQueries(api.methods.days.list);
+            for (const { args: qArgs, value } of queries) {
+                if (!qArgs || !value || qArgs.tripId !== args.tripId) continue;
+                const days = value as Record<string, unknown>[];
+                const exists = days.some(
+                    (d) =>
+                        (d as { dayNumber: number }).dayNumber ===
+                        args.dayNumber
+                );
+                if (exists) break;
+                const optimisticDay = {
+                    _id: nanoid(10) as Id<"day">,
+                    _creationTime: Date.now(),
+                    tripId: args.tripId,
+                    dayNumber: args.dayNumber,
+                    date: args.date,
+                    title: args.title,
+                    note: args.note,
+                };
+                localStore.setQuery(api.methods.days.list, qArgs, [
+                    ...days,
+                    optimisticDay,
+                ] as typeof value);
+                break;
+            }
         }
-    });
+    );
 
-    const mutate = async (args: FunctionArgs<typeof api.methods.days.upsert>) => {
+    const mutate = async (
+        args: FunctionArgs<typeof api.methods.days.upsert>
+    ) => {
         setIsPending(true);
         try {
             return await upsertDay(args);

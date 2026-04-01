@@ -13,14 +13,6 @@ export default defineSchema({
         createdBy: v.string(),
         updatedAt: v.number(),
         searchText: v.optional(v.string()),
-        itineraryStatus: v.optional(
-            v.union(
-                v.literal("empty"),
-                v.literal("planning"),
-                v.literal("done"),
-                v.literal("error")
-            )
-        ),
     })
         .index("orgId", ["orgId"])
         .index("isPublic", ["isPublic"])
@@ -217,6 +209,14 @@ export default defineSchema({
         .index("pollId", ["pollId"])
         .index("pollId_userId", ["pollId", "userId"])
         .index("tripId", ["tripId"]),
+
+    searchHistory: defineTable({
+        userId: v.string(),
+        query: v.string(),
+        searchedAt: v.number(),
+    })
+        .index("userId", ["userId"])
+        .index("userId_searchedAt", ["userId", "searchedAt"]),
 
     messageReadCursor: defineTable({
         tripId: v.id("trip"),

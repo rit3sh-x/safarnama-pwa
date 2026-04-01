@@ -161,9 +161,7 @@ export const reorder = mutation({
         await requireTripMember(ctx, day.tripId);
 
         await Promise.all(
-            placeIds.map((placeId, i) =>
-                ctx.db.patch(placeId, { order: i })
-            )
+            placeIds.map((placeId, i) => ctx.db.patch(placeId, { order: i }))
         );
     },
 });
