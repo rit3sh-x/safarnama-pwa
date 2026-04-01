@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { requireTripMember } from "../lib/utils";
+import { getOrThrow } from "../lib/helpers";
 import { paginationOptsValidator } from "convex/server";
 
 export const add = mutation({
@@ -83,12 +84,7 @@ export const listByDay = query({
 export const get = query({
     args: { placeId: v.id("place") },
     handler: async (ctx, { placeId }) => {
-        const place = await ctx.db.get(placeId);
-        if (!place)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Place not found",
-            });
+        const place = await getOrThrow(ctx, placeId, "Place");
         await requireTripMember(ctx, place.tripId);
         return place;
     },
@@ -108,12 +104,7 @@ export const update = mutation({
         endTime: v.optional(v.number()),
     },
     handler: async (ctx, { placeId, ...fields }) => {
-        const place = await ctx.db.get(placeId);
-        if (!place)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Place not found",
-            });
+        const place = await getOrThrow(ctx, placeId, "Place");
         await requireTripMember(ctx, place.tripId);
         await ctx.db.patch(placeId, fields);
     },
@@ -125,12 +116,7 @@ export const assignToDay = mutation({
         dayId: v.optional(v.id("day")),
     },
     handler: async (ctx, { placeId, dayId }) => {
-        const place = await ctx.db.get(placeId);
-        if (!place)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Place not found",
-            });
+        const place = await getOrThrow(ctx, placeId, "Place");
         await requireTripMember(ctx, place.tripId);
 
         if (dayId) {
@@ -152,12 +138,7 @@ export const reorder = mutation({
         placeIds: v.array(v.id("place")),
     },
     handler: async (ctx, { dayId, placeIds }) => {
-        const day = await ctx.db.get(dayId);
-        if (!day)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Day not found",
-            });
+        const day = await getOrThrow(ctx, dayId, "Day");
         await requireTripMember(ctx, day.tripId);
 
         await Promise.all(
@@ -169,12 +150,7 @@ export const reorder = mutation({
 export const remove = mutation({
     args: { placeId: v.id("place") },
     handler: async (ctx, { placeId }) => {
-        const place = await ctx.db.get(placeId);
-        if (!place)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Place not found",
-            });
+        const place = await getOrThrow(ctx, placeId, "Place");
         await requireTripMember(ctx, place.tripId);
         await ctx.db.delete(placeId);
     },

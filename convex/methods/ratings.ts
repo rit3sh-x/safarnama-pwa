@@ -17,9 +17,6 @@ export const rate = mutation({
 
         const ratingValue = rating as RatingValue;
 
-        const blog = await ctx.db.get(blogId);
-        if (!blog) throw new ConvexError("Blog not found");
-
         const existing = await ctx.db
             .query("blogRating")
             .withIndex("blogId_userId", (q) =>

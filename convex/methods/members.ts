@@ -1,11 +1,12 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { internal } from "../_generated/api";
 import {
     requireTripAdmin,
     requireTripMember,
     requireTripPermission,
 } from "../lib/utils";
+import { findMember, removeMemberFromTrip } from "../lib/members";
+import { notifyUser } from "../lib/notify";
 import { components } from "../_generated/api";
 import type { Doc } from "../betterAuth/_generated/dataModel";
 import { paginationOptsValidator, type PaginationResult } from "convex/server";
@@ -126,51 +127,13 @@ export const remove = mutation({
             });
         }
 
-        const target: Doc<"member"> | null = await ctx.runQuery(
-            components.betterAuth.adapter.findOne,
-            {
-                model: "member",
-                where: [
-                    { field: "userId", value: targetUserId, operator: "eq" },
-                    {
-                        field: "organizationId",
-                        value: trip.orgId,
-                        operator: "eq",
-                    },
-                ],
-            }
-        );
-
+        const target = await findMember(ctx, targetUserId, trip.orgId);
         if (!target)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Member not found",
-            });
+            throw new ConvexError({ code: "NOT_FOUND", message: "Member not found" });
+        if (target.role === "owner")
+            throw new ConvexError({ code: "FORBIDDEN", message: "Cannot remove an owner" });
 
-        if (target.role === "owner") {
-            throw new ConvexError({
-                code: "FORBIDDEN",
-                message: "Cannot remove an owner",
-            });
-        }
-
-        await ctx.runMutation(components.betterAuth.adapter.deleteOne, {
-            input: {
-                model: "member",
-                where: [{ field: "_id", value: target._id, operator: "eq" }],
-            },
-        });
-
-        const tripMember = await ctx.db
-            .query("tripMember")
-            .filter((q) =>
-                q.and(
-                    q.eq(q.field("tripId"), tripId),
-                    q.eq(q.field("userId"), targetUserId)
-                )
-            )
-            .unique();
-        if (tripMember) await ctx.db.delete(tripMember._id);
+        await removeMemberFromTrip(ctx, target._id, tripId, targetUserId);
 
         await ctx.db.insert("message", {
             tripId,
@@ -179,18 +142,14 @@ export const remove = mutation({
             content: `removed a member`,
         });
 
-        await ctx.scheduler.runAfter(
-            0,
-            internal.methods.notifications.createNotification,
-            {
-                userId: targetUserId,
-                type: "member_joined",
-                tripId,
-                title: trip.title,
-                body: `You were removed from ${trip.title}`,
-                url: `/trips`,
-            }
-        );
+        await notifyUser(ctx, {
+            userId: targetUserId,
+            type: "member_joined",
+            tripId,
+            title: trip.title,
+            body: `You were removed from ${trip.title}`,
+            url: `/trips`,
+        });
     },
 });
 
@@ -226,23 +185,7 @@ export const leave = mutation({
             }
         }
 
-        await ctx.runMutation(components.betterAuth.adapter.deleteOne, {
-            input: {
-                model: "member",
-                where: [{ field: "_id", value: member._id, operator: "eq" }],
-            },
-        });
-
-        const tripMember = await ctx.db
-            .query("tripMember")
-            .filter((q) =>
-                q.and(
-                    q.eq(q.field("tripId"), tripId),
-                    q.eq(q.field("userId"), user._id)
-                )
-            )
-            .unique();
-        if (tripMember) await ctx.db.delete(tripMember._id);
+        await removeMemberFromTrip(ctx, member._id, tripId, user._id);
 
         await ctx.db.insert("message", {
             tripId,
@@ -262,27 +205,9 @@ export const changeRole = mutation({
     handler: async (ctx, { tripId, targetUserId, role }) => {
         const { trip } = await requireTripAdmin(ctx, tripId);
 
-        const target: Doc<"member"> | null = await ctx.runQuery(
-            components.betterAuth.adapter.findOne,
-            {
-                model: "member",
-                where: [
-                    { field: "userId", value: targetUserId, operator: "eq" },
-                    {
-                        field: "organizationId",
-                        value: trip.orgId,
-                        operator: "eq",
-                    },
-                ],
-            }
-        );
-
-        if (!target) {
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Member not found",
-            });
-        }
+        const target = await findMember(ctx, targetUserId, trip.orgId);
+        if (!target)
+            throw new ConvexError({ code: "NOT_FOUND", message: "Member not found" });
 
         await ctx.runMutation(components.betterAuth.adapter.updateOne, {
             input: {

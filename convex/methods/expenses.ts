@@ -1,7 +1,8 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { internal } from "../_generated/api";
 import { requireTripMember, requireUserAccess } from "../lib/utils";
+import { getOrThrow, requireOwnerOrAdmin } from "../lib/helpers";
+import { notifyTrip, notifyUser } from "../lib/notify";
 import { components } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
 import { simplifyDebts } from "../lib/debtSimplification";
@@ -66,19 +67,15 @@ export const create = mutation({
         });
 
         const trip = await ctx.db.get(tripId);
-        await ctx.scheduler.runAfter(
-            0,
-            internal.methods.notifications.notifyTripMembers,
-            {
-                tripId,
-                excludeUserId: user._id,
-                type: "expense",
-                referenceId: expenseId,
-                title: trip?.title ?? "Trip",
-                body: `${user.name ?? "Someone"} added ₹${fields.amount.toFixed(0)} for ${fields.title}`,
-                url: `/trips/${tripId}/expenses`,
-            }
-        );
+        await notifyTrip(ctx, {
+            tripId,
+            excludeUserId: user._id,
+            type: "expense",
+            referenceId: expenseId,
+            title: trip?.title ?? "Trip",
+            body: `${user.name ?? "Someone"} added ₹${fields.amount.toFixed(0)} for ${fields.title}`,
+            url: `/trips/${tripId}/expenses`,
+        });
 
         return expenseId;
     },
@@ -102,12 +99,7 @@ export const list = query({
 export const get = query({
     args: { expenseId: v.id("expense") },
     handler: async (ctx, { expenseId }) => {
-        const expense = await ctx.db.get(expenseId);
-        if (!expense)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Expense not found",
-            });
+        const expense = await getOrThrow(ctx, expenseId, "Expense");
         await requireTripMember(ctx, expense.tripId);
         const splits = await ctx.db
             .query("expenseSplit")
@@ -127,18 +119,9 @@ export const update = mutation({
         receiptUrl: v.optional(v.string()),
     },
     handler: async (ctx, { expenseId, ...fields }) => {
-        const expense = await ctx.db.get(expenseId);
-        if (!expense)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Expense not found",
-            });
+        const expense = await getOrThrow(ctx, expenseId, "Expense");
         const { user, member } = await requireTripMember(ctx, expense.tripId);
-        if (expense.paidBy !== user._id && member.role !== "owner")
-            throw new ConvexError({
-                code: "FORBIDDEN",
-                message: "Unauthorized",
-            });
+        requireOwnerOrAdmin(expense.paidBy, user._id, member.role, "expense");
         await ctx.db.patch(expenseId, { ...fields, updatedAt: Date.now() });
     },
 });
@@ -146,18 +129,9 @@ export const update = mutation({
 export const remove = mutation({
     args: { expenseId: v.id("expense") },
     handler: async (ctx, { expenseId }) => {
-        const expense = await ctx.db.get(expenseId);
-        if (!expense)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Expense not found",
-            });
+        const expense = await getOrThrow(ctx, expenseId, "Expense");
         const { user, member } = await requireTripMember(ctx, expense.tripId);
-        if (expense.paidBy !== user._id && member.role !== "owner")
-            throw new ConvexError({
-                code: "FORBIDDEN",
-                message: "Unauthorized",
-            });
+        requireOwnerOrAdmin(expense.paidBy, user._id, member.role, "expense");
 
         const splits = await ctx.db
             .query("expenseSplit")
@@ -174,18 +148,9 @@ export const settleSplit = mutation({
         targetUserId: v.string(),
     },
     handler: async (ctx, { expenseId, targetUserId }) => {
-        const expense = await ctx.db.get(expenseId);
-        if (!expense)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Expense not found",
-            });
+        const expense = await getOrThrow(ctx, expenseId, "Expense");
         const { user, member } = await requireTripMember(ctx, expense.tripId);
-        if (expense.paidBy !== user._id && member.role !== "owner")
-            throw new ConvexError({
-                code: "FORBIDDEN",
-                message: "Unauthorized",
-            });
+        requireOwnerOrAdmin(expense.paidBy, user._id, member.role, "expense");
 
         const split = await ctx.db
             .query("expenseSplit")
@@ -296,19 +261,15 @@ export const createSettlement = mutation({
         });
 
         const trip = await ctx.db.get(tripId);
-        await ctx.scheduler.runAfter(
-            0,
-            internal.methods.notifications.createNotification,
-            {
-                userId: toUserId,
-                type: "settlement",
-                tripId,
-                referenceId: settlementId,
-                title: trip?.title ?? "Trip",
-                body: `${user.name ?? "Someone"} settled ₹${owedAmount.toFixed(0)} with you`,
-                url: `/trips/${tripId}/expenses`,
-            }
-        );
+        await notifyUser(ctx, {
+            userId: toUserId,
+            type: "settlement",
+            tripId,
+            referenceId: settlementId,
+            title: trip?.title ?? "Trip",
+            body: `${user.name ?? "Someone"} settled ₹${owedAmount.toFixed(0)} with you`,
+            url: `/trips/${tripId}/expenses`,
+        });
 
         return settlementId;
     },

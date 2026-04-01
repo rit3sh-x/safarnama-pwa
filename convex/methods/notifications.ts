@@ -7,6 +7,7 @@ import {
 } from "../_generated/server";
 import { internal } from "../_generated/api";
 import { requireUserAccess } from "../lib/utils";
+import { getOrThrow } from "../lib/helpers";
 import { components } from "../_generated/api";
 import type { Doc } from "../betterAuth/_generated/dataModel";
 
@@ -185,12 +186,9 @@ export const markAsRead = mutation({
     args: { notificationId: v.id("notification") },
     handler: async (ctx, { notificationId }) => {
         const user = await requireUserAccess(ctx);
-        const notification = await ctx.db.get(notificationId);
-        if (!notification || notification.userId !== user._id) {
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Notification not found",
-            });
+        const notification = await getOrThrow(ctx, notificationId, "Notification");
+        if (notification.userId !== user._id) {
+            throw new ConvexError({ code: "NOT_FOUND", message: "Notification not found" });
         }
         await ctx.db.patch(notificationId, { isRead: true });
     },

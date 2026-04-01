@@ -1,10 +1,10 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { internal } from "../_generated/api";
 import { requireTripMember } from "../lib/utils";
-import { paginationOptsValidator, type PaginationResult } from "convex/server";
-import { components } from "../_generated/api";
-import type { Doc } from "../betterAuth/_generated/dataModel";
+import { getOrThrow } from "../lib/helpers";
+import { getUserMap } from "../lib/members";
+import { notifyTrip } from "../lib/notify";
+import { paginationOptsValidator } from "convex/server";
 
 export const list = query({
     args: {
@@ -19,29 +19,8 @@ export const list = query({
             .order("desc")
             .paginate(paginationOpts);
 
-        const senderIds = [...new Set(result.page.map((m) => m.senderId))];
-        let senderMap = new Map<string, Doc<"user">>();
-        if (senderIds.length > 0) {
-            const users: PaginationResult<Doc<"user">> = await ctx.runQuery(
-                components.betterAuth.adapter.findMany,
-                {
-                    model: "user",
-                    where: [
-                        {
-                            field: "_id",
-                            value: senderIds,
-                            operator: "in" as const,
-                            connector: "AND" as const,
-                        },
-                    ],
-                    paginationOpts: {
-                        numItems: senderIds.length + 10,
-                        cursor: null,
-                    },
-                }
-            );
-            senderMap = new Map(users.page.map((u) => [u._id, u]));
-        }
+        const senderIds = result.page.map((m) => m.senderId);
+        const senderMap = await getUserMap(ctx, senderIds);
 
         const page = await Promise.all(
             result.page.map(async (msg) => {
@@ -185,19 +164,15 @@ export const send = mutation({
             });
             await ctx.db.patch(messageId, { pollId });
 
-            await ctx.scheduler.runAfter(
-                0,
-                internal.methods.notifications.notifyTripMembers,
-                {
-                    tripId,
-                    excludeUserId: user._id,
-                    type: "poll",
-                    referenceId: messageId,
-                    title: tripTitle,
-                    body: `${senderName} created a poll: ${pollQuestion}`,
-                    url: `/trips/${tripId}/chat`,
-                }
-            );
+            await notifyTrip(ctx, {
+                tripId,
+                excludeUserId: user._id,
+                type: "poll",
+                referenceId: messageId,
+                title: tripTitle,
+                body: `${senderName} created a poll: ${pollQuestion}`,
+                url: `/trips/${tripId}/chat`,
+            });
 
             return messageId;
         }
@@ -213,19 +188,15 @@ export const send = mutation({
             rest.content.length > 80
                 ? rest.content.slice(0, 80) + "…"
                 : rest.content;
-        await ctx.scheduler.runAfter(
-            0,
-            internal.methods.notifications.notifyTripMembers,
-            {
-                tripId,
-                excludeUserId: user._id,
-                type: "message",
-                referenceId: messageId,
-                title: tripTitle,
-                body: `${senderName}: ${preview}`,
-                url: `/trips/${tripId}/chat`,
-            }
-        );
+        await notifyTrip(ctx, {
+            tripId,
+            excludeUserId: user._id,
+            type: "message",
+            referenceId: messageId,
+            title: tripTitle,
+            body: `${senderName}: ${preview}`,
+            url: `/trips/${tripId}/chat`,
+        });
 
         return messageId;
     },
@@ -237,17 +208,11 @@ export const edit = mutation({
         content: v.string(),
     },
     handler: async (ctx, { messageId, content }) => {
-        const msg = await ctx.db.get(messageId);
-        if (!msg || msg.type !== "message")
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Message not found",
-            });
+        const msg = await getOrThrow(ctx, messageId, "Message");
+        if (msg.type !== "message")
+            throw new ConvexError({ code: "NOT_FOUND", message: "Message not found" });
         if (msg.deletedAt)
-            throw new ConvexError({
-                code: "BAD_REQUEST",
-                message: "Message deleted",
-            });
+            throw new ConvexError({ code: "BAD_REQUEST", message: "Message deleted" });
 
         const { user } = await requireTripMember(ctx, msg.tripId);
         if (msg.senderId !== user._id)
@@ -263,12 +228,7 @@ export const edit = mutation({
 export const remove = mutation({
     args: { messageId: v.id("message") },
     handler: async (ctx, { messageId }) => {
-        const msg = await ctx.db.get(messageId);
-        if (!msg)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Message not found",
-            });
+        const msg = await getOrThrow(ctx, messageId, "Message");
 
         const { user, member } = await requireTripMember(ctx, msg.tripId);
         if (msg.senderId !== user._id && member.role !== "owner")
@@ -290,17 +250,9 @@ export const addReaction = mutation({
         emoji: v.string(),
     },
     handler: async (ctx, { messageId, emoji }) => {
-        const msg = await ctx.db.get(messageId);
-        if (!msg)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Message not found",
-            });
+        const msg = await getOrThrow(ctx, messageId, "Message");
         if (msg.deletedAt)
-            throw new ConvexError({
-                code: "BAD_REQUEST",
-                message: "Message deleted",
-            });
+            throw new ConvexError({ code: "BAD_REQUEST", message: "Message deleted" });
 
         const { user } = await requireTripMember(ctx, msg.tripId);
 
@@ -331,13 +283,7 @@ export const removeReaction = mutation({
         emoji: v.string(),
     },
     handler: async (ctx, { messageId, emoji }) => {
-        const msg = await ctx.db.get(messageId);
-        if (!msg)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Message not found",
-            });
-
+        const msg = await getOrThrow(ctx, messageId, "Message");
         const { user } = await requireTripMember(ctx, msg.tripId);
 
         const existing = await ctx.db
@@ -351,10 +297,7 @@ export const removeReaction = mutation({
             .unique();
 
         if (!existing)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Reaction not found",
-            });
+            throw new ConvexError({ code: "NOT_FOUND", message: "Reaction not found" });
         await ctx.db.delete(existing._id);
     },
 });
@@ -362,12 +305,7 @@ export const removeReaction = mutation({
 export const getReactions = query({
     args: { messageId: v.id("message") },
     handler: async (ctx, { messageId }) => {
-        const msg = await ctx.db.get(messageId);
-        if (!msg)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Message not found",
-            });
+        const msg = await getOrThrow(ctx, messageId, "Message");
         await requireTripMember(ctx, msg.tripId);
 
         const reactions = await ctx.db
@@ -394,17 +332,9 @@ export const getReactions = query({
 export const pin = mutation({
     args: { messageId: v.id("message") },
     handler: async (ctx, { messageId }) => {
-        const msg = await ctx.db.get(messageId);
-        if (!msg)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Message not found",
-            });
+        const msg = await getOrThrow(ctx, messageId, "Message");
         if (msg.deletedAt)
-            throw new ConvexError({
-                code: "BAD_REQUEST",
-                message: "Message deleted",
-            });
+            throw new ConvexError({ code: "BAD_REQUEST", message: "Message deleted" });
 
         const { user, member } = await requireTripMember(ctx, msg.tripId);
         if (member.role !== "owner")
@@ -423,12 +353,7 @@ export const pin = mutation({
 export const unpin = mutation({
     args: { messageId: v.id("message") },
     handler: async (ctx, { messageId }) => {
-        const msg = await ctx.db.get(messageId);
-        if (!msg)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Message not found",
-            });
+        const msg = await getOrThrow(ctx, messageId, "Message");
 
         const { member } = await requireTripMember(ctx, msg.tripId);
         if (member.role !== "owner")
@@ -464,12 +389,7 @@ export const votePoll = mutation({
         optionIndex: v.number(),
     },
     handler: async (ctx, { pollId, optionIndex }) => {
-        const poll = await ctx.db.get(pollId);
-        if (!poll)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Poll not found",
-            });
+        const poll = await getOrThrow(ctx, pollId, "Poll");
         if (poll.closedAt)
             throw new ConvexError({
                 code: "BAD_REQUEST",
@@ -516,12 +436,7 @@ export const votePoll = mutation({
 export const closePoll = mutation({
     args: { pollId: v.id("poll") },
     handler: async (ctx, { pollId }) => {
-        const poll = await ctx.db.get(pollId);
-        if (!poll)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Poll not found",
-            });
+        const poll = await getOrThrow(ctx, pollId, "Poll");
 
         const { user, member } = await requireTripMember(ctx, poll.tripId);
         if (poll.createdBy !== user._id && member.role !== "owner")

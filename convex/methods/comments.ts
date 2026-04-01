@@ -1,7 +1,8 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { internal } from "../_generated/api";
 import { requireUserAccess } from "../lib/utils";
+import { getOrThrow } from "../lib/helpers";
+import { notifyUser } from "../lib/notify";
 import { components } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc } from "../betterAuth/_generated/dataModel";
@@ -124,23 +125,17 @@ export const create = mutation({
         const blog = await ctx.db.get(blogId);
         if (blog) {
             const trip = await ctx.db.get(blog.tripId);
-            const blogOwnerTrip = trip;
-            if (blogOwnerTrip && blogOwnerTrip.createdBy !== user._id) {
-                const preview =
-                    content.length > 60 ? content.slice(0, 60) + "…" : content;
-                await ctx.scheduler.runAfter(
-                    0,
-                    internal.methods.notifications.createNotification,
-                    {
-                        userId: blogOwnerTrip.createdBy,
-                        type: "comment",
-                        tripId: blog.tripId,
-                        referenceId: blogId,
-                        title: blog.title,
-                        body: `${user.name ?? "Someone"} commented: ${preview}`,
-                        url: `/blogs/${blogId}`,
-                    }
-                );
+            if (trip && trip.createdBy !== user._id) {
+                const preview = content.length > 60 ? content.slice(0, 60) + "…" : content;
+                await notifyUser(ctx, {
+                    userId: trip.createdBy,
+                    type: "comment",
+                    tripId: blog.tripId,
+                    referenceId: blogId,
+                    title: blog.title,
+                    body: `${user.name ?? "Someone"} commented: ${preview}`,
+                    url: `/blogs/${blogId}`,
+                });
             }
         }
     },
@@ -158,9 +153,7 @@ export const edit = mutation({
         if (profanityCheck.hasProfanity)
             throw new ConvexError("Comment contains inappropriate language");
 
-        const comment = await ctx.db.get(commentId);
-
-        if (!comment) throw new ConvexError("Comment not found");
+        const comment = await getOrThrow(ctx, commentId, "Comment");
         if (comment.authorId !== user._id)
             throw new ConvexError("Not authorized to edit this comment");
 
@@ -175,9 +168,7 @@ export const remove = mutation({
     args: { commentId: v.id("blogComment") },
     handler: async (ctx, { commentId }) => {
         const user = await requireUserAccess(ctx);
-        const comment = await ctx.db.get(commentId);
-
-        if (!comment) throw new ConvexError("Comment not found");
+        const comment = await getOrThrow(ctx, commentId, "Comment");
         if (comment.authorId !== user._id)
             throw new ConvexError("Not authorized to delete this comment");
 

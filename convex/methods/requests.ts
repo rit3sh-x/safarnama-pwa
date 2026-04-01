@@ -1,11 +1,12 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { internal } from "../_generated/api";
 import {
     requireTripPermission,
     requireUserAccess,
     getTripFromOrgId,
 } from "../lib/utils";
+import { findMember } from "../lib/members";
+import { notifyTrip, notifyUser } from "../lib/notify";
 import { components } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import type { Doc as DocAuth, Id } from "../betterAuth/_generated/dataModel";
@@ -28,21 +29,7 @@ export const userSendRequest = mutation({
             });
         }
 
-        const member: DocAuth<"member"> | null = await ctx.runQuery(
-            components.betterAuth.adapter.findOne,
-            {
-                model: "member",
-                where: [
-                    { field: "userId", value: user._id, operator: "eq" },
-                    {
-                        field: "organizationId",
-                        value: trip.orgId,
-                        operator: "eq",
-                    },
-                ],
-            }
-        );
-
+        const member = await findMember(ctx, user._id, trip.orgId);
         if (member) {
             throw new ConvexError({
                 code: "FORBIDDEN",
@@ -247,18 +234,14 @@ export const userReviewInvite = mutation({
                 userId: req.userId,
             });
 
-            await ctx.scheduler.runAfter(
-                0,
-                internal.methods.notifications.notifyTripMembers,
-                {
-                    tripId: req.tripId,
-                    excludeUserId: user._id,
-                    type: "member_joined",
-                    title: req.tripTitle,
-                    body: `${user.name ?? "Someone"} joined the trip`,
-                    url: `/trips/${req.tripId}/info`,
-                }
-            );
+            await notifyTrip(ctx, {
+                tripId: req.tripId,
+                excludeUserId: user._id,
+                type: "member_joined",
+                title: req.tripTitle,
+                body: `${user.name ?? "Someone"} joined the trip`,
+                url: `/trips/${req.tripId}/info`,
+            });
         }
     },
 });
@@ -314,22 +297,8 @@ export const adminSendInvite = mutation({
 
             const userId = targetUser._id;
 
-            const member: DocAuth<"member"> | null = await ctx.runQuery(
-                components.betterAuth.adapter.findOne,
-                {
-                    model: "member",
-                    where: [
-                        { field: "userId", value: userId, operator: "eq" },
-                        {
-                            field: "organizationId",
-                            value: trip.orgId,
-                            operator: "eq",
-                        },
-                    ],
-                }
-            );
-
-            if (member) {
+            const existingMember = await findMember(ctx, userId, trip.orgId);
+            if (existingMember) {
                 skipped.push({
                     userId: email,
                     reason: `${targetUser.name ?? email} is already a member`,
@@ -395,19 +364,15 @@ export const adminSendInvite = mutation({
                 userName: targetUser?.name ?? "a user",
             });
 
-            await ctx.scheduler.runAfter(
-                0,
-                internal.methods.notifications.createNotification,
-                {
-                    userId,
-                    type: "join_request",
-                    tripId: trip._id,
-                    referenceId: requestId,
-                    title: "Trip Invite",
-                    body: `${sender.name ?? "Someone"} invited you to ${trip.title}`,
-                    url: `/trips`,
-                }
-            );
+            await notifyUser(ctx, {
+                userId,
+                type: "join_request",
+                tripId: trip._id,
+                referenceId: requestId,
+                title: "Trip Invite",
+                body: `${sender.name ?? "Someone"} invited you to ${trip.title}`,
+                url: `/trips`,
+            });
         }
 
         if (invited.length > 0) {
@@ -573,18 +538,14 @@ export const adminReviewRequest = mutation({
                 userId: req.userId,
             });
 
-            await ctx.scheduler.runAfter(
-                0,
-                internal.methods.notifications.createNotification,
-                {
-                    userId: req.userId,
-                    type: "join_request",
-                    tripId: req.tripId,
-                    title: "Request Accepted",
-                    body: `Your request to join ${req.tripTitle} was accepted`,
-                    url: `/trips/${req.tripId}/chat`,
-                }
-            );
+            await notifyUser(ctx, {
+                userId: req.userId,
+                type: "join_request",
+                tripId: req.tripId,
+                title: "Request Accepted",
+                body: `Your request to join ${req.tripTitle} was accepted`,
+                url: `/trips/${req.tripId}/chat`,
+            });
         }
     },
 });

@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { requireTripMember } from "../lib/utils";
+import { getOrThrow } from "../lib/helpers";
 
 export const list = query({
     args: { tripId: v.id("trip") },
@@ -16,12 +17,7 @@ export const list = query({
 export const get = query({
     args: { dayId: v.id("day") },
     handler: async (ctx, { dayId }) => {
-        const day = await ctx.db.get(dayId);
-        if (!day)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Day not found",
-            });
+        const day = await getOrThrow(ctx, dayId, "Day");
         await requireTripMember(ctx, day.tripId);
         return day;
     },
@@ -95,12 +91,7 @@ export const update = mutation({
         note: v.optional(v.string()),
     },
     handler: async (ctx, { dayId, ...fields }) => {
-        const day = await ctx.db.get(dayId);
-        if (!day)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Day not found",
-            });
+        const day = await getOrThrow(ctx, dayId, "Day");
         await requireTripMember(ctx, day.tripId);
         await ctx.db.patch(dayId, fields);
     },
@@ -109,12 +100,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { dayId: v.id("day") },
     handler: async (ctx, { dayId }) => {
-        const day = await ctx.db.get(dayId);
-        if (!day)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Day not found",
-            });
+        const day = await getOrThrow(ctx, dayId, "Day");
         await requireTripMember(ctx, day.tripId);
 
         const places = await ctx.db
@@ -135,12 +121,7 @@ export const addPlaceToDay = mutation({
         placeId: v.id("place"),
     },
     handler: async (ctx, { dayId, placeId }) => {
-        const day = await ctx.db.get(dayId);
-        if (!day)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Day not found",
-            });
+        const day = await getOrThrow(ctx, dayId, "Day");
         await requireTripMember(ctx, day.tripId);
 
         const place = await ctx.db.get(placeId);
@@ -157,12 +138,7 @@ export const addPlaceToDay = mutation({
 export const removePlaceFromDay = mutation({
     args: { placeId: v.id("place") },
     handler: async (ctx, { placeId }) => {
-        const place = await ctx.db.get(placeId);
-        if (!place)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Place not found",
-            });
+        const place = await getOrThrow(ctx, placeId, "Place");
         await requireTripMember(ctx, place.tripId);
         await ctx.db.patch(placeId, { dayId: undefined });
     },
@@ -174,12 +150,7 @@ export const updateNote = mutation({
         note: v.string(),
     },
     handler: async (ctx, { dayId, note }) => {
-        const day = await ctx.db.get(dayId);
-        if (!day)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Day not found",
-            });
+        const day = await getOrThrow(ctx, dayId, "Day");
         await requireTripMember(ctx, day.tripId);
         await ctx.db.patch(dayId, { note: note || undefined });
     },
@@ -188,12 +159,7 @@ export const updateNote = mutation({
 export const removeNote = mutation({
     args: { dayId: v.id("day") },
     handler: async (ctx, { dayId }) => {
-        const day = await ctx.db.get(dayId);
-        if (!day)
-            throw new ConvexError({
-                code: "NOT_FOUND",
-                message: "Day not found",
-            });
+        const day = await getOrThrow(ctx, dayId, "Day");
         await requireTripMember(ctx, day.tripId);
         await ctx.db.patch(dayId, { note: undefined });
     },
