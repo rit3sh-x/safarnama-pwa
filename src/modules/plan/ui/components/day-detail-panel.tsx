@@ -36,7 +36,7 @@ export function DayDetailPanel({
                             <CalendarDays className="size-5 text-foreground" />
                         </div>
                         <div className="min-w-0 flex-1">
-                            <h3 className="text-[15px] font-bold">
+                            <h3 className="text-cn font-bold">
                                 {displayTitle}
                             </h3>
                             <div className="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">

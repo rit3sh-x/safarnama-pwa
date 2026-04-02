@@ -126,7 +126,8 @@ export const create = mutation({
         if (blog) {
             const trip = await ctx.db.get(blog.tripId);
             if (trip && trip.createdBy !== user._id) {
-                const preview = content.length > 60 ? content.slice(0, 60) + "…" : content;
+                const preview =
+                    content.length > 60 ? content.slice(0, 60) + "…" : content;
                 await notifyUser(ctx, {
                     userId: trip.createdBy,
                     type: "comment",

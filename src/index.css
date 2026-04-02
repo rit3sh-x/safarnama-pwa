@@ -305,6 +305,19 @@
   }
 }
 
+.profanity-squiggle {
+  text-decoration: underline wavy;
+  text-decoration-color: var(--destructive);
+  text-decoration-skip-ink: none;
+  text-underline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profanity-squiggle {
+    text-decoration-style: dotted;
+  }
+}
+
 .tiptap {
   :first-child {
     margin-top: 0;

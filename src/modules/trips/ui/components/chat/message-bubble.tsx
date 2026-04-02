@@ -188,7 +188,7 @@ export function MessageBubble({
                             {message.isPinned && (
                                 <div
                                     className={cn(
-                                        "mb-0.5 flex items-center gap-1 text-[10px]",
+                                        "mb-0.5 flex items-center gap-1 text-xs",
                                         isOwn
                                             ? "text-primary-foreground/60"
                                             : "text-muted-foreground"
@@ -237,7 +237,7 @@ export function MessageBubble({
                                 <>
                                     {(!message.imageUrl ||
                                         message.content !== "📷 Photo") && (
-                                        <p className="text-[15px] leading-relaxed wrap-break-word whitespace-pre-wrap">
+                                        <p className="text-sm leading-relaxed wrap-break-word whitespace-pre-wrap">
                                             {message.isDeleted ? (
                                                 <span className="italic opacity-60">
                                                     [deleted]
@@ -264,11 +264,11 @@ export function MessageBubble({
                                 )}
                             >
                                 {message.isEdited && (
-                                    <span className="text-[10px] italic">
+                                    <span className="text-xs italic">
                                         edited
                                     </span>
                                 )}
-                                <span className="text-[11px]">
+                                <span className="text-xs">
                                     {formatMessageTime(message.createdAt)}
                                 </span>
                                 {isOwn && (
@@ -348,7 +348,7 @@ function ReplyPreview({
         >
             <p
                 className={cn(
-                    "text-[11px] font-semibold",
+                    "text-xs font-semibold",
                     isOwn ? "text-primary-foreground" : "text-primary"
                 )}
             >
@@ -408,7 +408,7 @@ function ReactionRow({
                     >
                         <span>{r.emoji}</span>
                         {r.count > 1 && (
-                            <span className="text-[10px] text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                                 {r.count}
                             </span>
                         )}

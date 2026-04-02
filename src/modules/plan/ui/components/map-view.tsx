@@ -479,7 +479,7 @@ function TooltipContent({ place }: { place: Doc<"place"> }) {
                 {place.name}
             </div>
             {place.address && (
-                <div className="mt-0.5 max-w-48 overflow-hidden text-[11px] text-ellipsis whitespace-nowrap text-gray-400">
+                <div className="mt-0.5 max-w-48 overflow-hidden text-xs text-ellipsis whitespace-nowrap text-gray-400">
                     {place.address}
                 </div>
             )}

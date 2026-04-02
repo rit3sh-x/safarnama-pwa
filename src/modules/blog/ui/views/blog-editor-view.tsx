@@ -14,7 +14,6 @@ import { EditorToolbar } from "../components/toolbar/editor-toolbar";
 import { FloatingFormatToolbar } from "../components/toolbar/floating-format-toolbar";
 import { MobileInsertButton } from "../components/toolbar/mobile-insert-button";
 import { useEditorStore } from "../../hooks/use-editor-store";
-import { checkProfanity } from "../../lib/profanity";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Id } from "@backend/dataModel";
@@ -49,15 +48,19 @@ export function BlogEditorView({ blogId }: BlogEditorViewProps) {
         if (!blog || !editor) return;
         setPublishError(null);
 
-        const titleCheck = checkProfanity(title);
+        const { checkProfanity } = await import("../../lib/profanity");
+
+        const titleCheck = await checkProfanity(title);
         if (titleCheck.hasProfanity) {
-            setPublishError("Title contains inappropriate language");
+            const words = titleCheck.detectedWords.join(", ");
+            setPublishError(`Title contains flagged words: ${words}`);
             return;
         }
         const textContent = editor.getText();
-        const contentCheck = checkProfanity(textContent);
+        const contentCheck = await checkProfanity(textContent);
         if (contentCheck.hasProfanity) {
-            setPublishError("Content contains inappropriate language");
+            const words = contentCheck.detectedWords.join(", ");
+            setPublishError(`Content contains flagged words: ${words}`);
             return;
         }
 

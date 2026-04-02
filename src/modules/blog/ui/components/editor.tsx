@@ -16,6 +16,7 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { useEditorStore } from "../../hooks/use-editor-store";
 import { FontSizeExtension } from "./extensions/font-size";
 import { LineHeightExtension } from "./extensions/line-height";
+import { ProfanityHighlightExtension } from "./extensions/profanity-highlight";
 
 interface EditorProps {
     initialContent?: string;
@@ -85,6 +86,7 @@ export const Editor = ({ initialContent, editable = true }: EditorProps) => {
             Placeholder.configure({
                 placeholder: "Start writing your story...",
             }),
+            ProfanityHighlightExtension,
         ],
     });
 

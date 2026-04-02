@@ -138,7 +138,7 @@ export function PlaceInspector({
                             )}
 
                             {place.lat != null && place.lng != null && (
-                                <p className="mt-1 hidden text-[11px] text-muted-foreground tabular-nums sm:block">
+                                <p className="mt-1 hidden text-xs text-muted-foreground tabular-nums sm:block">
                                     {place.lat.toFixed(6)},{" "}
                                     {place.lng.toFixed(6)}
                                 </p>

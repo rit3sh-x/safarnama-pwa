@@ -194,7 +194,7 @@ export function ChatInputToolbar({
                         <p className="text-xs font-semibold text-primary">
                             {replyTo.senderName}
                         </p>
-                        <p className="truncate text-[13px] text-muted-foreground">
+                        <p className="truncate text-xs text-muted-foreground">
                             {replyTo.content}
                         </p>
                     </div>
@@ -289,7 +289,7 @@ export function ChatInputToolbar({
                                 : "Type a message..."
                         }
                         rows={1}
-                        className="block w-full resize-none rounded-2xl border border-input bg-input/30 px-4 py-2.5 text-[15px] leading-relaxed text-foreground transition-colors outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring/30"
+                        className="block w-full resize-none rounded-2xl border border-input bg-input/30 px-4 py-2.5 text-sm leading-relaxed text-foreground transition-colors outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring/30"
                     />
                 </div>
 

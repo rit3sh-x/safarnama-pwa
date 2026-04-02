@@ -141,7 +141,7 @@ export function ImagePreviewDrawer({
                                 placeholder="Add a caption..."
                                 rows={1}
                                 disabled={isUploading}
-                                className="block w-full resize-none rounded-2xl border border-input bg-input/30 px-4 py-2.5 text-[15px] leading-relaxed text-foreground transition-colors outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring/30 disabled:opacity-50"
+                                className="block w-full resize-none rounded-2xl border border-input bg-input/30 px-4 py-2.5 text-sm leading-relaxed text-foreground transition-colors outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-1 focus:ring-ring/30 disabled:opacity-50"
                             />
                         </div>
 

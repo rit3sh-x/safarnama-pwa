@@ -210,9 +210,15 @@ export const edit = mutation({
     handler: async (ctx, { messageId, content }) => {
         const msg = await getOrThrow(ctx, messageId, "Message");
         if (msg.type !== "message")
-            throw new ConvexError({ code: "NOT_FOUND", message: "Message not found" });
+            throw new ConvexError({
+                code: "NOT_FOUND",
+                message: "Message not found",
+            });
         if (msg.deletedAt)
-            throw new ConvexError({ code: "BAD_REQUEST", message: "Message deleted" });
+            throw new ConvexError({
+                code: "BAD_REQUEST",
+                message: "Message deleted",
+            });
 
         const { user } = await requireTripMember(ctx, msg.tripId);
         if (msg.senderId !== user._id)
@@ -252,7 +258,10 @@ export const addReaction = mutation({
     handler: async (ctx, { messageId, emoji }) => {
         const msg = await getOrThrow(ctx, messageId, "Message");
         if (msg.deletedAt)
-            throw new ConvexError({ code: "BAD_REQUEST", message: "Message deleted" });
+            throw new ConvexError({
+                code: "BAD_REQUEST",
+                message: "Message deleted",
+            });
 
         const { user } = await requireTripMember(ctx, msg.tripId);
 
@@ -297,7 +306,10 @@ export const removeReaction = mutation({
             .unique();
 
         if (!existing)
-            throw new ConvexError({ code: "NOT_FOUND", message: "Reaction not found" });
+            throw new ConvexError({
+                code: "NOT_FOUND",
+                message: "Reaction not found",
+            });
         await ctx.db.delete(existing._id);
     },
 });
@@ -334,7 +346,10 @@ export const pin = mutation({
     handler: async (ctx, { messageId }) => {
         const msg = await getOrThrow(ctx, messageId, "Message");
         if (msg.deletedAt)
-            throw new ConvexError({ code: "BAD_REQUEST", message: "Message deleted" });
+            throw new ConvexError({
+                code: "BAD_REQUEST",
+                message: "Message deleted",
+            });
 
         const { user, member } = await requireTripMember(ctx, msg.tripId);
         if (member.role !== "owner")

@@ -36,7 +36,7 @@ export function DashboardQuickActions() {
                         className="h-auto flex-col gap-1.5 rounded-xl p-3"
                     >
                         <Icon className="size-5 text-muted-foreground" />
-                        <span className="text-[11px] text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                             {label}
                         </span>
                     </Button>

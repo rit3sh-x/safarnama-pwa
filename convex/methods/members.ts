@@ -129,9 +129,15 @@ export const remove = mutation({
 
         const target = await findMember(ctx, targetUserId, trip.orgId);
         if (!target)
-            throw new ConvexError({ code: "NOT_FOUND", message: "Member not found" });
+            throw new ConvexError({
+                code: "NOT_FOUND",
+                message: "Member not found",
+            });
         if (target.role === "owner")
-            throw new ConvexError({ code: "FORBIDDEN", message: "Cannot remove an owner" });
+            throw new ConvexError({
+                code: "FORBIDDEN",
+                message: "Cannot remove an owner",
+            });
 
         await removeMemberFromTrip(ctx, target._id, tripId, targetUserId);
 
@@ -207,7 +213,10 @@ export const changeRole = mutation({
 
         const target = await findMember(ctx, targetUserId, trip.orgId);
         if (!target)
-            throw new ConvexError({ code: "NOT_FOUND", message: "Member not found" });
+            throw new ConvexError({
+                code: "NOT_FOUND",
+                message: "Member not found",
+            });
 
         await ctx.runMutation(components.betterAuth.adapter.updateOne, {
             input: {

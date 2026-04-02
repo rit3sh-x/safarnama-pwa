@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { AlertCircleIcon, SendHorizontalIcon } from "lucide-react";
 import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
 import { stringToHex } from "@/lib/utils";
-import { checkProfanity } from "@/modules/blog/lib/profanity";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ProfanityTextarea } from "./profanity-textarea";
 
 interface CommentInputProps {
     onSubmit: (content: string) => void | Promise<void>;
@@ -49,9 +50,11 @@ export function CommentInput({
         if (!trimmed) return;
         setClientError(null);
 
-        const check = checkProfanity(trimmed);
+        const { checkProfanity } = await import("@/modules/blog/lib/profanity");
+        const check = await checkProfanity(trimmed);
         if (check.hasProfanity) {
-            setClientError("Comment contains inappropriate language");
+            const words = check.detectedWords.join(", ");
+            setClientError(`Remove flagged words: ${words}`);
             return;
         }
 
@@ -94,7 +97,7 @@ export function CommentInput({
             </Avatar>
 
             <div className="flex-1">
-                <textarea
+                <ProfanityTextarea
                     ref={textareaRef}
                     aria-label={placeholder}
                     value={value}
