@@ -28,7 +28,7 @@ export function DayDetailPanel({
         : null;
 
     return (
-        <div className="absolute bottom-5 left-1/2 z-50 w-[min(700px,calc(100vw-32px))] -translate-x-1/2">
+        <div className="absolute bottom-5 left-1/2 z-50 w-[min(700px,calc(100%-32px))] -translate-x-1/2">
             <Card className="overflow-hidden shadow-lg">
                 <CardContent className="flex max-h-[50vh] flex-col p-0">
                     <div className="flex items-center gap-3 border-b p-4">

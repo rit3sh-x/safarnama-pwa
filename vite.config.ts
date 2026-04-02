@@ -123,59 +123,41 @@ export default defineConfig({
                     },
                 ],
 
-                screenshots: [
-                    {
-                        src: "/screenshots/mobile-chat.png",
-                        sizes: "390x844",
-                        type: "image/png",
-                    },
-                    {
-                        src: "/screenshots/mobile-home.png",
-                        sizes: "390x844",
-                        type: "image/png",
-                    },
-                    {
-                        src: "/screenshots/desktop-chat.png",
-                        sizes: "1280x800",
-                        type: "image/png",
-                    },
-                ],
-
                 shortcuts: [
                     {
-                        name: "New Chat",
-                        short_name: "New",
-                        description: "Start a new conversation",
-                        url: "/new",
+                        name: "Trips",
+                        short_name: "Trips",
+                        description: "View your trips",
+                        url: "/trips",
                         icons: [
                             {
-                                src: "/icons/shortcut-new.png",
+                                src: "/icons/shortcut-trips.png",
                                 sizes: "96x96",
                                 type: "image/png",
                             },
                         ],
                     },
                     {
-                        name: "Search",
-                        short_name: "Search",
-                        description: "Search messages",
-                        url: "/search",
+                        name: "Dashboard",
+                        short_name: "Dashboard",
+                        description: "View your dashboard",
+                        url: "/dashboard",
                         icons: [
                             {
-                                src: "/icons/shortcut-search.png",
+                                src: "/icons/shortcut-dashboard.png",
                                 sizes: "96x96",
                                 type: "image/png",
                             },
                         ],
                     },
                     {
-                        name: "Contacts",
-                        short_name: "Contacts",
-                        description: "View your contacts",
-                        url: "/contacts",
+                        name: "Blogs",
+                        short_name: "Blogs",
+                        description: "View your blogs",
+                        url: "/blogs",
                         icons: [
                             {
-                                src: "/icons/shortcut-contacts.png",
+                                src: "/icons/shortcut-blogs.png",
                                 sizes: "96x96",
                                 type: "image/png",
                             },
@@ -347,6 +329,98 @@ export default defineConfig({
                             expiration: {
                                 maxEntries: 30,
                                 maxAgeSeconds: ONE_YEAR,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern: /^https:\/\/cdnjs\.cloudflare\.com\/.*/i,
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "cdn-libs",
+                            expiration: {
+                                maxEntries: 30,
+                                maxAgeSeconds: ONE_YEAR,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern: /^https:\/\/images\.unsplash\.com\/.*/i,
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "unsplash-images",
+                            expiration: {
+                                maxEntries: 50,
+                                maxAgeSeconds: ONE_MONTH,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern:
+                            /^https:\/\/nominatim\.openstreetmap\.org\/.*/i,
+                        handler: "NetworkFirst",
+                        options: {
+                            cacheName: "geocoding-cache",
+                            networkTimeoutSeconds: 5,
+                            expiration: {
+                                maxEntries: 200,
+                                maxAgeSeconds: ONE_DAY,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern:
+                            /^https:\/\/(en\.wikipedia|commons\.wikimedia)\.org\/w\/api\.php.*/i,
+                        handler: "NetworkFirst",
+                        options: {
+                            cacheName: "wiki-cache",
+                            networkTimeoutSeconds: 5,
+                            expiration: {
+                                maxEntries: 200,
+                                maxAgeSeconds: ONE_DAY,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern: /^https:\/\/api\.open-meteo\.com\/.*/i,
+                        handler: "NetworkFirst",
+                        options: {
+                            cacheName: "weather-forecast-cache",
+                            networkTimeoutSeconds: 5,
+                            expiration: {
+                                maxEntries: 100,
+                                maxAgeSeconds: ONE_DAY,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern:
+                            /^https:\/\/archive-api\.open-meteo\.com\/.*/i,
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "weather-history-cache",
+                            expiration: {
+                                maxEntries: 100,
+                                maxAgeSeconds: ONE_MONTH,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
+                        urlPattern:
+                            /^https:\/\/api\.exchangerate-api\.com\/.*/i,
+                        handler: "NetworkFirst",
+                        options: {
+                            cacheName: "exchange-rate-cache",
+                            networkTimeoutSeconds: 5,
+                            expiration: {
+                                maxEntries: 30,
+                                maxAgeSeconds: ONE_DAY,
                             },
                             cacheableResponse: { statuses: [0, 200] },
                         },

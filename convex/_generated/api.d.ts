@@ -24,7 +24,6 @@ import type * as methods_comments from "../methods/comments.js";
 import type * as methods_days from "../methods/days.js";
 import type * as methods_expenses from "../methods/expenses.js";
 import type * as methods_file from "../methods/file.js";
-import type * as methods_mediation from "../methods/mediation.js";
 import type * as methods_members from "../methods/members.js";
 import type * as methods_messages from "../methods/messages.js";
 import type * as methods_nodes from "../methods/nodes.js";
@@ -59,7 +58,6 @@ declare const fullApi: ApiFromModules<{
   "methods/days": typeof methods_days;
   "methods/expenses": typeof methods_expenses;
   "methods/file": typeof methods_file;
-  "methods/mediation": typeof methods_mediation;
   "methods/members": typeof methods_members;
   "methods/messages": typeof methods_messages;
   "methods/nodes": typeof methods_nodes;
