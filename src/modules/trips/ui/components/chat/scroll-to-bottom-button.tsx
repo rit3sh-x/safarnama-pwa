@@ -1,31 +1,15 @@
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 
 interface ScrollToBottomButtonProps {
-    scrollRef: React.RefObject<HTMLDivElement | null>;
+    visible: boolean;
     onClick: () => void;
 }
 
 export function ScrollToBottomButton({
-    scrollRef,
+    visible,
     onClick,
 }: ScrollToBottomButtonProps) {
-    const [visible, setVisible] = useState(false);
-
-    useEffect(() => {
-        const el = scrollRef.current;
-        if (!el) return;
-
-        const check = () => {
-            const threshold = 200;
-            setVisible(Math.abs(el.scrollTop) > threshold);
-        };
-
-        el.addEventListener("scroll", check, { passive: true });
-        return () => el.removeEventListener("scroll", check);
-    }, [scrollRef]);
-
     if (!visible) return null;
 
     return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react";
 import { cn, stringToHex } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -56,17 +56,17 @@ interface MessageBubbleProps {
     isAdmin: boolean;
     replyMessage?: ChatMessage | null;
     searchQuery?: string;
-    onReply: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-    onPin: () => void;
-    onReaction: (emoji: string) => void;
+    onReply: (messageId: string) => void;
+    onEdit: (messageId: string) => void;
+    onDelete: (messageId: string) => void;
+    onPin: (messageId: string) => void;
+    onReaction: (messageId: string, emoji: string) => void;
     onImageClick: (url: string) => void;
     onVotePoll?: (pollId: Id<"poll">, optionIndex: number) => void;
     onClosePoll?: (pollId: Id<"poll">) => void;
 }
 
-export function MessageBubble({
+function MessageBubbleInner({
     message,
     isOwn,
     isGrouped,
@@ -285,6 +285,7 @@ export function MessageBubble({
                                 currentUserId={currentUserId}
                                 onReaction={onReaction}
                                 isOwn={isOwn}
+                                messageId={message._id}
                             />
                         )}
                     </div>
@@ -321,7 +322,10 @@ function SystemMessage({ message }: { message: ChatMessage }) {
     const Icon = config?.icon;
 
     return (
-        <div className="my-2 flex justify-center px-4">
+        <div
+            id={`msg-${message._id}`}
+            className="my-2 flex justify-center px-4"
+        >
             <div className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1">
                 {Icon && <Icon className={cn("size-3", config.color)} />}
                 <span className="text-xs text-muted-foreground">
@@ -378,11 +382,13 @@ function ReactionRow({
     currentUserId,
     onReaction,
     isOwn,
+    messageId,
 }: {
     reactions: Reaction[];
     currentUserId: string;
-    onReaction: (emoji: string) => void;
+    onReaction: (messageId: string, emoji: string) => void;
     isOwn: boolean;
+    messageId: string;
 }) {
     return (
         <div
@@ -398,7 +404,7 @@ function ReactionRow({
                         key={r.emoji}
                         type="button"
                         variant="ghost"
-                        onClick={() => onReaction(r.emoji)}
+                        onClick={() => onReaction(messageId, r.emoji)}
                         className={cn(
                             "h-auto items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-xs transition-colors",
                             hasReacted
@@ -434,11 +440,11 @@ function HoverActionBar({
     isOwn: boolean;
     isAdmin: boolean;
     currentUserId: string;
-    onReply: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-    onPin: () => void;
-    onReaction: (emoji: string) => void;
+    onReply: (messageId: string) => void;
+    onEdit: (messageId: string) => void;
+    onDelete: (messageId: string) => void;
+    onPin: (messageId: string) => void;
+    onReaction: (messageId: string, emoji: string) => void;
 }) {
     const [reactionPopoverOpen, setReactionPopoverOpen] = useState(false);
     const [showFullReactionPicker, setShowFullReactionPicker] = useState(false);
@@ -482,7 +488,7 @@ function HoverActionBar({
                         {showFullReactionPicker ? (
                             <EmojiPickerReact
                                 onEmojiClick={(emojiData) => {
-                                    onReaction(emojiData.emoji);
+                                    onReaction(message._id, emojiData.emoji);
                                     setReactionPopoverOpen(false);
                                     setShowFullReactionPicker(false);
                                 }}
@@ -496,7 +502,7 @@ function HoverActionBar({
                         ) : (
                             <QuickReactionPicker
                                 onSelect={(emoji) => {
-                                    onReaction(emoji);
+                                    onReaction(message._id, emoji);
                                     setReactionPopoverOpen(false);
                                 }}
                                 onOpenFull={() =>
@@ -513,7 +519,7 @@ function HoverActionBar({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={onReply}
+                    onClick={() => onReply(message._id)}
                     className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground"
                 >
                     <ReplyIcon className="size-3.5" />
@@ -533,7 +539,7 @@ function HoverActionBar({
                         <ChevronDownIcon className="size-3.5" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" sideOffset={4}>
-                        <DropdownMenuItem onClick={onReply}>
+                        <DropdownMenuItem onClick={() => onReply(message._id)}>
                             <ReplyIcon className="size-4" />
                             Reply
                         </DropdownMenuItem>
@@ -546,13 +552,17 @@ function HoverActionBar({
                             Copy
                         </DropdownMenuItem>
                         {isOwn && (
-                            <DropdownMenuItem onClick={onEdit}>
+                            <DropdownMenuItem
+                                onClick={() => onEdit(message._id)}
+                            >
                                 <PencilIcon className="size-4" />
                                 Edit
                             </DropdownMenuItem>
                         )}
                         {isAdmin && (
-                            <DropdownMenuItem onClick={onPin}>
+                            <DropdownMenuItem
+                                onClick={() => onPin(message._id)}
+                            >
                                 {message.isPinned ? (
                                     <PinOffIcon className="size-4" />
                                 ) : (
@@ -566,7 +576,7 @@ function HoverActionBar({
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     variant="destructive"
-                                    onClick={onDelete}
+                                    onClick={() => onDelete(message._id)}
                                 >
                                     <Trash2Icon className="size-4" />
                                     Delete
@@ -595,11 +605,11 @@ function MessageContextMenuContent({
     isOwn: boolean;
     isAdmin: boolean;
     currentUserId: string;
-    onReply: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-    onPin: () => void;
-    onReaction: (emoji: string) => void;
+    onReply: (messageId: string) => void;
+    onEdit: (messageId: string) => void;
+    onDelete: (messageId: string) => void;
+    onPin: (messageId: string) => void;
+    onReaction: (messageId: string, emoji: string) => void;
 }) {
     const [showFullReactionPicker, setShowFullReactionPicker] = useState(false);
     const isDark = document.documentElement.classList.contains("dark");
@@ -614,7 +624,7 @@ function MessageContextMenuContent({
                 {showFullReactionPicker ? (
                     <EmojiPickerReact
                         onEmojiClick={(emojiData) => {
-                            onReaction(emojiData.emoji);
+                            onReaction(message._id, emojiData.emoji);
                             setShowFullReactionPicker(false);
                         }}
                         theme={isDark ? Theme.DARK : Theme.LIGHT}
@@ -626,7 +636,7 @@ function MessageContextMenuContent({
                     />
                 ) : (
                     <QuickReactionPicker
-                        onSelect={onReaction}
+                        onSelect={(emoji) => onReaction(message._id, emoji)}
                         onOpenFull={() => setShowFullReactionPicker(true)}
                         currentUserId={currentUserId}
                         existingReactions={message.reactions}
@@ -636,7 +646,7 @@ function MessageContextMenuContent({
 
             <ContextMenuSeparator />
 
-            <ContextMenuItem onClick={onReply}>
+            <ContextMenuItem onClick={() => onReply(message._id)}>
                 <ReplyIcon className="size-4" />
                 Reply
             </ContextMenuItem>
@@ -649,13 +659,13 @@ function MessageContextMenuContent({
                 Copy
             </ContextMenuItem>
             {isOwn && (
-                <ContextMenuItem onClick={onEdit}>
+                <ContextMenuItem onClick={() => onEdit(message._id)}>
                     <PencilIcon className="size-4" />
                     Edit
                 </ContextMenuItem>
             )}
             {isAdmin && (
-                <ContextMenuItem onClick={onPin}>
+                <ContextMenuItem onClick={() => onPin(message._id)}>
                     {message.isPinned ? (
                         <PinOffIcon className="size-4" />
                     ) : (
@@ -667,7 +677,10 @@ function MessageContextMenuContent({
             {(isOwn || isAdmin) && (
                 <>
                     <ContextMenuSeparator />
-                    <ContextMenuItem variant="destructive" onClick={onDelete}>
+                    <ContextMenuItem
+                        variant="destructive"
+                        onClick={() => onDelete(message._id)}
+                    >
                         <Trash2Icon className="size-4" />
                         Delete
                     </ContextMenuItem>
@@ -676,3 +689,5 @@ function MessageContextMenuContent({
         </ContextMenuContent>
     );
 }
+
+export const MessageBubble = memo(MessageBubbleInner);

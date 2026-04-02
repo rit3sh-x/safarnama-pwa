@@ -1,27 +1,30 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { MessageSquare } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { InfiniteScrollTrigger } from "@/components/infinite-scroll-trigger";
+import { cn } from "@/lib/utils";
 import { MessageBubble } from "./message-bubble";
 import { ScrollToBottomButton } from "./scroll-to-bottom-button";
 import type { ChatMessage } from "./types";
 import { isSameGroup, formatDateSeparator } from "./utils";
 import type { Id } from "@backend/dataModel";
 
+const START_INDEX = 100_000;
+
 interface ChatMessageListProps {
     messages: ChatMessage[];
+    messageMap: Map<string, ChatMessage>;
     isLoading: boolean;
     canLoadMore: boolean;
     onLoadMore: () => void;
     currentUserId: string;
     isAdmin: boolean;
     searchQuery?: string;
-    onReply: (msg: ChatMessage) => void;
-    onEdit: (msg: ChatMessage) => void;
-    onDelete: (msg: ChatMessage) => void;
-    onPin: (messageId: Id<"message">) => void;
-    onReaction: (messageId: Id<"message">, emoji: string) => void;
+    onReply: (messageId: string) => void;
+    onEdit: (messageId: string) => void;
+    onDelete: (messageId: string) => void;
+    onPin: (messageId: string) => void;
+    onReaction: (messageId: string, emoji: string) => void;
     onImageClick: (url: string) => void;
     onVotePoll?: (pollId: Id<"poll">, optionIndex: number) => void;
     onClosePoll?: (pollId: Id<"poll">) => void;
@@ -29,6 +32,7 @@ interface ChatMessageListProps {
 
 export function ChatMessageList({
     messages,
+    messageMap,
     isLoading,
     canLoadMore,
     onLoadMore,
@@ -44,115 +48,140 @@ export function ChatMessageList({
     onVotePoll,
     onClosePoll,
 }: ChatMessageListProps) {
-    const scrollRef = useRef<HTMLDivElement>(null);
+    const virtuosoRef = useRef<VirtuosoHandle>(null);
+    const [atBottom, setAtBottom] = useState(true);
 
-    const messageMap = useMemo(() => {
-        const map = new Map<string, ChatMessage>();
-        for (const m of messages) map.set(m._id, m);
-        return map;
-    }, [messages]);
+    const firstItemIndex = useMemo(
+        () => START_INDEX - messages.length,
+        [messages.length]
+    );
 
-    const groupedMessages = useMemo(() => {
-        const groups: Array<{ date: string; messages: ChatMessage[] }> = [];
-        let currentDate = "";
+    const scrollToBottom = useCallback(() => {
+        virtuosoRef.current?.scrollToIndex({
+            index: messages.length - 1,
+            align: "end",
+            behavior: "smooth",
+        });
+    }, [messages.length]);
 
-        for (const msg of messages) {
-            const dateStr = formatDateSeparator(msg.createdAt);
-            if (dateStr !== currentDate) {
-                currentDate = dateStr;
-                groups.push({ date: dateStr, messages: [msg] });
-            } else {
-                groups[groups.length - 1].messages.push(msg);
-            }
+    const handleStartReached = useCallback(() => {
+        if (canLoadMore && !isLoading) {
+            onLoadMore();
         }
+    }, [canLoadMore, isLoading, onLoadMore]);
 
-        return groups;
-    }, [messages]);
+    const itemContent = useCallback(
+        (virtuosoIndex: number) => {
+            const dataIndex = virtuosoIndex - firstItemIndex;
+            const msg = messages[dataIndex];
+            if (!msg) return null;
 
-    const scrollToBottom = useCallback((smooth = true) => {
-        const el = scrollRef.current;
-        if (!el) return;
-        el.scrollTo({ top: 0, behavior: smooth ? "smooth" : "instant" });
-    }, []);
+            const prev = dataIndex > 0 ? messages[dataIndex - 1] : undefined;
+            const isGrouped = !!prev && isSameGroup(prev, msg);
+            const isOwn = msg.senderId === currentUserId;
+            const showAvatar = !isGrouped;
+            const replyMsg = msg.replyToId
+                ? (messageMap.get(msg.replyToId) ?? null)
+                : null;
+
+            const prevDateStr = prev ? formatDateSeparator(prev.createdAt) : "";
+            const curDateStr = formatDateSeparator(msg.createdAt);
+            const showDateSeparator = !prev || prevDateStr !== curDateStr;
+
+            return (
+                <div>
+                    {showDateSeparator && (
+                        <div className="my-4 flex justify-center">
+                            <span className="rounded-lg bg-muted/80 px-3 py-1 text-xs font-semibold text-muted-foreground shadow-sm">
+                                {curDateStr}
+                            </span>
+                        </div>
+                    )}
+                    <MessageBubble
+                        message={msg}
+                        isOwn={isOwn}
+                        isGrouped={isGrouped}
+                        showAvatar={showAvatar}
+                        currentUserId={currentUserId}
+                        isAdmin={isAdmin}
+                        replyMessage={replyMsg}
+                        searchQuery={searchQuery}
+                        onReply={onReply}
+                        onEdit={onEdit}
+                        onDelete={onDelete}
+                        onPin={onPin}
+                        onReaction={onReaction}
+                        onImageClick={onImageClick}
+                        onVotePoll={onVotePoll}
+                        onClosePoll={onClosePoll}
+                    />
+                </div>
+            );
+        },
+        [
+            firstItemIndex,
+            messages,
+            messageMap,
+            currentUserId,
+            isAdmin,
+            searchQuery,
+            onReply,
+            onEdit,
+            onDelete,
+            onPin,
+            onReaction,
+            onImageClick,
+            onVotePoll,
+            onClosePoll,
+        ]
+    );
+
+    if (isLoading && messages.length === 0) {
+        return <MessageListSkeleton />;
+    }
+
+    if (!isLoading && messages.length === 0) {
+        return <EmptyChat />;
+    }
 
     return (
-        <>
-            <div
-                ref={scrollRef}
-                className="flex min-h-0 flex-1 flex-col-reverse overflow-y-auto"
-            >
-                <div>
-                    {canLoadMore && (
-                        <InfiniteScrollTrigger
-                            canLoadMore={canLoadMore}
-                            isLoadingMore={isLoading}
-                            onLoadMore={onLoadMore}
-                            loadMoreText="Load earlier messages"
-                        />
-                    )}
-
-                    {isLoading && messages.length === 0 && (
-                        <MessageListSkeleton />
-                    )}
-
-                    {!isLoading && messages.length === 0 && <EmptyChat />}
-
-                    <div className="pb-4">
-                        {groupedMessages.map((group) => (
-                            <div key={group.date}>
-                                <div className="my-4 flex justify-center">
-                                    <span className="rounded-lg bg-muted/80 px-3 py-1 text-xs font-semibold text-muted-foreground shadow-sm">
-                                        {group.date}
-                                    </span>
-                                </div>
-
-                                {group.messages.map((msg, i) => {
-                                    const prev = group.messages[i - 1];
-                                    const isGrouped =
-                                        !!prev && isSameGroup(prev, msg);
-                                    const isOwn =
-                                        msg.senderId === currentUserId;
-                                    const showAvatar = !isGrouped;
-                                    const replyMsg = msg.replyToId
-                                        ? (messageMap.get(msg.replyToId) ??
-                                          null)
-                                        : null;
-
-                                    return (
-                                        <MessageBubble
-                                            key={msg._id}
-                                            message={msg}
-                                            isOwn={isOwn}
-                                            isGrouped={isGrouped}
-                                            showAvatar={showAvatar}
-                                            currentUserId={currentUserId}
-                                            isAdmin={isAdmin}
-                                            replyMessage={replyMsg}
-                                            searchQuery={searchQuery}
-                                            onReply={() => onReply(msg)}
-                                            onEdit={() => onEdit(msg)}
-                                            onDelete={() => onDelete(msg)}
-                                            onPin={() => onPin(msg._id)}
-                                            onReaction={(emoji) =>
-                                                onReaction(msg._id, emoji)
-                                            }
-                                            onImageClick={onImageClick}
-                                            onVotePoll={onVotePoll}
-                                            onClosePoll={onClosePoll}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+        <div className="relative min-h-0 flex-1">
+            <Virtuoso
+                ref={virtuosoRef}
+                totalCount={messages.length}
+                firstItemIndex={firstItemIndex}
+                initialTopMostItemIndex={messages.length - 1}
+                itemContent={itemContent}
+                computeItemKey={(virtuosoIndex) => {
+                    const dataIndex = virtuosoIndex - firstItemIndex;
+                    return messages[dataIndex]?._id ?? String(virtuosoIndex);
+                }}
+                startReached={handleStartReached}
+                followOutput="smooth"
+                atBottomStateChange={setAtBottom}
+                atBottomThreshold={100}
+                className="h-full"
+                increaseViewportBy={{ top: 200, bottom: 200 }}
+                components={{
+                    Header: canLoadMore
+                        ? () => (
+                              <div className="flex justify-center py-2">
+                                  {isLoading && (
+                                      <span className="text-xs text-muted-foreground">
+                                          Loading earlier messages...
+                                      </span>
+                                  )}
+                              </div>
+                          )
+                        : undefined,
+                }}
+            />
 
             <ScrollToBottomButton
-                scrollRef={scrollRef}
-                onClick={() => scrollToBottom(true)}
+                visible={!atBottom}
+                onClick={scrollToBottom}
             />
-        </>
+        </div>
     );
 }
 

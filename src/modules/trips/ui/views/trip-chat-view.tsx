@@ -89,7 +89,7 @@ export function TripChatView({
     }, []);
 
     const chatMessages: ChatMessage[] = useMemo(
-        () => [...messages].reverse().map((m) => toChatMessage(m)),
+        () => messages.map((m) => toChatMessage(m)).reverse(),
         [messages]
     );
 
@@ -148,32 +148,59 @@ export function TripChatView({
     );
 
     const handleReaction = useCallback(
-        (messageId: Id<"message">, emoji: string) => {
+        (messageId: string, emoji: string) => {
             const msg = messageMap.get(messageId);
             if (!msg) return;
             const existing = msg.reactions.find(
                 (r) => r.emoji === emoji && r.userIds.includes(currentUserId)
             );
             if (existing) {
-                removeReaction({ messageId, emoji });
+                removeReaction({
+                    messageId: messageId as Id<"message">,
+                    emoji,
+                });
             } else {
-                addReaction({ messageId, emoji });
+                addReaction({ messageId: messageId as Id<"message">, emoji });
             }
         },
         [messageMap, addReaction, removeReaction, currentUserId]
     );
 
     const handlePin = useCallback(
-        (messageId: Id<"message">) => {
+        (messageId: string) => {
             const msg = messageMap.get(messageId);
             if (!msg) return;
             if (msg.isPinned) {
-                unpinMessage({ messageId });
+                unpinMessage({ messageId: messageId as Id<"message"> });
             } else {
-                pinMessage({ messageId });
+                pinMessage({ messageId: messageId as Id<"message"> });
             }
         },
         [messageMap, pinMessage, unpinMessage]
+    );
+
+    const handleReply = useCallback(
+        (messageId: string) => {
+            const msg = messageMap.get(messageId);
+            if (msg) setReplyTo(msg);
+        },
+        [messageMap]
+    );
+
+    const handleEdit = useCallback(
+        (messageId: string) => {
+            const msg = messageMap.get(messageId);
+            if (msg) setEditingMessage(msg);
+        },
+        [messageMap]
+    );
+
+    const handleDelete = useCallback(
+        (messageId: string) => {
+            const msg = messageMap.get(messageId);
+            if (msg) setDeleteTarget(msg);
+        },
+        [messageMap]
     );
 
     const handleCreatePoll = useCallback(
@@ -253,15 +280,16 @@ export function TripChatView({
 
             <ChatMessageList
                 messages={chatMessages}
+                messageMap={messageMap}
                 isLoading={isLoading}
                 canLoadMore={canLoadMore}
                 onLoadMore={loadMore}
                 currentUserId={currentUserId}
                 isAdmin={isAdmin}
                 searchQuery={showSearch ? searchQuery : undefined}
-                onReply={setReplyTo}
-                onEdit={setEditingMessage}
-                onDelete={setDeleteTarget}
+                onReply={handleReply}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
                 onPin={handlePin}
                 onReaction={handleReaction}
                 onImageClick={setLightboxSrc}
