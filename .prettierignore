@@ -1,11 +1,17 @@
+# Dependencies
 node_modules/
-coverage/
 .pnpm-store/
+
+# Lock files
 pnpm-lock.yaml
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
+
+# Generated / cached
 .tanstack
 **generated**
 src/routeTree.gen.ts
 env.d.ts
+
+# Test output
+coverage/

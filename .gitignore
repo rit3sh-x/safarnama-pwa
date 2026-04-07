@@ -1,3 +1,18 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+dev-dist
+
+# Environment files
+.env
+.env*.local
+.env*.prod
+.env*.staging
+.env*.dev
+
 # Logs
 logs
 *.log
@@ -7,29 +22,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.env*.local
-.env*.prod
-.env*.staging
-.env*.dev
-.env
-
 # Editor directories and files
 .vscode
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
+# OS files
+.DS_Store
+
+# Generated / cached
 .tanstack
-dev-dist
-coverage
-.claude
 cache/
+coverage
 env.d.ts
+
+# Tools
+.claude
