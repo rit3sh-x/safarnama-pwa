@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { LogOutIcon } from "lucide-react";
+import { LogOutIcon, MapIcon, SatelliteIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { signOut } from "../../hooks/use-settings-handlers";
 import { useSettings } from "../../hooks/use-settings";
 import { Separator } from "@/components/ui/separator";
@@ -41,6 +42,8 @@ export function SettingsView() {
         setShowPlaceDescription,
         defaultZoom,
         setDefaultZoom,
+        mapStyle,
+        setMapStyle,
     } = useSettings();
 
     return (
@@ -144,6 +147,44 @@ export function SettingsView() {
                             }
                             className="transition-colors"
                         />
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label>Map style</Label>
+                        <div className="flex gap-1 rounded-xl bg-muted p-1">
+                            {(
+                                [
+                                    {
+                                        value: "standard",
+                                        label: "Standard",
+                                        icon: MapIcon,
+                                    },
+                                    {
+                                        value: "satellite",
+                                        label: "Satellite",
+                                        icon: SatelliteIcon,
+                                    },
+                                ] as const
+                            ).map(({ value, label, icon: Icon }) => {
+                                const isActive = mapStyle === value;
+                                return (
+                                    <Button
+                                        key={value}
+                                        variant={isActive ? "default" : "ghost"}
+                                        size="sm"
+                                        className={cn(
+                                            "flex-1 gap-1.5 transition-colors",
+                                            !isActive &&
+                                                "text-muted-foreground hover:text-foreground"
+                                        )}
+                                        onClick={() => setMapStyle(value)}
+                                    >
+                                        <Icon className="size-4" />
+                                        {label}
+                                    </Button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
 

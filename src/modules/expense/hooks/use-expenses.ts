@@ -14,7 +14,7 @@ function updateExpenseInStore(
     expenseId: Id<"expense">,
     updater: (exp: Record<string, unknown>) => Record<string, unknown> | null
 ) {
-    const allPages = localStore.getAllQueries(api.methods.expenses.list);
+    const allPages = localStore.getAllQueries(api.methods.expense.queries.list);
     for (const { args: queryArgs, value } of allPages) {
         if (!queryArgs || !value) continue;
         const page = value.page as Record<string, unknown>[];
@@ -27,7 +27,7 @@ function updateExpenseInStore(
         } else {
             updated[idx] = result;
         }
-        localStore.setQuery(api.methods.expenses.list, queryArgs, {
+        localStore.setQuery(api.methods.expense.queries.list, queryArgs, {
             ...value,
             page: updated,
         } as typeof value);
@@ -36,7 +36,7 @@ function updateExpenseInStore(
 }
 
 export function useExpenses(tripId: Id<"trip"> | undefined) {
-    const listQuery = api.methods.expenses.list as unknown as Parameters<
+    const listQuery = api.methods.expense.queries.list as unknown as Parameters<
         typeof usePaginatedQuery
     >[0];
     const { results, status, loadMore } = usePaginatedQuery(
@@ -55,7 +55,7 @@ export function useExpenses(tripId: Id<"trip"> | undefined) {
 
 export function useBalances(tripId: Id<"trip"> | undefined) {
     const data = useQuery(
-        api.methods.expenses.balances,
+        api.methods.expense.queries.balances,
         tripId ? { tripId } : "skip"
     );
 
@@ -67,7 +67,7 @@ export function useBalances(tripId: Id<"trip"> | undefined) {
 
 export function useSettlements(tripId: Id<"trip"> | undefined) {
     const data = useQuery(
-        api.methods.expenses.listSettlements,
+        api.methods.expense.queries.listSettlements,
         tripId ? { tripId } : "skip"
     );
 
@@ -80,9 +80,11 @@ export function useSettlements(tripId: Id<"trip"> | undefined) {
 export const useCreateExpense = () => {
     const [isPending, setIsPending] = useState(false);
     const createExpense = useMutation(
-        api.methods.expenses.create
+        api.methods.expense.mutations.create
     ).withOptimisticUpdate((localStore, args) => {
-        const allPages = localStore.getAllQueries(api.methods.expenses.list);
+        const allPages = localStore.getAllQueries(
+            api.methods.expense.queries.list
+        );
         for (const { args: queryArgs, value } of allPages) {
             if (!queryArgs || !value || queryArgs.tripId !== args.tripId)
                 continue;
@@ -102,7 +104,7 @@ export const useCreateExpense = () => {
                 _optimistic: true,
             };
 
-            localStore.setQuery(api.methods.expenses.list, queryArgs, {
+            localStore.setQuery(api.methods.expense.queries.list, queryArgs, {
                 ...value,
                 page: [optimisticExpense, ...value.page],
             });
@@ -111,7 +113,7 @@ export const useCreateExpense = () => {
     });
 
     const mutate = async (
-        args: FunctionArgs<typeof api.methods.expenses.create>
+        args: FunctionArgs<typeof api.methods.expense.mutations.create>
     ) => {
         setIsPending(true);
         try {
@@ -131,7 +133,7 @@ export const useCreateExpense = () => {
 export const useUpdateExpense = () => {
     const [isPending, setIsPending] = useState(false);
     const updateExpense = useMutation(
-        api.methods.expenses.update
+        api.methods.expense.mutations.update
     ).withOptimisticUpdate((localStore, args) => {
         updateExpenseInStore(localStore, args.expenseId, (exp) => ({
             ...exp,
@@ -147,7 +149,7 @@ export const useUpdateExpense = () => {
     });
 
     const mutate = async (
-        args: FunctionArgs<typeof api.methods.expenses.update>
+        args: FunctionArgs<typeof api.methods.expense.mutations.update>
     ) => {
         setIsPending(true);
         try {
@@ -167,13 +169,13 @@ export const useUpdateExpense = () => {
 export const useRemoveExpense = () => {
     const [isPending, setIsPending] = useState(false);
     const removeExpense = useMutation(
-        api.methods.expenses.remove
+        api.methods.expense.mutations.remove
     ).withOptimisticUpdate((localStore, args) => {
         updateExpenseInStore(localStore, args.expenseId, () => null);
     });
 
     const mutate = async (
-        args: FunctionArgs<typeof api.methods.expenses.remove>
+        args: FunctionArgs<typeof api.methods.expense.mutations.remove>
     ) => {
         setIsPending(true);
         try {
@@ -190,39 +192,10 @@ export const useRemoveExpense = () => {
     return { mutate, isPending };
 };
 
-export const useSettleSplit = () => {
-    const [isPending, setIsPending] = useState(false);
-    const settleSplit = useMutation(
-        api.methods.expenses.settleSplit
-    ).withOptimisticUpdate((localStore, args) => {
-        updateExpenseInStore(localStore, args.expenseId, (exp) => ({
-            ...exp,
-            _optimisticSettled: args.targetUserId,
-        }));
-    });
-
-    const mutate = async (
-        args: FunctionArgs<typeof api.methods.expenses.settleSplit>
-    ) => {
-        setIsPending(true);
-        try {
-            await settleSplit(args);
-        } catch (err) {
-            toast.error(
-                err instanceof Error ? err.message : "Failed to settle split"
-            );
-        } finally {
-            setIsPending(false);
-        }
-    };
-
-    return { mutate, isPending };
-};
-
 export const useCreateSettlement = () => {
     const [isPending, setIsPending] = useState(false);
     const createSettlement = useMutation(
-        api.methods.expenses.createSettlement
+        api.methods.expense.mutations.createSettlement
     ).withOptimisticUpdate((localStore, args) => {
         const currentUser = localStore.getQuery(
             api.methods.users.currentUser,
@@ -230,30 +203,39 @@ export const useCreateSettlement = () => {
         );
         if (!currentUser) return;
 
-        let settleAmount = 0;
+        const currentUserId = currentUser._id;
         const allBalances = localStore.getAllQueries(
-            api.methods.expenses.balances
+            api.methods.expense.queries.balances
         );
         for (const { args: queryArgs, value } of allBalances) {
             if (!queryArgs || !value || queryArgs.tripId !== args.tripId)
                 continue;
             const balances = value as {
-                netBalance: Record<string, number>;
+                balances: unknown[];
+                pairwise: unknown[];
                 simplified: { from: string; to: string; amount: number }[];
             };
-            const debt = balances.simplified.find(
-                (s) => s.from === currentUser._id && s.to === args.toUserId
-            );
-            settleAmount = debt?.amount ?? 0;
+            const updatedSimplified = balances.simplified
+                .map((s) => {
+                    if (s.from === currentUserId && s.to === args.toUserId) {
+                        return { ...s, amount: s.amount - args.amount };
+                    }
+                    return s;
+                })
+                .filter(
+                    (s) =>
+                        !(
+                            s.from === currentUserId &&
+                            s.to === args.toUserId &&
+                            s.amount <= 0.01
+                        )
+                );
             const updated = {
                 ...balances,
-                simplified: balances.simplified.filter(
-                    (s) =>
-                        !(s.from === currentUser._id && s.to === args.toUserId)
-                ),
+                simplified: updatedSimplified,
             };
             localStore.setQuery(
-                api.methods.expenses.balances,
+                api.methods.expense.queries.balances,
                 queryArgs,
                 updated as typeof value
             );
@@ -261,7 +243,7 @@ export const useCreateSettlement = () => {
         }
 
         const allSettlements = localStore.getAllQueries(
-            api.methods.expenses.listSettlements
+            api.methods.expense.queries.listSettlements
         );
         for (const { args: queryArgs, value } of allSettlements) {
             if (!queryArgs || !value || queryArgs.tripId !== args.tripId)
@@ -271,15 +253,17 @@ export const useCreateSettlement = () => {
                 _id: nanoid(10) as Id<"settlement">,
                 _creationTime: Date.now(),
                 tripId: args.tripId,
-                fromUserId: currentUser._id,
+                fromUserId: currentUserId,
                 toUserId: args.toUserId,
-                amount: settleAmount,
+                amount: args.amount,
                 note: args.note,
+                expenseId: args.expenseId,
+                createdAt: Date.now(),
                 _optimistic: true,
             };
 
             localStore.setQuery(
-                api.methods.expenses.listSettlements,
+                api.methods.expense.queries.listSettlements,
                 queryArgs,
                 [optimisticSettlement, ...value] as typeof value
             );
@@ -288,7 +272,9 @@ export const useCreateSettlement = () => {
     });
 
     const mutate = async (
-        args: FunctionArgs<typeof api.methods.expenses.createSettlement>
+        args: FunctionArgs<
+            typeof api.methods.expense.mutations.createSettlement
+        >
     ) => {
         setIsPending(true);
         try {
@@ -308,7 +294,7 @@ export const useCreateSettlement = () => {
 };
 
 export function useGlobalExpenseSummary() {
-    const data = useQuery(api.methods.expenses.globalSummary, {});
+    const data = useQuery(api.methods.expense.queries.globalSummary, {});
 
     return {
         summary: data,

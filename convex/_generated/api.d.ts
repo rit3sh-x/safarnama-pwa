@@ -17,12 +17,16 @@ import type * as lib_members from "../lib/members.js";
 import type * as lib_notify from "../lib/notify.js";
 import type * as lib_profanity from "../lib/profanity.js";
 import type * as lib_prompt from "../lib/prompt.js";
+import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
 import type * as methods_blogs from "../methods/blogs.js";
 import type * as methods_comments from "../methods/comments.js";
 import type * as methods_days from "../methods/days.js";
-import type * as methods_expenses from "../methods/expenses.js";
+import type * as methods_expense_compute from "../methods/expense/compute.js";
+import type * as methods_expense_migrate from "../methods/expense/migrate.js";
+import type * as methods_expense_mutations from "../methods/expense/mutations.js";
+import type * as methods_expense_queries from "../methods/expense/queries.js";
 import type * as methods_file from "../methods/file.js";
 import type * as methods_members from "../methods/members.js";
 import type * as methods_messages from "../methods/messages.js";
@@ -33,6 +37,7 @@ import type * as methods_ratings from "../methods/ratings.js";
 import type * as methods_requests from "../methods/requests.js";
 import type * as methods_trips from "../methods/trips.js";
 import type * as methods_users from "../methods/users.js";
+import type * as rateLimiter from "../rateLimiter.js";
 import type * as types from "../types.js";
 
 import type {
@@ -51,12 +56,16 @@ declare const fullApi: ApiFromModules<{
   "lib/notify": typeof lib_notify;
   "lib/profanity": typeof lib_profanity;
   "lib/prompt": typeof lib_prompt;
+  "lib/rateLimit": typeof lib_rateLimit;
   "lib/types": typeof lib_types;
   "lib/utils": typeof lib_utils;
   "methods/blogs": typeof methods_blogs;
   "methods/comments": typeof methods_comments;
   "methods/days": typeof methods_days;
-  "methods/expenses": typeof methods_expenses;
+  "methods/expense/compute": typeof methods_expense_compute;
+  "methods/expense/migrate": typeof methods_expense_migrate;
+  "methods/expense/mutations": typeof methods_expense_mutations;
+  "methods/expense/queries": typeof methods_expense_queries;
   "methods/file": typeof methods_file;
   "methods/members": typeof methods_members;
   "methods/messages": typeof methods_messages;
@@ -67,6 +76,7 @@ declare const fullApi: ApiFromModules<{
   "methods/requests": typeof methods_requests;
   "methods/trips": typeof methods_trips;
   "methods/users": typeof methods_users;
+  rateLimiter: typeof rateLimiter;
   types: typeof types;
 }>;
 
@@ -1744,6 +1754,140 @@ export declare const components: {
           any
         >;
       };
+    };
+  };
+  rateLimiter: {
+    lib: {
+      checkRateLimit: FunctionReference<
+        "query",
+        "internal",
+        {
+          config:
+            | {
+                capacity?: number;
+                kind: "token bucket";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: null;
+              }
+            | {
+                capacity?: number;
+                kind: "fixed window";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: number;
+              };
+          count?: number;
+          key?: string;
+          name: string;
+          reserve?: boolean;
+          throws?: boolean;
+        },
+        { ok: true; retryAfter?: number } | { ok: false; retryAfter: number }
+      >;
+      clearAll: FunctionReference<
+        "mutation",
+        "internal",
+        { before?: number },
+        null
+      >;
+      getServerTime: FunctionReference<"mutation", "internal", {}, number>;
+      getValue: FunctionReference<
+        "query",
+        "internal",
+        {
+          config:
+            | {
+                capacity?: number;
+                kind: "token bucket";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: null;
+              }
+            | {
+                capacity?: number;
+                kind: "fixed window";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: number;
+              };
+          key?: string;
+          name: string;
+          sampleShards?: number;
+        },
+        {
+          config:
+            | {
+                capacity?: number;
+                kind: "token bucket";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: null;
+              }
+            | {
+                capacity?: number;
+                kind: "fixed window";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: number;
+              };
+          shard: number;
+          ts: number;
+          value: number;
+        }
+      >;
+      rateLimit: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          config:
+            | {
+                capacity?: number;
+                kind: "token bucket";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: null;
+              }
+            | {
+                capacity?: number;
+                kind: "fixed window";
+                maxReserved?: number;
+                period: number;
+                rate: number;
+                shards?: number;
+                start?: number;
+              };
+          count?: number;
+          key?: string;
+          name: string;
+          reserve?: boolean;
+          throws?: boolean;
+        },
+        { ok: true; retryAfter?: number } | { ok: false; retryAfter: number }
+      >;
+      resetRateLimit: FunctionReference<
+        "mutation",
+        "internal",
+        { key?: string; name: string },
+        null
+      >;
+    };
+    time: {
+      getServerTime: FunctionReference<"mutation", "internal", {}, number>;
     };
   };
 };

@@ -1,86 +1,73 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useMatches, useRouter } from "@tanstack/react-router";
 import { useAuthentication } from "./use-authentication";
 
-type AuthState = "onboarding" | "auth" | "username" | "home" | "unknown";
+type AuthState = "onboarding" | "auth" | "username" | "home";
 
-function useRouteGroup() {
-    const matches = useMatches();
+const AUTH_ROUTES: Record<AuthState, string> = {
+    onboarding: "/onboarding",
+    auth: "/signin",
+    username: "/sign-up/create-username",
+    home: "/dashboard",
+};
 
-    const inHome = matches.some((m) => m.routeId.includes("/(home)"));
-    const inAuth = matches.some((m) => m.routeId.includes("/(auth)"));
-    const inCustom = matches.some((m) => m.routeId.includes("/(custom)"));
-    const inOnboarding = matches.some((m) => m.routeId === "/onboarding");
-    const inTwoFactor = matches.some((m) =>
-        m.routeId.includes("/(auth)/two-factor")
-    );
+const ALLOWED_GROUPS: Record<AuthState, string[]> = {
+    onboarding: ["/onboarding"],
+    auth: ["/(auth)"],
+    username: ["/(auth)"],
+    home: ["/(home)", "/(custom)"],
+};
 
-    return { inHome, inAuth, inCustom, inOnboarding, inTwoFactor };
-}
-
-function getAuthState(flags: {
+function resolveAuthState(flags: {
     showOnboarding: boolean;
     showAuth: boolean;
     showUsername: boolean;
     showHome: boolean;
-}): AuthState {
+}): AuthState | null {
     if (flags.showOnboarding) return "onboarding";
     if (flags.showAuth) return "auth";
     if (flags.showUsername) return "username";
     if (flags.showHome) return "home";
-    return "unknown";
+    return null;
 }
 
 export function useAuthRedirect() {
     const { isLoading, showOnboarding, showAuth, showUsername, showHome } =
         useAuthentication();
     const router = useRouter();
-    const { inHome, inAuth, inCustom, inOnboarding, inTwoFactor } =
-        useRouteGroup();
-    const prevAuthStateRef = useRef<AuthState | null>(null);
+    const matches = useMatches();
 
     useEffect(() => {
         if (isLoading) return;
 
-        const authState = getAuthState({
+        const authState = resolveAuthState({
             showOnboarding,
             showAuth,
             showUsername,
             showHome,
         });
 
-        const isInCorrectGroup =
-            (authState === "onboarding" && inOnboarding) ||
-            (authState === "auth" && inAuth) ||
-            (authState === "username" && inAuth) ||
-            (authState === "home" && (inHome || inCustom));
+        if (!authState) return;
 
-        if (isInCorrectGroup && prevAuthStateRef.current === authState) return;
+        const isOnIndex =
+            matches.length > 0 && matches[matches.length - 1].routeId === "/";
+        if (isOnIndex) return;
 
-        if (inTwoFactor && showAuth) return;
+        const allowedPatterns = ALLOWED_GROUPS[authState];
+        const isInAllowedGroup = matches.some((m) =>
+            allowedPatterns.some((pattern) => m.routeId.includes(pattern))
+        );
 
-        prevAuthStateRef.current = authState;
+        if (isInAllowedGroup && authState !== "username") return;
 
-        if (showOnboarding && !inOnboarding) {
-            router.navigate({ to: "/onboarding", replace: true });
-        } else if (showAuth && !inAuth) {
-            router.navigate({ to: "/signin", replace: true });
-        } else if (showUsername) {
-            router.navigate({ to: "/sign-up/create-username", replace: true });
-        } else if (showHome && !inHome && !inCustom) {
-            router.navigate({ to: "/dashboard", replace: true });
-        }
+        router.navigate({ to: AUTH_ROUTES[authState], replace: true });
     }, [
         isLoading,
         showOnboarding,
         showAuth,
         showUsername,
         showHome,
-        inHome,
-        inAuth,
-        inCustom,
-        inOnboarding,
-        inTwoFactor,
+        matches,
         router,
     ]);
 

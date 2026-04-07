@@ -141,15 +141,13 @@ export default defineSchema({
         expenseId: v.id("expense"),
         tripId: v.id("trip"),
         userId: v.string(),
+        paidBy: v.string(),
         owedAmount: v.number(),
         percentage: v.optional(v.number()),
-        settled: v.boolean(),
-        settledAt: v.optional(v.number()),
     })
         .index("tripId", ["tripId"])
         .index("expenseId", ["expenseId"])
-        .index("tripId_userId", ["tripId", "userId"])
-        .index("userId_settled", ["userId", "settled"]),
+        .index("tripId_userId", ["tripId", "userId"]),
 
     reaction: defineTable({
         messageId: v.id("message"),
@@ -232,10 +230,38 @@ export default defineSchema({
         toUserId: v.string(),
         amount: v.number(),
         note: v.optional(v.string()),
+        expenseId: v.optional(v.id("expense")),
+        createdAt: v.number(),
     })
         .index("tripId", ["tripId"])
         .index("fromUserId", ["fromUserId"])
-        .index("toUserId", ["toUserId"]),
+        .index("toUserId", ["toUserId"])
+        .index("expenseId", ["expenseId"]),
+
+    tripBalance: defineTable({
+        tripId: v.id("trip"),
+        balances: v.array(
+            v.object({
+                userId: v.string(),
+                amount: v.number(),
+            })
+        ),
+        pairwise: v.array(
+            v.object({
+                from: v.string(),
+                to: v.string(),
+                amount: v.number(),
+            })
+        ),
+        simplified: v.array(
+            v.object({
+                from: v.string(),
+                to: v.string(),
+                amount: v.number(),
+            })
+        ),
+        computedAt: v.number(),
+    }).index("tripId", ["tripId"]),
 
     notification: defineTable({
         userId: v.string(),

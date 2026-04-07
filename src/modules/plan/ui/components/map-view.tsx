@@ -13,8 +13,11 @@ import L, {
     type LatLngTuple,
     type LeafletMouseEventHandlerFn,
 } from "leaflet";
+import { useAtomValue } from "jotai";
 import type { Doc, Id } from "@backend/dataModel";
 import { stringToHex } from "@/lib/utils";
+import { mapStyleAtom } from "@/modules/settings/atoms";
+import { MAP_TILE_URLS } from "@/modules/settings/types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -340,13 +343,15 @@ export function MapView({
     onMapContextMenu = null,
     center = [48.8566, 2.3522],
     zoom = 10,
-    tileUrl = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    tileUrl,
     fitKey = 0,
     dayOrderMap = {},
     leftWidth = 0,
     rightWidth = 0,
     hasInspector = false,
 }: MapViewProps) {
+    const mapStyle = useAtomValue(mapStyleAtom);
+    const resolvedTileUrl = tileUrl ?? MAP_TILE_URLS[mapStyle];
     const paddingOpts = useMemo<FitBoundsOptions>(() => {
         const isMobile =
             typeof window !== "undefined" && window.innerWidth < 768;
@@ -376,7 +381,7 @@ export function MapView({
             maxBoundsViscosity={1.0}
             worldCopyJump
         >
-            <TileLayer url={tileUrl} maxZoom={20} />
+            <TileLayer url={resolvedTileUrl} maxZoom={20} />
 
             <MapController center={center} zoom={zoom} />
             <BoundsController

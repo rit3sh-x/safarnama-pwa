@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
 import { Loader2, ChevronDownIcon } from "lucide-react";
@@ -80,6 +80,7 @@ interface PlaceFormDialogProps {
         address?: string;
     } | null;
     isSaving?: boolean;
+    tripEndDate?: number;
 }
 
 export function PlaceFormDialog({
@@ -89,6 +90,7 @@ export function PlaceFormDialog({
     place,
     prefillCoords,
     isSaving = false,
+    tripEndDate,
 }: PlaceFormDialogProps) {
     const {
         results: searchResults,
@@ -167,26 +169,28 @@ export function PlaceFormDialog({
     });
 
     const prevOpenRef = useRef(false);
-    if (open && !prevOpenRef.current) {
-        if (place) {
-            form.reset();
-            form.setFieldValue("name", place.name);
-            form.setFieldValue("description", place.description ?? "");
-            form.setFieldValue("address", place.address ?? "");
-            form.setFieldValue("lat", place.lat?.toString() ?? "");
-            form.setFieldValue("lng", place.lng?.toString() ?? "");
-            form.setFieldValue("osmId", place.osmId ?? "");
-        } else if (prefillCoords) {
-            form.reset();
-            form.setFieldValue("name", prefillCoords.name ?? "");
-            form.setFieldValue("address", prefillCoords.address ?? "");
-            form.setFieldValue("lat", String(prefillCoords.lat));
-            form.setFieldValue("lng", String(prefillCoords.lng));
-        } else {
-            form.reset();
+    useEffect(() => {
+        if (open && !prevOpenRef.current) {
+            if (place) {
+                form.reset();
+                form.setFieldValue("name", place.name);
+                form.setFieldValue("description", place.description ?? "");
+                form.setFieldValue("address", place.address ?? "");
+                form.setFieldValue("lat", place.lat?.toString() ?? "");
+                form.setFieldValue("lng", place.lng?.toString() ?? "");
+                form.setFieldValue("osmId", place.osmId ?? "");
+            } else if (prefillCoords) {
+                form.reset();
+                form.setFieldValue("name", prefillCoords.name ?? "");
+                form.setFieldValue("address", prefillCoords.address ?? "");
+                form.setFieldValue("lat", String(prefillCoords.lat));
+                form.setFieldValue("lng", String(prefillCoords.lng));
+            } else {
+                form.reset();
+            }
         }
-    }
-    prevOpenRef.current = open;
+        prevOpenRef.current = open;
+    }, [open, place, prefillCoords, form]);
 
     const handleOpenChange = (v: boolean) => {
         if (!v) {
@@ -462,6 +466,16 @@ export function PlaceFormDialog({
                                                 setDateFrom(date);
                                                 setOpenFromCal(false);
                                             }}
+                                            disabled={{
+                                                before: new Date(),
+                                                ...(tripEndDate
+                                                    ? {
+                                                          after: new Date(
+                                                              tripEndDate
+                                                          ),
+                                                      }
+                                                    : {}),
+                                            }}
                                         />
                                     </PopoverContent>
                                 </Popover>
@@ -519,11 +533,16 @@ export function PlaceFormDialog({
                                                 setDateTo(date);
                                                 setOpenToCal(false);
                                             }}
-                                            disabled={
-                                                dateFrom
-                                                    ? { before: dateFrom }
-                                                    : undefined
-                                            }
+                                            disabled={{
+                                                before: dateFrom ?? new Date(),
+                                                ...(tripEndDate
+                                                    ? {
+                                                          after: new Date(
+                                                              tripEndDate
+                                                          ),
+                                                      }
+                                                    : {}),
+                                            }}
                                         />
                                     </PopoverContent>
                                 </Popover>

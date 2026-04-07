@@ -40,6 +40,8 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
     const [settleTarget, setSettleTarget] = useState<{
         toUserId: string;
         amount: number;
+        expenseId?: Id<"expense">;
+        expenseTitle?: string;
     } | null>(null);
 
     const currentUserId = user._id;
@@ -124,11 +126,25 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                             expenseId={expense._id}
                             title={expense.title}
                             amount={expense.amount}
+                            paidBy={expense.paidBy}
                             paidByName={getPaidByName(expense.paidBy)}
                             date={expense.date}
                             notes={expense.notes}
                             canEdit
+                            owedAmount={
+                                expense.paidBy !== currentUserId
+                                    ? expense.amount / (members.length || 1)
+                                    : undefined
+                            }
                             onDelete={(id) => removeExpense({ expenseId: id })}
+                            onSettle={(expenseId, toUserId, amt, title) =>
+                                setSettleTarget({
+                                    toUserId,
+                                    amount: amt,
+                                    expenseId,
+                                    expenseTitle: title,
+                                })
+                            }
                         />
                     ))}
 
@@ -170,8 +186,12 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                     }}
                     tripId={tripId}
                     toUserId={settleTarget.toUserId}
-                    toUsername={userMap.get(settleTarget.toUserId)!.username}
-                    amount={settleTarget?.amount ?? 0}
+                    toUsername={
+                        userMap.get(settleTarget.toUserId)?.username ?? ""
+                    }
+                    amount={settleTarget.amount}
+                    expenseId={settleTarget.expenseId}
+                    expenseTitle={settleTarget.expenseTitle}
                 />
             )}
         </div>

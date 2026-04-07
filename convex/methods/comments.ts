@@ -3,6 +3,7 @@ import { mutation, query } from "../_generated/server";
 import { requireUserAccess } from "../lib/utils";
 import { getOrThrow } from "../lib/helpers";
 import { notifyUser } from "../lib/notify";
+import { rateLimit } from "../lib/rateLimit";
 import { components } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc } from "../betterAuth/_generated/dataModel";
@@ -103,6 +104,7 @@ export const create = mutation({
     },
     handler: async (ctx, { blogId, content, parentId }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "createComment", user._id);
 
         const profanityCheck = checkProfanity(content);
         if (profanityCheck.hasProfanity)
@@ -149,6 +151,7 @@ export const edit = mutation({
     },
     handler: async (ctx, { commentId, content }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "editComment", user._id);
 
         const profanityCheck = checkProfanity(content);
         if (profanityCheck.hasProfanity)

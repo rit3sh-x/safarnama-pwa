@@ -2,7 +2,7 @@ import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
 import { useCallback, useRef, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
-import { CameraIcon } from "lucide-react";
+import { CameraIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { changeUsername } from "../../hooks/auth-handlers";
@@ -114,15 +114,11 @@ export function UsernameForm() {
                     username: parsed.data.username,
                     imageUrl,
                     fetchOptions: {
-                        onError: ({ error }) => {
-                            console.error(error);
-                            setImageError("Failed to upload image");
-                        },
+                        onError: ({ error }) => console.error(error),
                     },
                 });
             } catch (error) {
                 console.error("Submit failed:", error);
-                setImageError("Something went wrong. Please try again.");
             }
         },
     });
@@ -245,6 +241,7 @@ export function UsernameForm() {
 
                 <form.Field name="username">
                     {(field) => {
+                        const touched = field.state.meta.isTouched;
                         const result = schema.shape.username.safeParse(
                             field.state.value
                         );
@@ -259,6 +256,7 @@ export function UsernameForm() {
                                         onChange={(e) =>
                                             field.handleChange(e.target.value)
                                         }
+                                        onBlur={field.handleBlur}
                                         placeholder="e.g. cool_user42"
                                         type="text"
                                         autoComplete="off"
@@ -270,7 +268,8 @@ export function UsernameForm() {
                                     underscores
                                 </FieldDescription>
 
-                                {!result.success &&
+                                {touched &&
+                                    !result.success &&
                                     field.state.value.length > 0 && (
                                         <FieldError>
                                             {result.error.issues[0]?.message}
@@ -287,7 +286,11 @@ export function UsernameForm() {
                     size={"lg"}
                     className={"mt-2 rounded-lg"}
                 >
-                    Save
+                    {form.state.isSubmitting ? (
+                        <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                        "Save"
+                    )}
                 </Button>
             </div>
         </AuthContainer>

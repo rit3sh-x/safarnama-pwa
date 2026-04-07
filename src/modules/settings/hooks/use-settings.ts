@@ -4,6 +4,7 @@ import {
     timeFormatAtom,
     showPlaceDescriptionAtom,
     defaultZoomAtom,
+    mapStyleAtom,
 } from "../atoms";
 
 export function useSettings() {
@@ -13,6 +14,7 @@ export function useSettings() {
         showPlaceDescriptionAtom
     );
     const [defaultZoom, setDefaultZoom] = useAtom(defaultZoomAtom);
+    const [mapStyle, setMapStyle] = useAtom(mapStyleAtom);
 
     return {
         temperatureUnit,
@@ -23,5 +25,7 @@ export function useSettings() {
         setShowPlaceDescription,
         defaultZoom,
         setDefaultZoom,
+        mapStyle,
+        setMapStyle,
     };
 }

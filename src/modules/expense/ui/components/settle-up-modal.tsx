@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { HandCoins, Loader2 } from "lucide-react";
 import {
     Credenza,
@@ -9,6 +9,7 @@ import {
     CredenzaTitle,
 } from "@/components/ui/credenza";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, FieldContent, FieldLabel } from "@/components/ui/field";
 import { useCreateSettlement } from "../../hooks/use-expenses";
@@ -22,6 +23,8 @@ interface SettleUpModalProps {
     toUserId: string;
     toUsername: string;
     amount: number;
+    expenseId?: Id<"expense">;
+    expenseTitle?: string;
 }
 
 export function SettleUpModal({
@@ -31,20 +34,36 @@ export function SettleUpModal({
     toUserId,
     toUsername,
     amount,
+    expenseId,
+    expenseTitle,
 }: SettleUpModalProps) {
     const { mutate: createSettlement, isPending } = useCreateSettlement();
     const [note, setNote] = useState("");
+    const [settleAmount, setSettleAmount] = useState(amount);
+
+    useEffect(() => {
+        setSettleAmount(amount);
+    }, [amount]);
+
+    const isPartial = settleAmount < amount - 0.01;
+    const isValid = settleAmount > 0 && settleAmount <= amount + 0.01;
 
     const handleSubmit = async () => {
-        if (!toUserId || amount <= 0) return;
+        if (!toUserId || !isValid) return;
 
         try {
             await createSettlement({
                 tripId,
                 toUserId,
+                amount: settleAmount,
                 note: note.trim() || undefined,
+                expenseId,
             });
-            toast.success("Settlement recorded!");
+            toast.success(
+                isPartial
+                    ? `Partial payment of ₹${settleAmount.toFixed(0)} recorded!`
+                    : "Settlement recorded!"
+            );
             onOpenChange(false);
             setNote("");
         } catch {
@@ -56,7 +75,9 @@ export function SettleUpModal({
         <Credenza open={open} onOpenChange={onOpenChange}>
             <CredenzaContent className="sm:max-w-sm">
                 <CredenzaHeader>
-                    <CredenzaTitle>Settle Up</CredenzaTitle>
+                    <CredenzaTitle>
+                        {expenseTitle ? `Settle: ${expenseTitle}` : "Settle Up"}
+                    </CredenzaTitle>
                 </CredenzaHeader>
 
                 <CredenzaBody className="space-y-4">
@@ -65,14 +86,47 @@ export function SettleUpModal({
                             <HandCoins className="size-6 text-primary" />
                         </div>
                         <div className="text-center">
-                            <p className="text-2xl font-bold tabular-nums">
-                                ₹{amount.toFixed(2)}
-                            </p>
                             <p className="mt-1 text-sm text-muted-foreground">
                                 to @{toUsername}
                             </p>
                         </div>
                     </div>
+
+                    <Field>
+                        <FieldLabel>Amount</FieldLabel>
+                        <FieldContent>
+                            <div className="relative">
+                                <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
+                                    ₹
+                                </span>
+                                <Input
+                                    type="number"
+                                    value={settleAmount}
+                                    onChange={(e) =>
+                                        setSettleAmount(
+                                            Number.parseFloat(e.target.value) ||
+                                                0
+                                        )
+                                    }
+                                    min={0.01}
+                                    max={amount}
+                                    step={0.01}
+                                    className="pl-7 text-lg font-semibold tabular-nums"
+                                />
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                {isPartial ? (
+                                    <span className="text-amber-600 dark:text-amber-400">
+                                        Partial — ₹
+                                        {(amount - settleAmount).toFixed(2)}{" "}
+                                        will remain
+                                    </span>
+                                ) : (
+                                    `Full amount: ₹${amount.toFixed(2)}`
+                                )}
+                            </p>
+                        </FieldContent>
+                    </Field>
 
                     <Field>
                         <FieldLabel>Note (optional)</FieldLabel>
@@ -97,13 +151,13 @@ export function SettleUpModal({
                     </Button>
                     <Button
                         onClick={handleSubmit}
-                        disabled={isPending}
+                        disabled={isPending || !isValid}
                         className="flex-1"
                     >
                         {isPending ? (
                             <Loader2 className="size-4 animate-spin" />
                         ) : (
-                            `Pay ₹${amount.toFixed(2)}`
+                            `Pay ₹${settleAmount.toFixed(2)}`
                         )}
                     </Button>
                 </CredenzaFooter>

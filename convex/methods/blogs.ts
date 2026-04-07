@@ -5,6 +5,7 @@ import {
     requireUserAccess,
     getTripFromTripId,
 } from "../lib/utils";
+import { rateLimit } from "../lib/rateLimit";
 import { components } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc } from "../betterAuth/_generated/dataModel";
@@ -147,7 +148,8 @@ export const upsert = mutation({
         status: v.union(v.literal("draft"), v.literal("published")),
     },
     handler: async (ctx, { tripId, ...fields }) => {
-        await requireTripAdmin(ctx, tripId);
+        const { user } = await requireTripAdmin(ctx, tripId);
+        await rateLimit(ctx, "upsertBlog", user._id);
 
         if (fields.status === "published") {
             const titleCheck = checkProfanity(fields.title);
@@ -202,7 +204,8 @@ export const upsert = mutation({
 export const remove = mutation({
     args: { tripId: v.id("trip") },
     handler: async (ctx, { tripId }) => {
-        await requireTripAdmin(ctx, tripId);
+        const { user } = await requireTripAdmin(ctx, tripId);
+        await rateLimit(ctx, "deleteBlog", user._id);
 
         const blog = await ctx.db
             .query("blog")

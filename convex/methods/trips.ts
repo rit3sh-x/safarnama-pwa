@@ -8,6 +8,7 @@ import {
     requireUserAccess,
 } from "../lib/utils";
 import { LIMITS } from "../lib/constants";
+import { rateLimit } from "../lib/rateLimit";
 import { paginationOptsValidator, type PaginationResult } from "convex/server";
 import type { Doc, Id } from "../betterAuth/_generated/dataModel";
 import type { Doc as SchemaDoc } from "../_generated/dataModel";
@@ -25,6 +26,7 @@ export const create = mutation({
     },
     handler: async (ctx, { title, logoUrl, ...fields }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "createTrip", user._id);
 
         const tripCount: number = await ctx.runQuery(
             components.betterAuth.methods.orgs.countUserMemberships,
@@ -345,7 +347,8 @@ export const update = mutation({
         isPublic: v.optional(v.boolean()),
     },
     handler: async (ctx, { tripId, title, ...fields }) => {
-        const { trip } = await requireTripAdmin(ctx, tripId);
+        const { trip, user } = await requireTripAdmin(ctx, tripId);
+        await rateLimit(ctx, "updateTrip", user._id);
 
         if (title && title !== trip.title) {
             await ctx.runMutation(components.betterAuth.adapter.updateOne, {
@@ -381,7 +384,8 @@ export const update = mutation({
 export const remove = mutation({
     args: { tripId: v.id("trip") },
     handler: async (ctx, { tripId }) => {
-        const { trip } = await requireTripAdmin(ctx, tripId);
+        const { trip, user } = await requireTripAdmin(ctx, tripId);
+        await rateLimit(ctx, "deleteTrip", user._id);
 
         const deleteByTripIndex = async (
             table:
@@ -691,6 +695,7 @@ export const addToHistory = mutation({
     },
     handler: async (ctx, { query }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "addToHistory", user._id);
         const trimmed = query.trim().toLowerCase();
         if (!trimmed) return;
 

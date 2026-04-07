@@ -123,7 +123,7 @@ export function CurrencyWidget() {
 
     return (
         <Card className="rounded-2xl">
-            <CardContent className="space-y-3 p-4">
+            <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                         Currency
@@ -151,7 +151,7 @@ export function CurrencyWidget() {
                         value={from}
                         onValueChange={(value) => value && setFrom(value)}
                     >
-                        <SelectTrigger className="h-9 text-xs">
+                        <SelectTrigger className="h-9 flex-1 text-xs">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">
@@ -175,7 +175,7 @@ export function CurrencyWidget() {
                         value={to}
                         onValueChange={(value) => value && setTo(value)}
                     >
-                        <SelectTrigger className="h-9 text-xs">
+                        <SelectTrigger className="h-9 flex-1 text-xs">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="max-h-60">

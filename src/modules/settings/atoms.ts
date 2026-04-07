@@ -1,6 +1,6 @@
 import { atomWithStorage } from "jotai/utils";
 import { DEFAULT_SETTINGS } from "./types";
-import type { TemperatureUnit, TimeFormat } from "./types";
+import type { TemperatureUnit, TimeFormat, MapStyle } from "./types";
 
 export const temperatureUnitAtom = atomWithStorage<TemperatureUnit>(
     "settings_temperature_unit",
@@ -20,4 +20,9 @@ export const showPlaceDescriptionAtom = atomWithStorage<boolean>(
 export const defaultZoomAtom = atomWithStorage<number>(
     "settings_default_zoom",
     DEFAULT_SETTINGS.defaultZoom
+);
+
+export const mapStyleAtom = atomWithStorage<MapStyle>(
+    "settings_map_style",
+    DEFAULT_SETTINGS.mapStyle
 );

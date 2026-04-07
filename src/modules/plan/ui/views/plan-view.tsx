@@ -557,6 +557,7 @@ export function PlanView({ tripId }: PlanViewProps) {
                     place={editingPlace}
                     prefillCoords={prefillCoords}
                     isSaving={isAddingPlace}
+                    tripEndDate={typedTrip?.endDate}
                 />
             </div>
         </div>

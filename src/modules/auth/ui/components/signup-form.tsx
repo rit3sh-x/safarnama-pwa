@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
+import { Loader2 } from "lucide-react";
 
 import { signInWithGoogle, signUpWithEmail } from "../../hooks/auth-handlers";
 import {
@@ -49,6 +50,7 @@ export function SignUpForm({ onNavigateLogin }: SignUpFormProps) {
             <div className="flex flex-col gap-4">
                 <form.Field name="name">
                     {(field) => {
+                        const touched = field.state.meta.isTouched;
                         const result = schema.shape.name.safeParse(
                             field.state.value
                         );
@@ -63,12 +65,13 @@ export function SignUpForm({ onNavigateLogin }: SignUpFormProps) {
                                         onChange={(e) =>
                                             field.handleChange(e.target.value)
                                         }
+                                        onBlur={field.handleBlur}
                                         placeholder="John Doe"
                                         type="text"
                                     />
                                 </FieldContent>
 
-                                {!result.success && (
+                                {touched && !result.success && (
                                     <FieldError>
                                         Name must be at least 2 characters
                                     </FieldError>
@@ -80,6 +83,7 @@ export function SignUpForm({ onNavigateLogin }: SignUpFormProps) {
 
                 <form.Field name="email">
                     {(field) => {
+                        const touched = field.state.meta.isTouched;
                         const result = schema.shape.email.safeParse(
                             field.state.value
                         );
@@ -94,12 +98,13 @@ export function SignUpForm({ onNavigateLogin }: SignUpFormProps) {
                                         onChange={(e) =>
                                             field.handleChange(e.target.value)
                                         }
+                                        onBlur={field.handleBlur}
                                         placeholder="johndoe@gmail.com"
                                         type="email"
                                     />
                                 </FieldContent>
 
-                                {!result.success && (
+                                {touched && !result.success && (
                                     <FieldError>Enter a valid email</FieldError>
                                 )}
                             </Field>
@@ -109,6 +114,7 @@ export function SignUpForm({ onNavigateLogin }: SignUpFormProps) {
 
                 <form.Field name="password">
                     {(field) => {
+                        const touched = field.state.meta.isTouched;
                         const result = schema.shape.password.safeParse(
                             field.state.value
                         );
@@ -123,12 +129,13 @@ export function SignUpForm({ onNavigateLogin }: SignUpFormProps) {
                                         onChange={(e) =>
                                             field.handleChange(e.target.value)
                                         }
+                                        onBlur={field.handleBlur}
                                         placeholder="••••••••"
                                         type="password"
                                     />
                                 </FieldContent>
 
-                                {!result.success && (
+                                {touched && !result.success && (
                                     <FieldError>
                                         Password must be at least 8 characters
                                     </FieldError>
@@ -144,7 +151,11 @@ export function SignUpForm({ onNavigateLogin }: SignUpFormProps) {
                     size={"lg"}
                     className={"mt-2 rounded-lg"}
                 >
-                    Sign Up
+                    {form.state.isSubmitting ? (
+                        <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                        "Sign Up"
+                    )}
                 </Button>
 
                 <Divider />

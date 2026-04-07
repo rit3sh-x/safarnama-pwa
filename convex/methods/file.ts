@@ -1,9 +1,16 @@
 import { MAX_FILE_SIZE } from "../lib/constants";
 import { mutation } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
+import { rateLimit } from "../lib/rateLimit";
+import { requireUserAccess } from "../lib/utils";
 
-export const generateUploadUrl = mutation(async (ctx) => {
-    return await ctx.storage.generateUploadUrl();
+export const generateUploadUrl = mutation({
+    args: {},
+    handler: async (ctx): Promise<string> => {
+        const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "generateUploadUrl", user._id);
+        return await ctx.storage.generateUploadUrl();
+    },
 });
 
 export const confirmUpload = mutation({

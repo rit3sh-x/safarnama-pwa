@@ -1,6 +1,7 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { requireUserAccess } from "../lib/utils";
+import { rateLimit } from "../lib/rateLimit";
 import type { RatingValue } from "@backend/types";
 
 export const rate = mutation({
@@ -10,6 +11,7 @@ export const rate = mutation({
     },
     handler: async (ctx, { blogId, rating }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "rateBlog", user._id);
 
         if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
             throw new ConvexError("Rating must be an integer between 1 and 5");

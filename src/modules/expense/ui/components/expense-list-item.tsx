@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { MoreVerticalIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import {
+    HandCoinsIcon,
+    MoreVerticalIcon,
+    PencilIcon,
+    Trash2Icon,
+} from "lucide-react";
 import { getExpenseCategory } from "../../constants";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,11 +31,19 @@ interface ExpenseListItemProps {
     expenseId: Id<"expense">;
     title: string;
     amount: number;
+    paidBy: string;
     paidByName: string;
     date: number;
     notes?: string;
     canEdit?: boolean;
+    owedAmount?: number;
     onDelete?: (expenseId: Id<"expense">) => void;
+    onSettle?: (
+        expenseId: Id<"expense">,
+        toUserId: string,
+        amount: number,
+        title: string
+    ) => void;
 }
 
 function formatDate(timestamp: number) {
@@ -44,11 +57,14 @@ export function ExpenseListItem({
     expenseId,
     title,
     amount,
+    paidBy,
     paidByName,
     date,
     notes,
     canEdit = false,
+    owedAmount,
     onDelete,
+    onSettle,
 }: ExpenseListItemProps) {
     const category = getExpenseCategory(title);
     const Icon = category.icon;
@@ -77,39 +93,68 @@ export function ExpenseListItem({
                     </p>
                 </div>
 
-                <span className="shrink-0 text-sm font-semibold text-foreground tabular-nums">
-                    ₹{amount.toFixed(2)}
-                </span>
+                <div className="shrink-0 text-right">
+                    <span className="text-sm font-semibold text-foreground tabular-nums">
+                        ₹{amount.toFixed(2)}
+                    </span>
+                    {owedAmount !== undefined && owedAmount > 0 && (
+                        <p className="text-[10px] text-red-500 tabular-nums">
+                            you owe ₹{owedAmount.toFixed(0)}
+                        </p>
+                    )}
+                </div>
 
-                {canEdit && (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger
-                            render={
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-8 shrink-0"
-                                    aria-label="Expense options"
-                                />
-                            }
-                        >
-                            <MoreVerticalIcon className="size-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" sideOffset={4}>
-                            <DropdownMenuItem onClick={() => setShowEdit(true)}>
-                                <PencilIcon className="size-4" />
-                                Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => setShowDeleteConfirm(true)}
-                                className="text-destructive focus:text-destructive"
-                            >
-                                <Trash2Icon className="size-4" />
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                )}
+                <DropdownMenu>
+                    <DropdownMenuTrigger
+                        render={
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-8 shrink-0"
+                                aria-label="Expense options"
+                            />
+                        }
+                    >
+                        <MoreVerticalIcon className="size-4" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" sideOffset={4}>
+                        {owedAmount !== undefined &&
+                            owedAmount > 0 &&
+                            onSettle && (
+                                <DropdownMenuItem
+                                    onClick={() =>
+                                        onSettle(
+                                            expenseId,
+                                            paidBy,
+                                            owedAmount,
+                                            title
+                                        )
+                                    }
+                                    className="text-emerald-600 focus:text-emerald-600"
+                                >
+                                    <HandCoinsIcon className="size-4" />
+                                    Settle ₹{owedAmount.toFixed(0)}
+                                </DropdownMenuItem>
+                            )}
+                        {canEdit && (
+                            <>
+                                <DropdownMenuItem
+                                    onClick={() => setShowEdit(true)}
+                                >
+                                    <PencilIcon className="size-4" />
+                                    Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    className="text-destructive focus:text-destructive"
+                                >
+                                    <Trash2Icon className="size-4" />
+                                    Delete
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {showEdit && (

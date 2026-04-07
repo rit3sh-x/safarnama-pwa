@@ -322,6 +322,19 @@ export default defineConfig({
                         },
                     },
                     {
+                        urlPattern:
+                            /^https:\/\/server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery\/.*/i,
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "map-tiles-satellite",
+                            expiration: {
+                                maxEntries: 1000,
+                                maxAgeSeconds: ONE_MONTH,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
+                    {
                         urlPattern: /^https:\/\/unpkg\.com\/.*/i,
                         handler: "CacheFirst",
                         options: {

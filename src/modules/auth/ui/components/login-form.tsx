@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 
 import { signInWithEmail, signInWithGoogle } from "../../hooks/auth-handlers";
 import {
@@ -54,6 +55,7 @@ export function LoginForm({ onNavigateSignUp }: LoginFormProps) {
             <div className="flex flex-col gap-4">
                 <form.Field name="email">
                     {(field) => {
+                        const touched = field.state.meta.isTouched;
                         const result = schema.shape.email.safeParse(
                             field.state.value
                         );
@@ -68,12 +70,13 @@ export function LoginForm({ onNavigateSignUp }: LoginFormProps) {
                                         onChange={(e) =>
                                             field.handleChange(e.target.value)
                                         }
+                                        onBlur={field.handleBlur}
                                         placeholder="johndoe@gmail.com"
                                         type="email"
                                     />
                                 </FieldContent>
 
-                                {!result.success && (
+                                {touched && !result.success && (
                                     <FieldError>Enter a valid email</FieldError>
                                 )}
                             </Field>
@@ -83,6 +86,7 @@ export function LoginForm({ onNavigateSignUp }: LoginFormProps) {
 
                 <form.Field name="password">
                     {(field) => {
+                        const touched = field.state.meta.isTouched;
                         const hasError = field.state.value.length === 0;
 
                         return (
@@ -95,12 +99,13 @@ export function LoginForm({ onNavigateSignUp }: LoginFormProps) {
                                         onChange={(e) =>
                                             field.handleChange(e.target.value)
                                         }
+                                        onBlur={field.handleBlur}
                                         placeholder="••••••••"
                                         type="password"
                                     />
                                 </FieldContent>
 
-                                {hasError && (
+                                {touched && hasError && (
                                     <FieldError>
                                         Password is required
                                     </FieldError>
@@ -116,7 +121,11 @@ export function LoginForm({ onNavigateSignUp }: LoginFormProps) {
                     size={"lg"}
                     className={"mt-2 rounded-lg"}
                 >
-                    Sign In
+                    {form.state.isSubmitting ? (
+                        <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                        "Sign In"
+                    )}
                 </Button>
 
                 <Divider />

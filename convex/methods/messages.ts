@@ -4,6 +4,7 @@ import { requireTripMember } from "../lib/utils";
 import { getOrThrow } from "../lib/helpers";
 import { getUserMap } from "../lib/members";
 import { notifyTrip } from "../lib/notify";
+import { rateLimit } from "../lib/rateLimit";
 import { paginationOptsValidator } from "convex/server";
 
 export const list = query({
@@ -141,6 +142,7 @@ export const send = mutation({
         }
     ) => {
         const { user } = await requireTripMember(ctx, tripId);
+        await rateLimit(ctx, "sendMessage", user._id);
 
         const trip = await ctx.db.get(tripId);
         const tripTitle = trip?.title ?? "Trip";
@@ -226,6 +228,7 @@ export const edit = mutation({
                 code: "FORBIDDEN",
                 message: "Not your message",
             });
+        await rateLimit(ctx, "editMessage", user._id);
 
         await ctx.db.patch(messageId, { content, editedAt: Date.now() });
     },
@@ -242,6 +245,7 @@ export const remove = mutation({
                 code: "FORBIDDEN",
                 message: "Unauthorized",
             });
+        await rateLimit(ctx, "deleteMessage", user._id);
 
         await ctx.db.patch(messageId, {
             deletedAt: Date.now(),
@@ -264,6 +268,7 @@ export const addReaction = mutation({
             });
 
         const { user } = await requireTripMember(ctx, msg.tripId);
+        await rateLimit(ctx, "addReaction", user._id);
 
         const existing = await ctx.db
             .query("reaction")
@@ -294,6 +299,7 @@ export const removeReaction = mutation({
     handler: async (ctx, { messageId, emoji }) => {
         const msg = await getOrThrow(ctx, messageId, "Message");
         const { user } = await requireTripMember(ctx, msg.tripId);
+        await rateLimit(ctx, "removeReaction", user._id);
 
         const existing = await ctx.db
             .query("reaction")
@@ -357,6 +363,7 @@ export const pin = mutation({
                 code: "FORBIDDEN",
                 message: "Only admins can pin messages",
             });
+        await rateLimit(ctx, "pinMessage", user._id);
 
         await ctx.db.patch(messageId, {
             pinnedAt: Date.now(),
@@ -417,6 +424,7 @@ export const votePoll = mutation({
             });
 
         const { user } = await requireTripMember(ctx, poll.tripId);
+        await rateLimit(ctx, "votePoll", user._id);
 
         const userVotes = await ctx.db
             .query("pollVote")

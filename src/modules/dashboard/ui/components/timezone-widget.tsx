@@ -2,26 +2,44 @@ import { useState, useEffect } from "react";
 import { Plus, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import {
+    Combobox,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
+    ComboboxContent,
+} from "@/components/ui/combobox";
+import { TIMEZONE_KEY } from "../../constants";
 import { formatInTimeZone } from "date-fns-tz";
 
 interface TimeZone {
     label: string;
-    tz: string;
+    value: string;
 }
 
-const POPULAR_ZONES: TimeZone[] = [
-    { label: "New York", tz: "America/New_York" },
-    { label: "London", tz: "Europe/London" },
-    { label: "Berlin", tz: "Europe/Berlin" },
-    { label: "Paris", tz: "Europe/Paris" },
-    { label: "Dubai", tz: "Asia/Dubai" },
-    { label: "Mumbai", tz: "Asia/Kolkata" },
-    { label: "Bangkok", tz: "Asia/Bangkok" },
-    { label: "Tokyo", tz: "Asia/Tokyo" },
-    { label: "Sydney", tz: "Australia/Sydney" },
-    { label: "Los Angeles", tz: "America/Los_Angeles" },
+const ALL_ZONES: TimeZone[] = [
+    { label: "New York", value: "America/New_York" },
+    { label: "Los Angeles", value: "America/Los_Angeles" },
+    { label: "Chicago", value: "America/Chicago" },
+    { label: "Toronto", value: "America/Toronto" },
+    { label: "São Paulo", value: "America/Sao_Paulo" },
+    { label: "London", value: "Europe/London" },
+    { label: "Berlin", value: "Europe/Berlin" },
+    { label: "Paris", value: "Europe/Paris" },
+    { label: "Moscow", value: "Europe/Moscow" },
+    { label: "Istanbul", value: "Europe/Istanbul" },
+    { label: "Dubai", value: "Asia/Dubai" },
+    { label: "Mumbai", value: "Asia/Kolkata" },
+    { label: "Bangkok", value: "Asia/Bangkok" },
+    { label: "Singapore", value: "Asia/Singapore" },
+    { label: "Shanghai", value: "Asia/Shanghai" },
+    { label: "Tokyo", value: "Asia/Tokyo" },
+    { label: "Seoul", value: "Asia/Seoul" },
+    { label: "Sydney", value: "Australia/Sydney" },
+    { label: "Auckland", value: "Pacific/Auckland" },
+    { label: "Honolulu", value: "Pacific/Honolulu" },
 ];
 
 function getTime(tz: string): string {
@@ -34,13 +52,7 @@ function getTime(tz: string): string {
 
 function getOffset(tz: string): string {
     try {
-        const now = new Date();
-        const localOffset = -now.getTimezoneOffset() / 60;
-        const target = new Date(now.toLocaleString("en-US", { timeZone: tz }));
-        const targetOffset = -target.getTimezoneOffset() / 60;
-        const diff = targetOffset - localOffset;
-        const sign = diff >= 0 ? "+" : "";
-        return `${sign}${diff}h`;
+        return formatInTimeZone(new Date(), tz, "XXX");
     } catch {
         return "";
     }
@@ -48,19 +60,16 @@ function getOffset(tz: string): string {
 
 export default function TimezoneWidget() {
     const [zones, setZones] = useState<TimeZone[]>(() => {
-        const saved = localStorage.getItem("dashboard_timezones");
+        const saved = localStorage.getItem(TIMEZONE_KEY);
         return saved
             ? JSON.parse(saved)
             : [
-                  { label: "New York", tz: "America/New_York" },
-                  { label: "Tokyo", tz: "Asia/Tokyo" },
+                  { label: "New York", value: "America/New_York" },
+                  { label: "Tokyo", value: "Asia/Tokyo" },
               ];
     });
 
     const [showAdd, setShowAdd] = useState(false);
-    const [customLabel, setCustomLabel] = useState("");
-    const [customTz, setCustomTz] = useState("");
-    const [customError, setCustomError] = useState("");
 
     useEffect(() => {
         const i = setInterval(() => {}, 10000);
@@ -68,43 +77,22 @@ export default function TimezoneWidget() {
     }, []);
 
     useEffect(() => {
-        localStorage.setItem("dashboard_timezones", JSON.stringify(zones));
+        localStorage.setItem(TIMEZONE_KEY, JSON.stringify(zones));
     }, [zones]);
 
-    const isValidTz = (tz: string): boolean => {
-        try {
-            formatInTimeZone(new Date(), tz, "HH:mm");
-            return true;
-        } catch {
-            return false;
-        }
-    };
-
-    const addCustomZone = () => {
-        const tz = customTz.trim();
-        if (!tz) return setCustomError("Invalid");
-        if (!isValidTz(tz)) return setCustomError("Invalid TZ");
-        if (zones.find((z) => z.tz === tz)) return setCustomError("Duplicate");
-
-        const label =
-            customLabel.trim() || tz.split("/").pop()?.replace(/_/g, " ") || tz;
-
-        setZones([...zones, { label, tz }]);
-        setCustomLabel("");
-        setCustomTz("");
-        setCustomError("");
-        setShowAdd(false);
-    };
-
-    const addZone = (zone: TimeZone) => {
-        if (!zones.find((z) => z.tz === zone.tz)) {
+    const addZone = (zone: TimeZone | null) => {
+        if (zone && !zones.find((z) => z.value === zone.value)) {
             setZones([...zones, zone]);
         }
         setShowAdd(false);
     };
 
     const removeZone = (tz: string) =>
-        setZones(zones.filter((z) => z.tz !== tz));
+        setZones(zones.filter((z) => z.value !== tz));
+
+    const availableZones = ALL_ZONES.filter(
+        (z) => !zones.find((e) => e.value === z.value)
+    );
 
     const localTime = formatInTimeZone(
         new Date(),
@@ -118,7 +106,7 @@ export default function TimezoneWidget() {
 
     return (
         <Card className="rounded-2xl">
-            <CardContent className="space-y-3 p-4">
+            <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                         Timezones
@@ -142,86 +130,65 @@ export default function TimezoneWidget() {
                     </p>
                 </div>
 
-                <Separator />
-
-                <div className="space-y-2">
-                    {zones.map((z) => (
-                        <div
-                            key={z.tz}
-                            className="flex items-center justify-between"
-                        >
-                            <div>
-                                <p className="text-lg font-bold tabular-nums">
-                                    {getTime(z.tz)}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                    {z.label} {getOffset(z.tz)}
-                                </p>
-                            </div>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label="Remove timezone"
-                                onClick={() => removeZone(z.tz)}
-                            >
-                                <X size={12} />
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-
-                {showAdd && (
-                    <div className="space-y-2 pt-2">
-                        <Input
-                            value={customLabel}
-                            onChange={(e) => setCustomLabel(e.target.value)}
-                            placeholder="Label"
+                {showAdd && availableZones.length > 0 && (
+                    <Combobox
+                        items={availableZones}
+                        onValueChange={(val) => addZone(val as TimeZone | null)}
+                    >
+                        <ComboboxInput
+                            placeholder="Search timezone..."
+                            showTrigger={false}
+                            showClear={false}
                         />
-                        <Input
-                            value={customTz}
-                            onChange={(e) => {
-                                setCustomTz(e.target.value);
-                                setCustomError("");
-                            }}
-                            placeholder="Timezone (e.g. Asia/Kolkata)"
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") addCustomZone();
-                            }}
-                        />
+                        <ComboboxContent>
+                            <ComboboxEmpty>No timezone found</ComboboxEmpty>
+                            <ComboboxList>
+                                {(item: TimeZone) => (
+                                    <ComboboxItem
+                                        key={item.value}
+                                        value={item}
+                                        className="justify-between"
+                                    >
+                                        <span>{item.label}</span>
+                                        <span className="text-xs text-muted-foreground tabular-nums">
+                                            {getTime(item.value)}
+                                        </span>
+                                    </ComboboxItem>
+                                )}
+                            </ComboboxList>
+                        </ComboboxContent>
+                    </Combobox>
+                )}
 
-                        {customError && (
-                            <p className="text-xs text-red-500">
-                                {customError}
-                            </p>
-                        )}
-
-                        <Button
-                            onClick={addCustomZone}
-                            className="w-full transition-colors"
-                        >
-                            Add
-                        </Button>
-
+                {zones.length > 0 && (
+                    <>
                         <Separator />
-
-                        <div className="max-h-60 space-y-1 overflow-auto">
-                            {POPULAR_ZONES.filter(
-                                (z) => !zones.find((e) => e.tz === z.tz)
-                            ).map((z) => (
-                                <Button
-                                    key={z.tz}
-                                    variant="ghost"
-                                    className="w-full justify-between transition-colors"
-                                    onClick={() => addZone(z)}
+                        <div className="space-y-2">
+                            {zones.map((z) => (
+                                <div
+                                    key={z.value}
+                                    className="flex items-center justify-between"
                                 >
-                                    <span>{z.label}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                        {getTime(z.tz)}
-                                    </span>
-                                </Button>
+                                    <div>
+                                        <p className="text-lg font-bold tabular-nums">
+                                            {getTime(z.value)}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {z.label} {getOffset(z.value)}
+                                        </p>
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        aria-label="Remove timezone"
+                                        onClick={() => removeZone(z.value)}
+                                    >
+                                        <X size={12} />
+                                    </Button>
+                                </div>
                             ))}
                         </div>
-                    </div>
+                    </>
                 )}
             </CardContent>
         </Card>

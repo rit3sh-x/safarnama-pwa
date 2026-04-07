@@ -39,3 +39,5 @@ export const TABS = [
         route: "/settings",
     },
 ] as const satisfies readonly Tab[];
+
+export const TIMEZONE_KEY = "dashboard_timezones";

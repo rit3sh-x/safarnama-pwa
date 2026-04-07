@@ -7,6 +7,7 @@ import {
 } from "../lib/utils";
 import { findMember } from "../lib/members";
 import { notifyTrip, notifyUser } from "../lib/notify";
+import { rateLimit } from "../lib/rateLimit";
 import { components } from "../_generated/api";
 import type { Doc } from "../_generated/dataModel";
 import type { Doc as DocAuth, Id } from "../betterAuth/_generated/dataModel";
@@ -20,6 +21,7 @@ export const userSendRequest = mutation({
     },
     handler: async (ctx, { orgId, message }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "sendJoinRequest", user._id);
         const trip = await getTripFromOrgId(ctx, orgId as Id<"organization">);
 
         if (!trip.isPublic) {
@@ -259,6 +261,7 @@ export const adminSendInvite = mutation({
             trip._id,
             "member:invite"
         );
+        await rateLimit(ctx, "sendInvite", sender._id);
 
         const uniqueEmails = Array.from(
             new Set(emails.map((email) => email.trim().toLowerCase()))
