@@ -3,6 +3,8 @@ name: Deploy Convex Backend
 on:
   push:
     branches: [main]
+    paths:
+      - "convex/**"
 
 jobs:
   deploy:
@@ -28,6 +30,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Deploy to Convex
-        run: pnpm run deploy
+        run: pnpm run convex:deploy
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
