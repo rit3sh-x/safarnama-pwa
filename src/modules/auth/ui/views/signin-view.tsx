@@ -8,7 +8,7 @@ export function SignInView() {
     const navigate = useNavigate();
 
     const onNavigateSignUp = useCallback(() => {
-        navigate({ to: "/sign-up/create-account" });
+        navigate({ to: "/create-account" });
     }, [navigate]);
 
     return (

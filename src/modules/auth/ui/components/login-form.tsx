@@ -39,8 +39,8 @@ export function LoginForm({ onNavigateSignUp }: LoginFormProps) {
                 email: parsed.data.email,
                 password: parsed.data.password,
                 fetchOptions: {
-                    onSuccess: (context) => {
-                        if (context.data.twoFactorRedirect) {
+                    onSuccess: ({ data }) => {
+                        if (data.twoFactorRedirect) {
                             navigate({ to: "/two-factor", replace: true });
                         }
                     },

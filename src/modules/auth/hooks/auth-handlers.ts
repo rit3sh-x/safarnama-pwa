@@ -87,7 +87,7 @@ export async function signInWithGoogle() {
     try {
         return await authClient.signIn.social({
             provider: "google",
-            callbackURL: "/sign-up/create-username",
+            callbackURL: "/create-username",
         });
     } catch (err) {
         toast.error(

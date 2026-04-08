@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { LogOutIcon, MapIcon, SatelliteIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, toTitleCase } from "@/lib/utils";
 import { signOut } from "../../hooks/use-settings-handlers";
 import { useSettings } from "../../hooks/use-settings";
 import { Separator } from "@/components/ui/separator";
@@ -65,7 +65,7 @@ export function SettingsView() {
                             Temperature unit
                         </Label>
                         <Select
-                            value={temperatureUnit}
+                            value={toTitleCase(temperatureUnit)}
                             onValueChange={(v) =>
                                 v &&
                                 setTemperatureUnit(
@@ -95,7 +95,7 @@ export function SettingsView() {
                             Time format
                         </Label>
                         <Select
-                            value={timeFormat}
+                            value={timeFormat === "12h" ? "12-hour" : "24-hour"}
                             onValueChange={(v) =>
                                 v && setTimeFormat(v as "12h" | "24h")
                             }

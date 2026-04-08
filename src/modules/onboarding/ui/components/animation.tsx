@@ -69,8 +69,9 @@ export const useAnimation = () => {
             if (isValueLike(catRoomRef.current))
                 catRoomRef.current.value = true;
             setTimeout(() => {
-                if (isValueLike(catRef.current)) catRef.current.value = false;
-                if (isValueLike(catRoomRef.current))
+                if (catRef.current && isValueLike(catRef.current))
+                    catRef.current.value = false;
+                if (catRoomRef.current && isValueLike(catRoomRef.current))
                     catRoomRef.current.value = false;
             }, CAT_RESET_MS);
         } else {

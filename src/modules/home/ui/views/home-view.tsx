@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { DownloadIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthentication } from "@/modules/auth/hooks/use-authentication";
 import { usePWAInstall, detectPlatform } from "../../hooks/use-pwa";
@@ -18,7 +17,7 @@ const PLATFORM_INFO: Record<string, { label: string; icon: string }> = {
 export function HomeView() {
     const navigate = useNavigate();
     const { isAuthenticated, hasUsername } = useAuthentication();
-    const { canInstall, install } = usePWAInstall();
+    const { canInstall, isInstalled, install } = usePWAInstall();
     const platform = useMemo(() => detectPlatform(), []);
     const platformInfo = PLATFORM_INFO[platform] ?? PLATFORM_INFO.unknown;
 
@@ -41,7 +40,7 @@ export function HomeView() {
                                 to:
                                     isAuthenticated && hasUsername
                                         ? "/dashboard"
-                                        : "/signin",
+                                        : "/onboarding",
                             })
                         }
                     >
@@ -57,7 +56,6 @@ export function HomeView() {
                             className="gap-2 rounded-full border-black/20 bg-white px-6 text-black hover:bg-black/5"
                             onClick={install}
                         >
-                            <DownloadIcon className="size-4" />
                             <img
                                 src={platformInfo.icon}
                                 alt={platformInfo.label}
@@ -66,14 +64,24 @@ export function HomeView() {
                             Install for {platformInfo.label}
                         </Button>
                     )}
+
+                    {isInstalled && !canInstall && (
+                        <a
+                            href={window.location.origin}
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/20 bg-white px-6 text-sm font-medium text-black hover:bg-black/5"
+                        >
+                            <img
+                                src={platformInfo.icon}
+                                alt={platformInfo.label}
+                                className="size-4"
+                            />
+                            Open App
+                        </a>
+                    )}
                 </div>
             </div>
 
-            <CrowdCanvas
-                src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/175711/open-peeps-sheet.png"
-                rows={15}
-                cols={7}
-            />
+            <CrowdCanvas src="/images/peeps/sheet.png" rows={15} cols={7} />
         </div>
     );
 }

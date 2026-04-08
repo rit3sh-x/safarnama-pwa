@@ -73,7 +73,7 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
                 issuer: "safarnama",
                 totpOptions: {
                     digits: 6,
-                    period: 60,
+                    period: 30,
                 },
                 backupCodeOptions: {
                     amount: 10,

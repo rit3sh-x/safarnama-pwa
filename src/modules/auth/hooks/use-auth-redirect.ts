@@ -1,75 +1,52 @@
 import { useEffect } from "react";
-import { useMatches, useRouter } from "@tanstack/react-router";
+import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useAuthentication } from "./use-authentication";
 
-type AuthState = "onboarding" | "auth" | "username" | "home";
-
-const AUTH_ROUTES: Record<AuthState, string> = {
-    onboarding: "/onboarding",
-    auth: "/signin",
-    username: "/sign-up/create-username",
-    home: "/dashboard",
-};
-
-const ALLOWED_GROUPS: Record<AuthState, string[]> = {
-    onboarding: ["/onboarding"],
-    auth: ["/(auth)"],
-    username: ["/(auth)"],
-    home: ["/(home)", "/(custom)"],
-};
-
-function resolveAuthState(flags: {
-    showOnboarding: boolean;
-    showAuth: boolean;
-    showUsername: boolean;
-    showHome: boolean;
-}): AuthState | null {
-    if (flags.showOnboarding) return "onboarding";
-    if (flags.showAuth) return "auth";
-    if (flags.showUsername) return "username";
-    if (flags.showHome) return "home";
-    return null;
-}
+const AUTH_REDIRECTS = [
+    { check: "showOnboarding", to: "/onboarding", allow: ["/onboarding"] },
+    {
+        check: "showAuth",
+        to: "/signin",
+        allow: ["/signin", "/create-account", "/two-factor"],
+    },
+    {
+        check: "showUsername",
+        to: "/create-username",
+        allow: ["/create-username"],
+    },
+    {
+        check: "showHome",
+        to: "/dashboard",
+        allow: [
+            "/dashboard",
+            "/trips",
+            "/blogs",
+            "/expenses",
+            "/settings",
+            "/plan",
+            "/public",
+        ],
+    },
+] as const;
 
 export function useAuthRedirect() {
-    const { isLoading, showOnboarding, showAuth, showUsername, showHome } =
-        useAuthentication();
+    const auth = useAuthentication();
     const router = useRouter();
-    const matches = useMatches();
+    const pathname = useRouterState({ select: (s) => s.location.pathname });
 
     useEffect(() => {
-        if (isLoading) return;
+        if (auth.isLoading || pathname === "/") return;
 
-        const authState = resolveAuthState({
-            showOnboarding,
-            showAuth,
-            showUsername,
-            showHome,
-        });
+        for (const rule of AUTH_REDIRECTS) {
+            if (!auth[rule.check]) continue;
 
-        if (!authState) return;
+            const isAllowed = rule.allow.some((p) => pathname.startsWith(p));
+            if (isAllowed) return;
 
-        const isOnIndex =
-            matches.length > 0 && matches[matches.length - 1].routeId === "/";
-        if (isOnIndex) return;
+            router.navigate({ to: rule.to, replace: true });
+            return;
+        }
+    }, [auth, pathname, router]);
 
-        const allowedPatterns = ALLOWED_GROUPS[authState];
-        const isInAllowedGroup = matches.some((m) =>
-            allowedPatterns.some((pattern) => m.routeId.includes(pattern))
-        );
-
-        if (isInAllowedGroup && authState !== "username") return;
-
-        router.navigate({ to: AUTH_ROUTES[authState], replace: true });
-    }, [
-        isLoading,
-        showOnboarding,
-        showAuth,
-        showUsername,
-        showHome,
-        matches,
-        router,
-    ]);
-
-    return { isLoading };
+    return { isLoading: auth.isLoading };
 }

@@ -65,3 +65,7 @@ export function getInitials(name: string) {
         .map((w) => w[0]?.toUpperCase() ?? "")
         .join("");
 }
+
+export function toTitleCase(str: string) {
+    return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}

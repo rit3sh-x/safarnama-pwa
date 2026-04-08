@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { motion, useReducedMotion, cubicBezier } from "framer-motion";
-import { Loader2Icon, ShieldCheckIcon, ArrowLeftIcon } from "lucide-react";
+import { Loader2Icon, ArrowLeftIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -45,7 +45,7 @@ export function TwoFactorView() {
         setLoading(true);
         try {
             const { error } = await authClient.twoFactor.verifyTotp({
-                code: value,
+                code: value.toString().padStart(6, "0"),
                 trustDevice: false,
             });
             if (error) {
@@ -77,12 +77,6 @@ export function TwoFactorView() {
                         subtitle="Enter the 6-digit code from your authenticator app"
                     >
                         <div className="flex flex-col gap-6">
-                            <div className="flex justify-center">
-                                <div className="rounded-full bg-primary/10 p-4">
-                                    <ShieldCheckIcon className="size-8 text-primary" />
-                                </div>
-                            </div>
-
                             <div className="flex justify-center">
                                 <InputOTP
                                     maxLength={6}

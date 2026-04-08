@@ -13,10 +13,13 @@ import { ENV } from "varlock/env";
 export const authClient = createAuthClient({
     baseURL: ENV.VITE_CONVEX_SITE_URL,
     plugins: [
+        crossDomainClient({ storagePrefix: "safarnama" }),
         twoFactorClient(),
-        crossDomainClient(),
         convexClient(),
         usernameClient(),
         organizationClient(),
     ],
+    fetchOptions: {
+        credentials: "include",
+    },
 });

@@ -1,10 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-    ShieldCheckIcon,
-    CopyIcon,
-    CheckIcon,
-    Loader2Icon,
-} from "lucide-react";
+import { ShieldCheckIcon, DownloadIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeStyling from "qr-code-styling";
 import { Switch } from "@/components/ui/switch";
@@ -43,7 +38,6 @@ export function TwoFactorToggle() {
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
     const [code, setCode] = useState("");
     const [loading, setLoading] = useState(false);
-    const [copiedBackup, setCopiedBackup] = useState(false);
 
     const qrRef = useRef<HTMLDivElement>(null);
     const qrInstance = useRef<QRCodeStyling | null>(null);
@@ -55,7 +49,6 @@ export function TwoFactorToggle() {
         setBackupCodes([]);
         setCode("");
         setLoading(false);
-        setCopiedBackup(false);
     }, []);
 
     const handleToggle = useCallback((checked: boolean) => {
@@ -95,17 +88,21 @@ export function TwoFactorToggle() {
         if (code.length < 6) return;
         setLoading(true);
         try {
-            const { error } = await authClient.twoFactor.verifyTotp({ code });
+            const { data, error } = await authClient.twoFactor.verifyTotp({
+                code: code.toString().padStart(6, "0"),
+            });
             if (error) {
                 toast.error(error.message ?? "Invalid code");
+                setLoading(false);
                 return;
             }
-            toast.success("Two-factor authentication enabled");
-            setOpen(false);
-            resetState();
+            if (data) {
+                setOpen(false);
+                resetState();
+                toast.success("Two-factor authentication enabled");
+            }
         } catch {
             toast.error("Verification failed");
-        } finally {
             setLoading(false);
         }
     }, [code, resetState]);
@@ -131,10 +128,15 @@ export function TwoFactorToggle() {
         }
     }, [password, resetState]);
 
-    const copyBackupCodes = useCallback(() => {
-        navigator.clipboard.writeText(backupCodes.join("\n"));
-        setCopiedBackup(true);
-        setTimeout(() => setCopiedBackup(false), 2000);
+    const downloadBackupCodes = useCallback(() => {
+        const content = `Safarnama - 2FA Backup Codes\n${"=".repeat(30)}\n\n${backupCodes.join("\n")}\n\nKeep these codes in a safe place.\nEach code can only be used once.`;
+        const blob = new Blob([content], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "safarnama-backup-codes.txt";
+        a.click();
+        URL.revokeObjectURL(url);
     }, [backupCodes]);
 
     useEffect(() => {
@@ -144,15 +146,18 @@ export function TwoFactorToggle() {
             width: 240,
             height: 240,
             data: totpURI,
+            type: "canvas",
             dotsOptions: {
-                type: "rounded",
+                type: "dots",
                 color: "#1a1a2e",
+                roundSize: true,
             },
             backgroundOptions: {
                 color: "#ffffff",
+                round: 0.1,
             },
             cornersSquareOptions: {
-                type: "extra-rounded",
+                type: "dot",
                 color: "#1a1a2e",
             },
             cornersDotOptions: {
@@ -162,8 +167,9 @@ export function TwoFactorToggle() {
             image: logoSrc,
             imageOptions: {
                 crossOrigin: "anonymous",
-                margin: 4,
-                imageSize: 0.35,
+                margin: 6,
+                imageSize: 0.3,
+                hideBackgroundDots: true,
             },
         });
 
@@ -291,36 +297,20 @@ export function TwoFactorToggle() {
 
                                 {backupCodes.length > 0 && (
                                     <div className="space-y-2">
-                                        <div className="flex items-center justify-between">
-                                            <p className="text-sm font-medium">
-                                                Backup Codes
-                                            </p>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-7 gap-1.5 text-xs"
-                                                onClick={copyBackupCodes}
-                                            >
-                                                {copiedBackup ? (
-                                                    <CheckIcon className="size-3" />
-                                                ) : (
-                                                    <CopyIcon className="size-3" />
-                                                )}
-                                                {copiedBackup
-                                                    ? "Copied"
-                                                    : "Copy all"}
-                                            </Button>
-                                        </div>
                                         <p className="text-xs text-muted-foreground">
-                                            Save these codes in a safe place.
-                                            You can use them to sign in if you
-                                            lose access to your authenticator.
+                                            Download your backup codes and keep
+                                            them in a safe place. You can use
+                                            them to sign in if you lose access
+                                            to your authenticator.
                                         </p>
-                                        <div className="grid grid-cols-2 gap-1.5 rounded-lg bg-muted p-3 font-mono text-xs">
-                                            {backupCodes.map((c) => (
-                                                <span key={c}>{c}</span>
-                                            ))}
-                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full gap-2"
+                                            onClick={downloadBackupCodes}
+                                        >
+                                            <DownloadIcon className="size-4" />
+                                            Download Backup Codes
+                                        </Button>
                                     </div>
                                 )}
                             </div>

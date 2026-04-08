@@ -20,8 +20,8 @@ import { Route as layouthomeSettingsRouteImport } from './routes/(layout)/(home)
 import { Route as layouthomeExpensesRouteImport } from './routes/(layout)/(home)/expenses'
 import { Route as layouthomeDashboardRouteImport } from './routes/(layout)/(home)/dashboard'
 import { Route as layouthomeBlogsRouteImport } from './routes/(layout)/(home)/blogs'
-import { Route as authSignUpCreateUsernameRouteImport } from './routes/(auth)/sign-up/create-username'
-import { Route as authSignUpCreateAccountRouteImport } from './routes/(auth)/sign-up/create-account'
+import { Route as authsignupCreateUsernameRouteImport } from './routes/(auth)/(signup)/create-username'
+import { Route as authsignupCreateAccountRouteImport } from './routes/(auth)/(signup)/create-account'
 import { Route as layoutcustomPlanTripIdRouteImport } from './routes/(layout)/(custom)/plan.$tripId'
 import { Route as layoutcustomTripsTripIdRouteRouteImport } from './routes/(layout)/(custom)/trips/$tripId/route'
 import { Route as layoutcustomPublicTripIdRouteRouteImport } from './routes/(layout)/(custom)/public/$tripId/route'
@@ -86,15 +86,15 @@ const layouthomeBlogsRoute = layouthomeBlogsRouteImport.update({
   path: '/blogs',
   getParentRoute: () => layouthomeRouteRoute,
 } as any)
-const authSignUpCreateUsernameRoute =
-  authSignUpCreateUsernameRouteImport.update({
-    id: '/(auth)/sign-up/create-username',
-    path: '/sign-up/create-username',
+const authsignupCreateUsernameRoute =
+  authsignupCreateUsernameRouteImport.update({
+    id: '/(auth)/(signup)/create-username',
+    path: '/create-username',
     getParentRoute: () => rootRouteImport,
   } as any)
-const authSignUpCreateAccountRoute = authSignUpCreateAccountRouteImport.update({
-  id: '/(auth)/sign-up/create-account',
-  path: '/sign-up/create-account',
+const authsignupCreateAccountRoute = authsignupCreateAccountRouteImport.update({
+  id: '/(auth)/(signup)/create-account',
+  path: '/create-account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const layoutcustomPlanTripIdRoute = layoutcustomPlanTripIdRouteImport.update({
@@ -162,8 +162,8 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/signin': typeof authSigninRoute
   '/two-factor': typeof authTwoFactorRoute
-  '/sign-up/create-account': typeof authSignUpCreateAccountRoute
-  '/sign-up/create-username': typeof authSignUpCreateUsernameRoute
+  '/create-account': typeof authsignupCreateAccountRoute
+  '/create-username': typeof authsignupCreateUsernameRoute
   '/blogs': typeof layouthomeBlogsRoute
   '/dashboard': typeof layouthomeDashboardRoute
   '/expenses': typeof layouthomeExpensesRoute
@@ -185,8 +185,8 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/signin': typeof authSigninRoute
   '/two-factor': typeof authTwoFactorRoute
-  '/sign-up/create-account': typeof authSignUpCreateAccountRoute
-  '/sign-up/create-username': typeof authSignUpCreateUsernameRoute
+  '/create-account': typeof authsignupCreateAccountRoute
+  '/create-username': typeof authsignupCreateUsernameRoute
   '/blogs': typeof layouthomeBlogsRoute
   '/dashboard': typeof layouthomeDashboardRoute
   '/expenses': typeof layouthomeExpensesRoute
@@ -209,8 +209,8 @@ export interface FileRoutesById {
   '/(layout)/(home)': typeof layouthomeRouteRouteWithChildren
   '/(auth)/signin': typeof authSigninRoute
   '/(auth)/two-factor': typeof authTwoFactorRoute
-  '/(auth)/sign-up/create-account': typeof authSignUpCreateAccountRoute
-  '/(auth)/sign-up/create-username': typeof authSignUpCreateUsernameRoute
+  '/(auth)/(signup)/create-account': typeof authsignupCreateAccountRoute
+  '/(auth)/(signup)/create-username': typeof authsignupCreateUsernameRoute
   '/(layout)/(home)/blogs': typeof layouthomeBlogsRoute
   '/(layout)/(home)/dashboard': typeof layouthomeDashboardRoute
   '/(layout)/(home)/expenses': typeof layouthomeExpensesRoute
@@ -234,8 +234,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signin'
     | '/two-factor'
-    | '/sign-up/create-account'
-    | '/sign-up/create-username'
+    | '/create-account'
+    | '/create-username'
     | '/blogs'
     | '/dashboard'
     | '/expenses'
@@ -257,8 +257,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signin'
     | '/two-factor'
-    | '/sign-up/create-account'
-    | '/sign-up/create-username'
+    | '/create-account'
+    | '/create-username'
     | '/blogs'
     | '/dashboard'
     | '/expenses'
@@ -280,8 +280,8 @@ export interface FileRouteTypes {
     | '/(layout)/(home)'
     | '/(auth)/signin'
     | '/(auth)/two-factor'
-    | '/(auth)/sign-up/create-account'
-    | '/(auth)/sign-up/create-username'
+    | '/(auth)/(signup)/create-account'
+    | '/(auth)/(signup)/create-username'
     | '/(layout)/(home)/blogs'
     | '/(layout)/(home)/dashboard'
     | '/(layout)/(home)/expenses'
@@ -305,8 +305,8 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   authSigninRoute: typeof authSigninRoute
   authTwoFactorRoute: typeof authTwoFactorRoute
-  authSignUpCreateAccountRoute: typeof authSignUpCreateAccountRoute
-  authSignUpCreateUsernameRoute: typeof authSignUpCreateUsernameRoute
+  authsignupCreateAccountRoute: typeof authsignupCreateAccountRoute
+  authsignupCreateUsernameRoute: typeof authsignupCreateUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -388,18 +388,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof layouthomeBlogsRouteImport
       parentRoute: typeof layouthomeRouteRoute
     }
-    '/(auth)/sign-up/create-username': {
-      id: '/(auth)/sign-up/create-username'
-      path: '/sign-up/create-username'
-      fullPath: '/sign-up/create-username'
-      preLoaderRoute: typeof authSignUpCreateUsernameRouteImport
+    '/(auth)/(signup)/create-username': {
+      id: '/(auth)/(signup)/create-username'
+      path: '/create-username'
+      fullPath: '/create-username'
+      preLoaderRoute: typeof authsignupCreateUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/(auth)/sign-up/create-account': {
-      id: '/(auth)/sign-up/create-account'
-      path: '/sign-up/create-account'
-      fullPath: '/sign-up/create-account'
-      preLoaderRoute: typeof authSignUpCreateAccountRouteImport
+    '/(auth)/(signup)/create-account': {
+      id: '/(auth)/(signup)/create-account'
+      path: '/create-account'
+      fullPath: '/create-account'
+      preLoaderRoute: typeof authsignupCreateAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(layout)/(custom)/plan/$tripId': {
@@ -572,8 +572,8 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   authSigninRoute: authSigninRoute,
   authTwoFactorRoute: authTwoFactorRoute,
-  authSignUpCreateAccountRoute: authSignUpCreateAccountRoute,
-  authSignUpCreateUsernameRoute: authSignUpCreateUsernameRoute,
+  authsignupCreateAccountRoute: authsignupCreateAccountRoute,
+  authsignupCreateUsernameRoute: authsignupCreateUsernameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

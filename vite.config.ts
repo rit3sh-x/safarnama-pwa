@@ -334,18 +334,6 @@ export default defineConfig({
                         },
                     },
                     {
-                        urlPattern: /^https:\/\/unpkg\.com\/.*/i,
-                        handler: "CacheFirst",
-                        options: {
-                            cacheName: "cdn-libs",
-                            expiration: {
-                                maxEntries: 30,
-                                maxAgeSeconds: ONE_YEAR,
-                            },
-                            cacheableResponse: { statuses: [0, 200] },
-                        },
-                    },
-                    {
                         urlPattern: /^https:\/\/cdnjs\.cloudflare\.com\/.*/i,
                         handler: "CacheFirst",
                         options: {
@@ -502,5 +490,19 @@ export default defineConfig({
     server: {
         port: 3000,
         strictPort: true,
+        host: "0.0.0.0",
+        proxy: {
+            "/api/auth": {
+                target: ENV.VITE_CONVEX_SITE_URL,
+                changeOrigin: true,
+                secure: true,
+                cookieDomainRewrite: "localhost",
+            },
+        },
+    },
+    preview: {
+        port: 4000,
+        strictPort: true,
+        host: "0.0.0.0",
     },
 });
