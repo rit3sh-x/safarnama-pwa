@@ -9,13 +9,26 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { normalizeHref } from "@/modules/blog/lib/utils";
 
 export function LinkButton() {
     const { editor } = useEditorStore();
     const [href, setHref] = useState("");
 
     const applyLink = () => {
-        editor?.chain().focus().extendMarkRange("link").setLink({ href }).run();
+        const normalizedHref = normalizeHref(href);
+
+        if (!normalizedHref) {
+            editor?.chain().focus().extendMarkRange("link").unsetLink().run();
+            return;
+        }
+
+        editor
+            ?.chain()
+            .focus()
+            .extendMarkRange("link")
+            .setLink({ href: normalizedHref })
+            .run();
     };
 
     return (
@@ -33,7 +46,7 @@ export function LinkButton() {
                 <Link2Icon className="size-4" />
             </PopoverTrigger>
             <PopoverContent
-                className="flex w-72 items-center gap-2 p-2"
+                className="flex w-72 flex-row items-center gap-2 p-2"
                 align="start"
                 sideOffset={8}
             >

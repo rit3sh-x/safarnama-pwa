@@ -62,11 +62,7 @@ export const useSaveBlog = () => {
             title: args.title,
             content: args.content,
             coverImage: args.coverImage,
-            status: args.status,
-            publishedAt:
-                args.status === "published"
-                    ? (currentTripBlog?.publishedAt ?? now)
-                    : undefined,
+            publishedAt: currentTripBlog?.publishedAt ?? now,
             updatedAt: now,
             tripTitle: currentTripBlog?.tripTitle ?? "",
             tripDestination: currentTripBlog?.tripDestination ?? "",
@@ -89,6 +85,7 @@ export const useSaveBlog = () => {
                 {
                     ...optimisticBlog,
                     isOwner: true,
+                    tripIsPublic: existing?.tripIsPublic ?? false,
                     avgRating: existing?.avgRating ?? 0,
                     totalRatings: existing?.totalRatings ?? 0,
                     distribution:

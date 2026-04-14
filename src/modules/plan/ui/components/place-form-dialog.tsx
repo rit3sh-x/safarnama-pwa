@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
-import { Loader2, ChevronDownIcon } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNominatimSearch } from "../../hooks/use-places";
-import { Calendar } from "@/components/ui/calendar";
 import {
     Command,
     CommandInput,
@@ -12,11 +11,6 @@ import {
     CommandGroup,
     CommandItem,
 } from "@/components/ui/command";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
 import {
     Dialog,
     DialogContent,
@@ -32,9 +26,7 @@ import {
 } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Doc } from "@backend/dataModel";
 
 const placeSchema = z.object({
@@ -63,8 +55,6 @@ export interface PlaceFormOutput {
     address?: string;
     lat?: number;
     lng?: number;
-    placeTime?: number;
-    endTime?: number;
     osmId?: string;
 }
 
@@ -80,7 +70,6 @@ interface PlaceFormDialogProps {
         address?: string;
     } | null;
     isSaving?: boolean;
-    tripEndDate?: number;
 }
 
 export function PlaceFormDialog({
@@ -90,7 +79,6 @@ export function PlaceFormDialog({
     place,
     prefillCoords,
     isSaving = false,
-    tripEndDate,
 }: PlaceFormDialogProps) {
     const {
         results: searchResults,
@@ -100,15 +88,6 @@ export function PlaceFormDialog({
     } = useNominatimSearch();
     const [searchQuery, setSearchQuery] = useState("");
     const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-    const now = new Date();
-    const nowTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-    const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
-    const [timeFrom, setTimeFrom] = useState(nowTime);
-    const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
-    const [timeTo, setTimeTo] = useState(nowTime);
-    const [openFromCal, setOpenFromCal] = useState(false);
-    const [openToCal, setOpenToCal] = useState(false);
 
     const isEditing = !!place;
 
@@ -134,35 +113,12 @@ export function PlaceFormDialog({
             const lat = v.lat ? parseFloat(v.lat) : undefined;
             const lng = v.lng ? parseFloat(v.lng) : undefined;
 
-            const buildTimestamp = (
-                date: Date | undefined,
-                time: string
-            ): number | undefined => {
-                if (!date && !time) return undefined;
-                const base = date ? new Date(date) : new Date();
-                if (time && time.length >= 5) {
-                    const [h, m] = time.split(":").map(Number);
-                    base.setHours(h, m, 0, 0);
-                } else {
-                    base.setHours(0, 0, 0, 0);
-                }
-                return base.getTime();
-            };
-
             onSave({
                 name: v.name.trim(),
                 description: v.description.trim() || undefined,
                 address: v.address.trim() || undefined,
                 lat: lat && !isNaN(lat) ? lat : undefined,
                 lng: lng && !isNaN(lng) ? lng : undefined,
-                placeTime:
-                    dateFrom || timeFrom
-                        ? buildTimestamp(dateFrom, timeFrom)
-                        : undefined,
-                endTime:
-                    dateTo || timeTo
-                        ? buildTimestamp(dateTo, timeTo)
-                        : undefined,
                 osmId: v.osmId || undefined,
             });
         },
@@ -212,14 +168,6 @@ export function PlaceFormDialog({
         setSearchQuery("");
         clearSearch();
     };
-
-    const timeError =
-        dateFrom &&
-        dateTo &&
-        timeFrom &&
-        timeTo &&
-        dateFrom.toDateString() === dateTo.toDateString() &&
-        timeTo <= timeFrom;
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -272,14 +220,24 @@ export function PlaceFormDialog({
                                                                         result
                                                                     )
                                                                 }
-                                                                className="flex flex-col items-start gap-1"
+                                                                className="flex w-full min-w-0 flex-col items-start gap-1"
                                                             >
-                                                                <span className="text-xs font-medium">
+                                                                <span
+                                                                    className="block w-full truncate text-xs font-medium"
+                                                                    title={
+                                                                        result.name
+                                                                    }
+                                                                >
                                                                     {
                                                                         result.name
                                                                     }
                                                                 </span>
-                                                                <span className="truncate text-xs text-muted-foreground">
+                                                                <span
+                                                                    className="block w-full truncate text-xs text-muted-foreground"
+                                                                    title={
+                                                                        result.address
+                                                                    }
+                                                                >
                                                                     {
                                                                         result.address
                                                                     }
@@ -425,148 +383,6 @@ export function PlaceFormDialog({
                                 )}
                             </form.Field>
                         </div>
-
-                        <div className="flex gap-3">
-                            <div className="flex flex-1 flex-col gap-1.5">
-                                <Label className="px-1 text-xs">
-                                    Start date
-                                </Label>
-                                <Popover
-                                    open={openFromCal}
-                                    onOpenChange={setOpenFromCal}
-                                >
-                                    <PopoverTrigger
-                                        render={
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-between text-xs font-normal"
-                                            />
-                                        }
-                                    >
-                                        {dateFrom
-                                            ? dateFrom.toLocaleDateString(
-                                                  "en-US",
-                                                  {
-                                                      day: "2-digit",
-                                                      month: "short",
-                                                      year: "numeric",
-                                                  }
-                                              )
-                                            : "Pick a date"}
-                                        <ChevronDownIcon className="size-3.5" />
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                        className="w-auto overflow-hidden p-0"
-                                        align="start"
-                                    >
-                                        <Calendar
-                                            mode="single"
-                                            selected={dateFrom}
-                                            onSelect={(date) => {
-                                                setDateFrom(date);
-                                                setOpenFromCal(false);
-                                            }}
-                                            disabled={{
-                                                before: new Date(),
-                                                ...(tripEndDate
-                                                    ? {
-                                                          after: new Date(
-                                                              tripEndDate
-                                                          ),
-                                                      }
-                                                    : {}),
-                                            }}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                                <Label className="invisible px-1 text-xs">
-                                    Time
-                                </Label>
-                                <Input
-                                    type="time"
-                                    value={timeFrom}
-                                    onChange={(e) =>
-                                        setTimeFrom(e.target.value)
-                                    }
-                                    className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3">
-                            <div className="flex flex-1 flex-col gap-1.5">
-                                <Label className="px-1 text-xs">End date</Label>
-                                <Popover
-                                    open={openToCal}
-                                    onOpenChange={setOpenToCal}
-                                >
-                                    <PopoverTrigger
-                                        render={
-                                            <Button
-                                                variant="outline"
-                                                className="w-full justify-between text-xs font-normal"
-                                            />
-                                        }
-                                    >
-                                        {dateTo
-                                            ? dateTo.toLocaleDateString(
-                                                  "en-US",
-                                                  {
-                                                      day: "2-digit",
-                                                      month: "short",
-                                                      year: "numeric",
-                                                  }
-                                              )
-                                            : "Pick a date"}
-                                        <ChevronDownIcon className="size-3.5" />
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                        className="w-auto overflow-hidden p-0"
-                                        align="start"
-                                    >
-                                        <Calendar
-                                            mode="single"
-                                            selected={dateTo}
-                                            onSelect={(date) => {
-                                                setDateTo(date);
-                                                setOpenToCal(false);
-                                            }}
-                                            disabled={{
-                                                before: dateFrom ?? new Date(),
-                                                ...(tripEndDate
-                                                    ? {
-                                                          after: new Date(
-                                                              tripEndDate
-                                                          ),
-                                                      }
-                                                    : {}),
-                                            }}
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                                <Label className="invisible px-1 text-xs">
-                                    Time
-                                </Label>
-                                <Input
-                                    type="time"
-                                    value={timeTo}
-                                    onChange={(e) => setTimeTo(e.target.value)}
-                                    className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                                />
-                            </div>
-                        </div>
-
-                        {timeError && (
-                            <Alert variant="destructive" className="py-2">
-                                <AlertDescription className="text-xs">
-                                    End time must be after start time
-                                </AlertDescription>
-                            </Alert>
-                        )}
                     </div>
                 </div>
 
@@ -581,9 +397,7 @@ export function PlaceFormDialog({
                     <Button
                         className="flex-1"
                         onClick={form.handleSubmit}
-                        disabled={
-                            isSaving || form.state.isSubmitting || !!timeError
-                        }
+                        disabled={isSaving || form.state.isSubmitting}
                     >
                         {isSaving || form.state.isSubmitting ? (
                             <>

@@ -31,7 +31,7 @@ import { Route as layoutcustomBlogsBlogIdIndexRouteImport } from './routes/(layo
 import { Route as layoutcustomTripsTripIdInfoRouteImport } from './routes/(layout)/(custom)/trips/$tripId/info'
 import { Route as layoutcustomTripsTripIdExpensesRouteImport } from './routes/(layout)/(custom)/trips/$tripId/expenses'
 import { Route as layoutcustomTripsTripIdChatRouteImport } from './routes/(layout)/(custom)/trips/$tripId/chat'
-import { Route as layoutcustomBlogsBlogIdEditRouteImport } from './routes/(layout)/(custom)/blogs/$blogId/edit'
+import { Route as layoutcustomBlogsEditTripIdRouteImport } from './routes/(layout)/(custom)/blogs/edit/$tripId'
 
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
@@ -150,11 +150,11 @@ const layoutcustomTripsTripIdChatRoute =
     path: '/chat',
     getParentRoute: () => layoutcustomTripsTripIdRouteRoute,
   } as any)
-const layoutcustomBlogsBlogIdEditRoute =
-  layoutcustomBlogsBlogIdEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => layoutcustomBlogsBlogIdRouteRoute,
+const layoutcustomBlogsEditTripIdRoute =
+  layoutcustomBlogsEditTripIdRouteImport.update({
+    id: '/(custom)/blogs/edit/$tripId',
+    path: '/blogs/edit/$tripId',
+    getParentRoute: () => layoutRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -173,7 +173,7 @@ export interface FileRoutesByFullPath {
   '/public/$tripId': typeof layoutcustomPublicTripIdRouteRouteWithChildren
   '/trips/$tripId': typeof layoutcustomTripsTripIdRouteRouteWithChildren
   '/plan/$tripId': typeof layoutcustomPlanTripIdRoute
-  '/blogs/$blogId/edit': typeof layoutcustomBlogsBlogIdEditRoute
+  '/blogs/edit/$tripId': typeof layoutcustomBlogsEditTripIdRoute
   '/trips/$tripId/chat': typeof layoutcustomTripsTripIdChatRoute
   '/trips/$tripId/expenses': typeof layoutcustomTripsTripIdExpensesRoute
   '/trips/$tripId/info': typeof layoutcustomTripsTripIdInfoRoute
@@ -194,7 +194,7 @@ export interface FileRoutesByTo {
   '/trips': typeof layouthomeTripsRoute
   '/trips/$tripId': typeof layoutcustomTripsTripIdRouteRouteWithChildren
   '/plan/$tripId': typeof layoutcustomPlanTripIdRoute
-  '/blogs/$blogId/edit': typeof layoutcustomBlogsBlogIdEditRoute
+  '/blogs/edit/$tripId': typeof layoutcustomBlogsEditTripIdRoute
   '/trips/$tripId/chat': typeof layoutcustomTripsTripIdChatRoute
   '/trips/$tripId/expenses': typeof layoutcustomTripsTripIdExpensesRoute
   '/trips/$tripId/info': typeof layoutcustomTripsTripIdInfoRoute
@@ -220,7 +220,7 @@ export interface FileRoutesById {
   '/(layout)/(custom)/public/$tripId': typeof layoutcustomPublicTripIdRouteRouteWithChildren
   '/(layout)/(custom)/trips/$tripId': typeof layoutcustomTripsTripIdRouteRouteWithChildren
   '/(layout)/(custom)/plan/$tripId': typeof layoutcustomPlanTripIdRoute
-  '/(layout)/(custom)/blogs/$blogId/edit': typeof layoutcustomBlogsBlogIdEditRoute
+  '/(layout)/(custom)/blogs/edit/$tripId': typeof layoutcustomBlogsEditTripIdRoute
   '/(layout)/(custom)/trips/$tripId/chat': typeof layoutcustomTripsTripIdChatRoute
   '/(layout)/(custom)/trips/$tripId/expenses': typeof layoutcustomTripsTripIdExpensesRoute
   '/(layout)/(custom)/trips/$tripId/info': typeof layoutcustomTripsTripIdInfoRoute
@@ -245,7 +245,7 @@ export interface FileRouteTypes {
     | '/public/$tripId'
     | '/trips/$tripId'
     | '/plan/$tripId'
-    | '/blogs/$blogId/edit'
+    | '/blogs/edit/$tripId'
     | '/trips/$tripId/chat'
     | '/trips/$tripId/expenses'
     | '/trips/$tripId/info'
@@ -266,7 +266,7 @@ export interface FileRouteTypes {
     | '/trips'
     | '/trips/$tripId'
     | '/plan/$tripId'
-    | '/blogs/$blogId/edit'
+    | '/blogs/edit/$tripId'
     | '/trips/$tripId/chat'
     | '/trips/$tripId/expenses'
     | '/trips/$tripId/info'
@@ -291,7 +291,7 @@ export interface FileRouteTypes {
     | '/(layout)/(custom)/public/$tripId'
     | '/(layout)/(custom)/trips/$tripId'
     | '/(layout)/(custom)/plan/$tripId'
-    | '/(layout)/(custom)/blogs/$blogId/edit'
+    | '/(layout)/(custom)/blogs/edit/$tripId'
     | '/(layout)/(custom)/trips/$tripId/chat'
     | '/(layout)/(custom)/trips/$tripId/expenses'
     | '/(layout)/(custom)/trips/$tripId/info'
@@ -465,12 +465,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof layoutcustomTripsTripIdChatRouteImport
       parentRoute: typeof layoutcustomTripsTripIdRouteRoute
     }
-    '/(layout)/(custom)/blogs/$blogId/edit': {
-      id: '/(layout)/(custom)/blogs/$blogId/edit'
-      path: '/edit'
-      fullPath: '/blogs/$blogId/edit'
-      preLoaderRoute: typeof layoutcustomBlogsBlogIdEditRouteImport
-      parentRoute: typeof layoutcustomBlogsBlogIdRouteRoute
+    '/(layout)/(custom)/blogs/edit/$tripId': {
+      id: '/(layout)/(custom)/blogs/edit/$tripId'
+      path: '/blogs/edit/$tripId'
+      fullPath: '/blogs/edit/$tripId'
+      preLoaderRoute: typeof layoutcustomBlogsEditTripIdRouteImport
+      parentRoute: typeof layoutRouteRoute
     }
   }
 }
@@ -496,13 +496,11 @@ const layouthomeRouteRouteWithChildren = layouthomeRouteRoute._addFileChildren(
 )
 
 interface layoutcustomBlogsBlogIdRouteRouteChildren {
-  layoutcustomBlogsBlogIdEditRoute: typeof layoutcustomBlogsBlogIdEditRoute
   layoutcustomBlogsBlogIdIndexRoute: typeof layoutcustomBlogsBlogIdIndexRoute
 }
 
 const layoutcustomBlogsBlogIdRouteRouteChildren: layoutcustomBlogsBlogIdRouteRouteChildren =
   {
-    layoutcustomBlogsBlogIdEditRoute: layoutcustomBlogsBlogIdEditRoute,
     layoutcustomBlogsBlogIdIndexRoute: layoutcustomBlogsBlogIdIndexRoute,
   }
 
@@ -549,6 +547,7 @@ interface layoutRouteRouteChildren {
   layoutcustomPublicTripIdRouteRoute: typeof layoutcustomPublicTripIdRouteRouteWithChildren
   layoutcustomTripsTripIdRouteRoute: typeof layoutcustomTripsTripIdRouteRouteWithChildren
   layoutcustomPlanTripIdRoute: typeof layoutcustomPlanTripIdRoute
+  layoutcustomBlogsEditTripIdRoute: typeof layoutcustomBlogsEditTripIdRoute
 }
 
 const layoutRouteRouteChildren: layoutRouteRouteChildren = {
@@ -560,6 +559,7 @@ const layoutRouteRouteChildren: layoutRouteRouteChildren = {
   layoutcustomTripsTripIdRouteRoute:
     layoutcustomTripsTripIdRouteRouteWithChildren,
   layoutcustomPlanTripIdRoute: layoutcustomPlanTripIdRoute,
+  layoutcustomBlogsEditTripIdRoute: layoutcustomBlogsEditTripIdRoute,
 }
 
 const layoutRouteRouteWithChildren = layoutRouteRoute._addFileChildren(

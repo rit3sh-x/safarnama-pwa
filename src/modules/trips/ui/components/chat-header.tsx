@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAtomValue, useSetAtom } from "jotai";
 import { selectedTripAtom, tripPanelViewAtom } from "../../atoms";
-import { useBlogByTrip, useSaveBlog } from "@/modules/blog/hooks/use-blogs";
 import { useNavigate } from "@tanstack/react-router";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatHeaderProps {
     name: string;
@@ -44,32 +44,41 @@ export function ChatHeader({
     showBack = true,
 }: ChatHeaderProps) {
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
     const initials = getInitials(name);
     const { bg: bgColor, text: textColor } = stringToHex(tripId);
     const panelView = useAtomValue(tripPanelViewAtom);
     const setPanelView = useSetAtom(tripPanelViewAtom);
     const selectedTrip = useAtomValue(selectedTripAtom);
     const isOwner = selectedTrip?.role === "owner";
-    const { blog } = useBlogByTrip(tripId);
-    const { mutate: saveBlog } = useSaveBlog();
 
-    const handleWriteBlog = async () => {
-        if (blog) {
+    const goToInfo = () => {
+        if (isMobile) {
             navigate({
-                to: "/blogs/$blogId/edit",
-                params: { blogId: blog._id },
+                to: "/trips/$tripId/info",
+                params: { tripId },
             });
         } else {
-            const blogId = await saveBlog({
-                tripId,
-                title: "Untitled",
-                content: "",
-                status: "draft",
-            });
-            if (blogId) {
-                navigate({ to: "/blogs/$blogId/edit", params: { blogId } });
-            }
+            setPanelView("info");
         }
+    };
+
+    const goToExpenses = () => {
+        if (isMobile) {
+            navigate({
+                to: "/trips/$tripId/expenses",
+                params: { tripId },
+            });
+        } else {
+            setPanelView("expenses");
+        }
+    };
+
+    const handleWriteBlog = () => {
+        navigate({
+            to: "/blogs/edit/$tripId",
+            params: { tripId },
+        });
     };
 
     return (
@@ -119,13 +128,13 @@ export function ChatHeader({
                     </div>
                 </button>
 
-                {panelView !== "expenses" && (
+                {(isMobile || panelView !== "expenses") && (
                     <Button
                         variant="ghost"
                         size="icon"
                         aria-label="Expenses"
                         className="size-10 shrink-0"
-                        onClick={() => setPanelView("expenses")}
+                        onClick={goToExpenses}
                     >
                         <WalletIcon className="size-5 text-foreground" />
                     </Button>
@@ -149,7 +158,7 @@ export function ChatHeader({
                         sideOffset={4}
                         className="w-64"
                     >
-                        <DropdownMenuItem onClick={() => setPanelView("info")}>
+                        <DropdownMenuItem onClick={goToInfo}>
                             <InfoIcon className="size-4" />
                             Trip Info
                         </DropdownMenuItem>
@@ -174,7 +183,7 @@ export function ChatHeader({
                             <DropdownMenuItem onClick={onSearchPress}>
                                 <SearchIcon className="size-4" />
                                 Search Messages
-                                <span className="ml-auto text-xs text-muted-foreground">
+                                <span className="mt-auto ml-auto text-[10px] text-muted-foreground">
                                     Ctrl+Shift+F
                                 </span>
                             </DropdownMenuItem>

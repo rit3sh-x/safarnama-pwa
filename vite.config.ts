@@ -296,12 +296,12 @@ export default defineConfig({
                     },
                     {
                         urlPattern:
-                            /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\/.*/i,
+                            /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\/(light_all|dark_all|rastertiles)\/.*\.png(\?.*)?$/i,
                         handler: "CacheFirst",
                         options: {
-                            cacheName: "map-tiles",
+                            cacheName: "carto-raster-tiles",
                             expiration: {
-                                maxEntries: 1000,
+                                maxEntries: 2000,
                                 maxAgeSeconds: ONE_MONTH,
                             },
                             cacheableResponse: { statuses: [0, 200] },
@@ -309,12 +309,12 @@ export default defineConfig({
                     },
                     {
                         urlPattern:
-                            /^https:\/\/[a-c]\.tile\.openstreetmap\.org\/.*/i,
+                            /^https:\/\/[a-c]\.tile\.openstreetmap\.org\/.*\.png(\?.*)?$/i,
                         handler: "CacheFirst",
                         options: {
-                            cacheName: "map-tiles",
+                            cacheName: "osm-tiles",
                             expiration: {
-                                maxEntries: 1000,
+                                maxEntries: 2000,
                                 maxAgeSeconds: ONE_MONTH,
                             },
                             cacheableResponse: { statuses: [0, 200] },
@@ -425,6 +425,19 @@ export default defineConfig({
                             cacheableResponse: { statuses: [0, 200] },
                         },
                     },
+                    {
+                        urlPattern:
+                            /^https:\/\/router\.project-osrm\.org\/route\/.*/i,
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "osrm-routing-cache",
+                            expiration: {
+                                maxEntries: 200,
+                                maxAgeSeconds: ONE_MONTH,
+                            },
+                            cacheableResponse: { statuses: [0, 200] },
+                        },
+                    },
                 ],
             },
         }),
@@ -474,15 +487,24 @@ export default defineConfig({
                     )
                         return "vendor-dates";
 
-                    if (
-                        id.includes("/leaflet/") ||
-                        id.includes("/react-leaflet/")
-                    )
-                        return "vendor-maps";
+                    if (id.includes("/leaflet/")) return "vendor-maps";
 
                     if (id.includes("/lucide-react/")) return "vendor-icons";
 
                     if (id.includes("/@base-ui/")) return "vendor-base-ui";
+
+                    if (id.includes("/@dnd-kit/")) return "vendor-dnd";
+
+                    if (id.includes("/@tanstack/react-form/"))
+                        return "vendor-form";
+
+                    if (id.includes("/zod/")) return "vendor-zod";
+
+                    if (
+                        id.includes("/convex/") ||
+                        id.includes("/convex-helpers/")
+                    )
+                        return "vendor-convex";
                 },
             },
         },
@@ -491,18 +513,12 @@ export default defineConfig({
         port: 3000,
         strictPort: true,
         host: "0.0.0.0",
-        proxy: {
-            "/api/auth": {
-                target: ENV.VITE_CONVEX_SITE_URL,
-                changeOrigin: true,
-                secure: true,
-                cookieDomainRewrite: "localhost",
-            },
-        },
+        allowedHosts: true,
     },
     preview: {
         port: 4000,
         strictPort: true,
         host: "0.0.0.0",
+        allowedHosts: true,
     },
 });

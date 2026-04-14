@@ -9,17 +9,18 @@ import {
     crossDomainClient,
 } from "@convex-dev/better-auth/client/plugins";
 import { ENV } from "varlock/env";
+import { storage } from "./auth-utils";
 
 export const authClient = createAuthClient({
     baseURL: ENV.VITE_CONVEX_SITE_URL,
     plugins: [
-        crossDomainClient({ storagePrefix: "safarnama" }),
         twoFactorClient(),
         convexClient(),
         usernameClient(),
         organizationClient(),
+        crossDomainClient({
+            storagePrefix: "safarnama",
+            storage,
+        }),
     ],
-    fetchOptions: {
-        credentials: "include",
-    },
 });

@@ -6,65 +6,75 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 
-const headings = [
-    { label: "Normal text", value: 0 },
-    { label: "Heading 1", value: 1 },
-    { label: "Heading 2", value: 2 },
-    { label: "Heading 3", value: 3 },
+type HeadingLevel = 0 | 1 | 2 | 3;
+
+const HEADINGS: Array<{
+    label: string;
+    value: HeadingLevel;
+    previewClass: string;
+}> = [
+    { label: "Normal text", value: 0, previewClass: "text-sm" },
+    { label: "Heading 1", value: 1, previewClass: "text-lg font-bold" },
+    { label: "Heading 2", value: 2, previewClass: "text-base font-semibold" },
+    { label: "Heading 3", value: 3, previewClass: "text-sm font-semibold" },
 ];
 
 export function HeadingPicker() {
     const { editor } = useEditorStore();
 
-    const current = (() => {
-        for (let level = 1; level <= 3; level++) {
-            if (editor?.isActive("heading", { level }))
-                return `Heading ${level}`;
+    const applyHeading = (value: HeadingLevel) => {
+        if (!editor) return;
+
+        if (value === 0) {
+            editor.chain().focus().setParagraph().run();
+            return;
         }
-        return "Normal";
+
+        editor.chain().focus().toggleHeading({ level: value }).run();
+    };
+
+    const activeLevel: HeadingLevel = (() => {
+        for (const level of [1, 2, 3] as const) {
+            if (editor?.isActive("heading", { level })) return level;
+        }
+        return 0;
     })();
+
+    const currentLabel =
+        HEADINGS.find((h) => h.value === activeLevel)?.label ?? "Normal text";
 
     return (
         <Popover>
             <PopoverTrigger className="flex h-8 w-32 shrink-0 items-center justify-between rounded-md px-2 text-sm transition-colors hover:bg-muted">
-                <span className="truncate">{current}</span>
+                <span className="truncate">{currentLabel}</span>
                 <ChevronDownIcon className="ml-1 size-3.5 shrink-0 opacity-50" />
             </PopoverTrigger>
             <PopoverContent
-                className="w-44 gap-1 p-1"
+                className="w-48 gap-1 p-1"
                 align="start"
                 sideOffset={8}
             >
-                {headings.map(({ label, value }) => (
-                    <button
-                        key={value}
-                        onClick={() => {
-                            if (value === 0) {
-                                editor?.chain().focus().setParagraph().run();
-                            } else {
-                                editor
-                                    ?.chain()
-                                    .focus()
-                                    .toggleHeading({
-                                        level: value as 1 | 2 | 3,
-                                    })
-                                    .run();
-                            }
-                        }}
-                        className={cn(
-                            "flex w-full items-center rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-muted",
-                            (value === 0 && !editor?.isActive("heading")) ||
-                                editor?.isActive("heading", {
-                                    level: value as 1 | 2 | 3,
-                                })
-                                ? "bg-muted font-medium"
-                                : ""
-                        )}
-                    >
-                        {label}
-                    </button>
-                ))}
+                {HEADINGS.map(({ label, value, previewClass }) => {
+                    const isActive = value === activeLevel;
+                    return (
+                        <Button
+                            key={value}
+                            type="button"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => applyHeading(value)}
+                            aria-pressed={isActive}
+                            className={cn(
+                                "flex w-full items-center rounded-md bg-background px-2 py-1.5 text-foreground transition-colors hover:bg-muted/30",
+                                previewClass,
+                                isActive && "bg-muted/30 font-medium"
+                            )}
+                        >
+                            {label}
+                        </Button>
+                    );
+                })}
             </PopoverContent>
         </Popover>
     );

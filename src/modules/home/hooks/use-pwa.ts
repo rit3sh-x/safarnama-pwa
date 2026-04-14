@@ -14,6 +14,10 @@ function getInitialInstalled() {
     );
 }
 
+export function isRunningAsPWA() {
+    return getInitialInstalled();
+}
+
 export function usePWAInstall() {
     const [deferredPrompt, setDeferredPrompt] =
         useState<BeforeInstallPromptEvent | null>(null);

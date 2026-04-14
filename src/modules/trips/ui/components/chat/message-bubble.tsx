@@ -33,6 +33,7 @@ import {
     SmileIcon,
     CheckCheckIcon,
     Clock3Icon,
+    HandIcon,
     LogOutIcon,
     MailPlusIcon,
     ReceiptIcon,
@@ -316,6 +317,7 @@ function SystemMessage({ message }: { message: ChatMessage }) {
         member_left: { icon: LogOutIcon, color: "text-muted-foreground" },
         member_invited: { icon: MailPlusIcon, color: "text-blue-500" },
         expense_event: { icon: ReceiptIcon, color: "text-amber-500" },
+        join_request: { icon: HandIcon, color: "text-violet-500" },
     };
 
     const config = iconMap[message.original.type ?? ""] ?? null;

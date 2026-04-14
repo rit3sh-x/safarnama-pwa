@@ -15,8 +15,6 @@ export const add = mutation({
         address: v.optional(v.string()),
         imageUrl: v.optional(v.string()),
         osmId: v.optional(v.string()),
-        placeTime: v.optional(v.number()),
-        endTime: v.optional(v.number()),
     },
     handler: async (ctx, { tripId, dayId, ...fields }) => {
         await requireTripMember(ctx, tripId);
@@ -100,8 +98,6 @@ export const update = mutation({
         address: v.optional(v.string()),
         imageUrl: v.optional(v.string()),
         osmId: v.optional(v.string()),
-        placeTime: v.optional(v.number()),
-        endTime: v.optional(v.number()),
     },
     handler: async (ctx, { placeId, ...fields }) => {
         const place = await getOrThrow(ctx, placeId, "Place");

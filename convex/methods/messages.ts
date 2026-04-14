@@ -272,15 +272,15 @@ export const addReaction = mutation({
 
         const existing = await ctx.db
             .query("reaction")
-            .withIndex("messageId_userId_emoji", (q) =>
-                q
-                    .eq("messageId", messageId)
-                    .eq("userId", user._id)
-                    .eq("emoji", emoji)
+            .withIndex("messageId_userId", (q) =>
+                q.eq("messageId", messageId).eq("userId", user._id)
             )
             .unique();
 
-        if (existing) return existing._id;
+        if (existing) {
+            if (existing.emoji === emoji) return existing._id;
+            await ctx.db.delete(existing._id);
+        }
 
         return ctx.db.insert("reaction", {
             messageId,
@@ -303,15 +303,12 @@ export const removeReaction = mutation({
 
         const existing = await ctx.db
             .query("reaction")
-            .withIndex("messageId_userId_emoji", (q) =>
-                q
-                    .eq("messageId", messageId)
-                    .eq("userId", user._id)
-                    .eq("emoji", emoji)
+            .withIndex("messageId_userId", (q) =>
+                q.eq("messageId", messageId).eq("userId", user._id)
             )
             .unique();
 
-        if (!existing)
+        if (!existing || existing.emoji !== emoji)
             throw new ConvexError({
                 code: "NOT_FOUND",
                 message: "Reaction not found",

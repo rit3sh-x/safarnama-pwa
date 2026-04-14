@@ -1,5 +1,11 @@
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { ArrowLeftIcon, CalendarIcon, PencilIcon } from "lucide-react";
+import {
+    ArrowLeftIcon,
+    CalendarIcon,
+    ChevronRightIcon,
+    PencilIcon,
+} from "lucide-react";
+import { useSetAtom } from "jotai";
 import { useBlog } from "../../hooks/use-blogs";
 import { Editor } from "../components/editor";
 import { BlogRatingSection } from "../components/blog-rating-section";
@@ -7,6 +13,9 @@ import { CommentSection } from "../components/comments/comment-section";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { getInitials, stringToHex } from "@/lib/utils";
+import { publicTripPreviewAtom } from "@/modules/trips/atoms";
 import type { Id } from "@backend/dataModel";
 
 interface BlogViewerViewProps {
@@ -16,7 +25,22 @@ interface BlogViewerViewProps {
 export function BlogViewerView({ blogId }: BlogViewerViewProps) {
     const router = useRouter();
     const navigate = useNavigate();
+    const isMobile = useIsMobile();
+    const setPublicPreview = useSetAtom(publicTripPreviewAtom);
     const { blog, isLoading } = useBlog(blogId);
+
+    const openTrip = () => {
+        if (!blog) return;
+        setPublicPreview(blog.tripId);
+        if (isMobile) {
+            navigate({
+                to: "/trips/$tripId/info",
+                params: { tripId: blog.tripId },
+            });
+        } else {
+            navigate({ to: "/trips" });
+        }
+    };
 
     if (isLoading) {
         return (
@@ -59,20 +83,28 @@ export function BlogViewerView({ blogId }: BlogViewerViewProps) {
 
     return (
         <div className="flex h-dvh flex-col bg-background">
-            <div className="flex items-center justify-between border-b border-border px-3 py-2">
-                <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+                <div className="flex min-w-0 items-center gap-2">
                     <Button
                         aria-label="Go back"
                         variant="ghost"
                         size="icon"
-                        className="size-9"
+                        className="size-9 shrink-0"
                         onClick={() => router.history.back()}
                     >
                         <ArrowLeftIcon className="size-4" />
                     </Button>
-                    <span className="truncate text-sm font-medium text-muted-foreground">
-                        {blog.tripTitle}
-                    </span>
+                    {blog.tripIsPublic ? (
+                        <TripGroupPill
+                            tripId={blog.tripId}
+                            tripTitle={blog.tripTitle}
+                            onClick={openTrip}
+                        />
+                    ) : (
+                        <span className="truncate text-sm font-medium text-muted-foreground">
+                            {blog.tripTitle}
+                        </span>
+                    )}
                 </div>
                 {blog.isOwner && (
                     <Button
@@ -81,8 +113,8 @@ export function BlogViewerView({ blogId }: BlogViewerViewProps) {
                         className="gap-1.5"
                         onClick={() =>
                             navigate({
-                                to: "/blogs/$blogId/edit",
-                                params: { blogId: blog._id },
+                                to: "/blogs/edit/$tripId",
+                                params: { tripId: blog.tripId },
                             })
                         }
                     >
@@ -129,5 +161,42 @@ export function BlogViewerView({ blogId }: BlogViewerViewProps) {
                 </div>
             </div>
         </div>
+    );
+}
+
+function TripGroupPill({
+    tripId,
+    tripTitle,
+    onClick,
+}: {
+    tripId: Id<"trip">;
+    tripTitle: string;
+    onClick: () => void;
+}) {
+    const { bg, text } = stringToHex(tripId);
+    const initials = getInitials(tripTitle) || "T";
+
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label={`View trip: ${tripTitle}`}
+            className="group flex min-w-0 items-center gap-2 rounded-full border border-border bg-muted/30 py-1 pr-2 pl-1 transition-all duration-200 hover:border-primary/40 hover:bg-muted/60 active:scale-[0.97]"
+        >
+            <span
+                className="flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tracking-wide"
+                style={{ backgroundColor: bg, color: text }}
+                aria-hidden
+            >
+                {initials}
+            </span>
+            <span className="truncate text-xs font-medium text-foreground">
+                {tripTitle}
+            </span>
+            <ChevronRightIcon
+                className="size-3 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-foreground"
+                aria-hidden
+            />
+        </button>
     );
 }

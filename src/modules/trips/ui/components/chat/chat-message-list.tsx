@@ -145,8 +145,9 @@ export function ChatMessageList({
     }
 
     return (
-        <div className="relative min-h-0 flex-1">
+        <div className="relative min-h-0 flex-1 overflow-hidden">
             <Virtuoso
+                className="h-full w-full"
                 ref={virtuosoRef}
                 totalCount={messages.length}
                 firstItemIndex={firstItemIndex}
@@ -159,8 +160,8 @@ export function ChatMessageList({
                 startReached={handleStartReached}
                 followOutput="smooth"
                 atBottomStateChange={setAtBottom}
-                atBottomThreshold={100}
-                className="h-full"
+                atBottomThreshold={4}
+                style={{ height: "100%" }}
                 increaseViewportBy={{ top: 200, bottom: 200 }}
                 components={{
                     Header: canLoadMore
@@ -174,6 +175,7 @@ export function ChatMessageList({
                               </div>
                           )
                         : undefined,
+                    Footer: () => <div className="h-3" />,
                 }}
             />
 
@@ -187,8 +189,8 @@ export function ChatMessageList({
 
 function MessageListSkeleton() {
     return (
-        <div className="space-y-4 px-4 py-6">
-            {Array.from({ length: 8 }).map((_, i) => (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-4 py-6">
+            {Array.from({ length: 12 }).map((_, i) => (
                 <div
                     key={i}
                     className={cn(
@@ -197,12 +199,14 @@ function MessageListSkeleton() {
                     )}
                 >
                     {i % 3 !== 0 && (
-                        <Skeleton className="size-8 rounded-full" />
+                        <Skeleton className="size-8 shrink-0 rounded-full" />
                     )}
                     <Skeleton
                         className={cn(
                             "h-10 rounded-2xl",
-                            i % 2 === 0 ? "w-48" : "w-64"
+                            i % 2 === 0
+                                ? "w-48 max-w-[60%]"
+                                : "w-64 max-w-[75%]"
                         )}
                     />
                 </div>

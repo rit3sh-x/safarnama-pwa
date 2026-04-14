@@ -39,6 +39,8 @@ interface DayCardProps {
     onRemovePlace?: (placeId: Id<"place">) => void;
     onUpdateTitle?: (dayId: Id<"day">, title: string) => void;
     onUpdateNote?: (dayId: Id<"day">, note: string) => void;
+    isExpanded?: boolean;
+    onToggleExpand?: (dayId: Id<"day">) => void;
 }
 
 export function DayCard({
@@ -53,6 +55,8 @@ export function DayCard({
     onRemovePlace,
     onUpdateTitle,
     onUpdateNote,
+    isExpanded,
+    onToggleExpand,
 }: DayCardProps) {
     const { setNodeRef, isOver } = useDroppable({ id: `day-${day._id}` });
     const [editOpen, setEditOpen] = useState(false);
@@ -70,7 +74,21 @@ export function DayCard({
             )}
         >
             <Accordion
-                defaultValue={[String(index)]}
+                multiple={false}
+                value={
+                    isExpanded !== undefined
+                        ? isExpanded
+                            ? [String(index)]
+                            : []
+                        : undefined
+                }
+                defaultValue={
+                    isExpanded === undefined ? [String(index)] : undefined
+                }
+                onValueChange={(value) => {
+                    void value;
+                    if (onToggleExpand) onToggleExpand(day._id);
+                }}
                 className="rounded-none border-0"
             >
                 <AccordionItem

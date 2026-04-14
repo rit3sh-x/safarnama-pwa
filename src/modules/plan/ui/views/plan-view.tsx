@@ -1,46 +1,44 @@
-import { useState, useCallback, useMemo } from "react";
-import {
-    PanelLeftClose,
-    PanelLeftOpen,
-    PanelRightClose,
-    PanelRightOpen,
-    MapIcon,
-    ListIcon,
-    X,
-} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Menu, Route as RouteIcon } from "lucide-react";
 import { MapView } from "../components/map-view";
-import { DayPlanSidebar } from "../components/day-plan-sidebar";
-import { PlacesSidebar } from "../components/places-sidebar";
+import { UnifiedSidebar, SIDEBAR_WIDTH } from "../components/unified-sidebar";
 import { PlaceInspector } from "../components/place-inspector";
-import { DayDetailPanel } from "../components/day-detail-panel";
 import { PlanHeader } from "../components/plan-header";
 import { PinButton } from "../components/pin-button";
+import { RoutePlannerCredenza } from "../components/route-planner-credenza";
+import { RouteChips } from "../components/route-chips";
 import {
     PlaceFormDialog,
     type PlaceFormOutput,
 } from "../components/place-form-dialog";
+import { usePlanState } from "../../hooks/use-plan-state";
+import { useLocation } from "../../hooks/use-location";
+import {
+    loadAllPaths,
+    removePath,
+    type PathEntry,
+} from "../../hooks/use-route-planner";
 import { useSettings } from "@/modules/settings/hooks/use-settings";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTripDetails } from "@/modules/trips/hooks/use-trips";
 import {
+    useAddPlaceToDay,
     useDays,
+    useRemovePlaceFromDay,
     useUpdateDay,
-    useUpsertDay,
     useUpdateDayNote,
+    useUpsertDay,
 } from "../../hooks/use-days";
 import {
-    usePlaces,
     useAddPlaceWithPhoto,
-    useUpdatePlace,
+    usePlaces,
     useRemovePlace,
     useReorderPlaces,
+    useUpdatePlace,
 } from "../../hooks/use-places";
-import { useAddPlaceToDay, useRemovePlaceFromDay } from "../../hooks/use-days";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
-import type L from "leaflet";
 import type { Doc, Id } from "@backend/dataModel";
 
 interface PlanViewProps {
@@ -69,26 +67,36 @@ export function PlanView({ tripId }: PlanViewProps) {
 
     const isLoading = isTripLoading || isDaysLoading || isPlacesLoading;
 
-    const [selectedDayId, setSelectedDayId] = useState<Id<"day"> | null>(null);
-    const [selectedPlaceId, setSelectedPlaceId] = useState<Id<"place"> | null>(
-        null
+    const s = usePlanState();
+
+    const { coords: userCoords } = useLocation();
+    const userLocation = useMemo(
+        () =>
+            userCoords
+                ? { lat: userCoords.latitude, lng: userCoords.longitude }
+                : null,
+        [userCoords]
     );
-    const [showDayDetail, setShowDayDetail] = useState<Doc<"day"> | null>(null);
-    const [leftCollapsed, setLeftCollapsed] = useState(false);
-    const [rightCollapsed, setRightCollapsed] = useState(false);
-    const [mobileSidebar, setMobileSidebar] = useState<"left" | "right" | null>(
-        null
+
+    const [plottedPaths, setPlottedPaths] = useState<PathEntry[]>(() =>
+        loadAllPaths(tripId)
     );
-    const [fitKey, setFitKey] = useState(0);
-    const [pinMode, setPinMode] = useState(false);
-    const [showPlaceForm, setShowPlaceForm] = useState(false);
-    const [editingPlace, setEditingPlace] = useState<Doc<"place"> | null>(null);
-    const [prefillCoords, setPrefillCoords] = useState<{
-        lat: number;
-        lng: number;
-        name?: string;
-        address?: string;
-    } | null>(null);
+
+    useEffect(() => {
+        setPlottedPaths(loadAllPaths(tripId));
+    }, [tripId]);
+
+    const handlePathAdded = useCallback(() => {
+        setPlottedPaths(loadAllPaths(tripId));
+    }, [tripId]);
+
+    const handlePathRemoved = useCallback(
+        (pathId: string) => {
+            removePath(tripId, pathId);
+            setPlottedPaths(loadAllPaths(tripId));
+        },
+        [tripId]
+    );
 
     const placesByDay = useMemo(() => {
         const map: Record<string, Doc<"place">[]> = {};
@@ -108,61 +116,43 @@ export function PlanView({ tripId }: PlanViewProps) {
     );
 
     const dayPlaces = useMemo(() => {
-        if (!selectedDayId) return [];
-        return (placesByDay[selectedDayId] ?? []).filter((p) => p.lat && p.lng);
-    }, [selectedDayId, placesByDay]);
+        if (!s.selectedDayId) return [];
+        return (placesByDay[s.selectedDayId] ?? []).filter(
+            (p) => p.lat && p.lng
+        );
+    }, [s.selectedDayId, placesByDay]);
 
     const dayOrderMap = useMemo(() => {
-        if (!selectedDayId) return {};
-        const dayP = placesByDay[selectedDayId] ?? [];
+        if (!s.selectedDayId) return {};
+        const dayP = placesByDay[s.selectedDayId] ?? [];
         const map: Record<string, number[]> = {};
         dayP.forEach((p, i) => {
             if (!map[p._id]) map[p._id] = [];
             map[p._id].push(i + 1);
         });
         return map;
-    }, [selectedDayId, placesByDay]);
+    }, [s.selectedDayId, placesByDay]);
 
-    const selectedPlace = selectedPlaceId
-        ? (places.find((p) => p._id === selectedPlaceId) ?? null)
+    const selectedPlace = s.selectedPlaceId
+        ? (places.find((p) => p._id === s.selectedPlaceId) ?? null)
         : null;
 
-    const selectedDay = selectedDayId
-        ? (days.find((d) => d._id === selectedDayId) ?? null)
+    const selectedDay = s.selectedDayId
+        ? (days.find((d) => d._id === s.selectedDayId) ?? null)
         : null;
-
-    const handleSelectDay = useCallback(
-        (dayId: Id<"day">) => {
-            const changed = dayId !== selectedDayId;
-            setSelectedDayId(dayId);
-            if (changed) setFitKey((k) => k + 1);
-            setMobileSidebar(null);
-        },
-        [selectedDayId]
-    );
-
-    const handleSelectPlace = useCallback((placeId: Id<"place"> | null) => {
-        setSelectedPlaceId(placeId);
-        if (placeId) setShowDayDetail(null);
-    }, []);
-
-    const handleMarkerClick = useCallback((placeId: Id<"place">) => {
-        setSelectedPlaceId((prev) => (prev === placeId ? null : placeId));
-    }, []);
 
     const handleMapClick = useCallback(
-        (e?: L.LeafletMouseEvent) => {
-            if (pinMode && e) {
-                const { lat, lng } = e.latlng;
-                setPrefillCoords({ lat, lng });
-                setEditingPlace(null);
-                setShowPlaceForm(true);
-                setPinMode(false);
+        (e: { lng: number; lat: number }) => {
+            if (s.pinMode) {
+                s.openPlaceForm({
+                    prefill: { lat: e.lat, lng: e.lng },
+                });
+                s.setPinMode(false);
                 return;
             }
-            setSelectedPlaceId(null);
+            s.setSelectedPlaceId(null);
         },
-        [pinMode]
+        [s]
     );
 
     const handleEnsureDay = useCallback(
@@ -211,55 +201,33 @@ export function PlanView({ tripId }: PlanViewProps) {
     const handleDeletePlace = useCallback(
         (placeId: Id<"place">) => {
             removePlace({ placeId });
-            if (selectedPlaceId === placeId) setSelectedPlaceId(null);
+            if (s.selectedPlaceId === placeId) s.setSelectedPlaceId(null);
         },
-        [removePlace, selectedPlaceId]
+        [removePlace, s]
     );
-
-    const handleAddPlace = useCallback(() => {
-        setEditingPlace(null);
-        setPrefillCoords(null);
-        setShowPlaceForm(true);
-    }, []);
-
-    const handleEditPlace = useCallback((place: Doc<"place">) => {
-        setEditingPlace(place);
-        setPrefillCoords(null);
-        setShowPlaceForm(true);
-    }, []);
 
     const handleSavePlace = useCallback(
         (data: PlaceFormOutput) => {
-            if (editingPlace) {
+            if (s.editingPlace) {
                 updatePlace({
-                    placeId: editingPlace._id,
+                    placeId: s.editingPlace._id,
                     ...data,
                 });
             } else {
                 addPlace({
                     tripId,
-                    dayId: selectedDayId ?? undefined,
+                    dayId: s.selectedDayId ?? undefined,
                     name: data.name,
                     description: data.description,
                     address: data.address,
                     lat: data.lat,
                     lng: data.lng,
                     osmId: data.osmId,
-                    placeTime: data.placeTime,
-                    endTime: data.endTime,
                 });
             }
-            setShowPlaceForm(false);
-            setEditingPlace(null);
+            s.closePlaceForm();
         },
-        [editingPlace, tripId, selectedDayId, addPlace, updatePlace]
-    );
-
-    const handleUpdatePlace = useCallback(
-        (placeId: Id<"place">, data: Partial<Doc<"place">>) => {
-            updatePlace({ placeId, ...data });
-        },
-        [updatePlace]
+        [s, tripId, addPlace, updatePlace]
     );
 
     if (isLoading) {
@@ -278,286 +246,162 @@ export function PlanView({ tripId }: PlanViewProps) {
         );
     }
 
-    const LEFT_WIDTH = 340;
-    const RIGHT_WIDTH = 320;
+    const sidebarOffset = isMobile
+        ? 0
+        : s.sidebarCollapsed
+          ? 44 + 16
+          : SIDEBAR_WIDTH + 26;
 
     return (
         <div className="flex h-full w-full flex-col overflow-hidden">
-            {typedTrip && <PlanHeader trip={typedTrip} tripId={tripId} />}
+            <PlanHeader trip={typedTrip} tripId={tripId} />
             <div className="relative min-h-0 flex-1">
                 <div
                     className={cn(
                         "absolute inset-0 z-0",
-                        pinMode && "[&_.leaflet-container]:cursor-crosshair"
+                        s.pinMode &&
+                            "[&_.leaflet-container]:cursor-crosshair! [&_.leaflet-grab]:cursor-crosshair!"
                     )}
                 >
                     <MapView
                         places={mapPlaces}
                         dayPlaces={dayPlaces}
-                        selectedPlaceId={selectedPlaceId}
-                        onMarkerClick={handleMarkerClick}
+                        routes={plottedPaths}
+                        userLocation={userLocation}
+                        selectedPlaceId={s.selectedPlaceId}
+                        onMarkerClick={s.handleMarkerClick}
                         onMapClick={handleMapClick}
-                        center={[48.8566, 2.3522]}
+                        center={[2.3522, 48.8566]}
                         zoom={defaultZoom}
-                        fitKey={fitKey}
+                        fitKey={s.fitKey}
                         dayOrderMap={dayOrderMap}
-                        leftWidth={leftCollapsed ? 0 : LEFT_WIDTH}
-                        rightWidth={rightCollapsed ? 0 : RIGHT_WIDTH}
+                        leftWidth={sidebarOffset}
+                        rightWidth={0}
                         hasInspector={!!selectedPlace}
                     />
                 </div>
 
-                <div className="pointer-events-none absolute inset-y-2.5 left-2.5 z-20 hidden md:block">
-                    <Button
-                        variant={leftCollapsed ? "default" : "secondary"}
-                        size="icon"
-                        aria-label={
-                            leftCollapsed
-                                ? "Open day plan sidebar"
-                                : "Close day plan sidebar"
-                        }
-                        className={cn(
-                            "pointer-events-auto absolute top-3 z-10 size-9 rounded-lg",
-                            leftCollapsed ? "left-0" : "-right-11"
-                        )}
-                        onClick={() => setLeftCollapsed((c) => !c)}
-                    >
-                        {leftCollapsed ? (
-                            <PanelLeftOpen className="size-4" />
-                        ) : (
-                            <PanelLeftClose className="size-4" />
-                        )}
-                    </Button>
+                <RouteChips
+                    routes={plottedPaths}
+                    places={places}
+                    onRemove={handlePathRemoved}
+                    leftOffset={sidebarOffset === 0 ? 16 : sidebarOffset}
+                />
 
-                    <div
-                        className={cn(
-                            "h-full transition-all duration-300",
-                            leftCollapsed ? "w-0 opacity-0" : "opacity-100"
-                        )}
-                        style={{ width: leftCollapsed ? 0 : LEFT_WIDTH }}
-                    >
-                        {!leftCollapsed && (
-                            <DayPlanSidebar
-                                trip={typedTrip}
-                                days={days}
-                                placesByDay={placesByDay}
-                                selectedDayId={selectedDayId}
-                                selectedPlaceId={selectedPlaceId}
-                                onSelectDay={handleSelectDay}
-                                onSelectPlace={(id) => handleSelectPlace(id)}
-                                onRemovePlace={handleRemoveFromDay}
-                                onReorderPlaces={handleReorderPlaces}
-                                onMovePlaceToDay={handleAssignToDay}
-                                onUpdateDayTitle={handleUpdateDayTitle}
-                                onUpdateDayNote={handleUpdateDayNote}
-                                onEnsureDay={handleEnsureDay}
-                                className="h-full"
-                            />
-                        )}
+                <UnifiedSidebar
+                    trip={typedTrip}
+                    days={days}
+                    places={places}
+                    placesByDay={placesByDay}
+                    selectedDayId={s.selectedDayId}
+                    selectedPlaceId={s.selectedPlaceId}
+                    isMobile={isMobile}
+                    collapsed={s.sidebarCollapsed}
+                    mobileOpen={s.mobileSheetOpen}
+                    onCollapsedChange={s.setSidebarCollapsed}
+                    onMobileOpenChange={s.setMobileSheetOpen}
+                    onSelectDay={s.handleSelectDay}
+                    onSelectPlace={s.handleSelectPlace}
+                    onAddPlace={() => s.openPlaceForm()}
+                    onDeletePlace={handleDeletePlace}
+                    onRemoveFromDay={handleRemoveFromDay}
+                    onReorderPlaces={handleReorderPlaces}
+                    onUpdateDayTitle={handleUpdateDayTitle}
+                    onUpdateDayNote={handleUpdateDayNote}
+                    onEnsureDay={handleEnsureDay}
+                />
+
+                {isMobile && !s.mobileSheetOpen && (
+                    <div className="absolute top-3 left-3 z-30 md:hidden">
+                        <Button
+                            variant="secondary"
+                            className="gap-1.5 shadow-lg"
+                            onClick={() => s.setMobileSheetOpen(true)}
+                        >
+                            <Menu className="size-4" />
+                            Plan
+                        </Button>
                     </div>
-                </div>
-
-                <div className="pointer-events-none absolute inset-y-2.5 right-2.5 z-20 hidden md:block">
-                    <Button
-                        variant={rightCollapsed ? "default" : "secondary"}
-                        size="icon"
-                        aria-label={
-                            rightCollapsed
-                                ? "Open places sidebar"
-                                : "Close places sidebar"
-                        }
-                        className={cn(
-                            "pointer-events-auto absolute top-3 z-10 size-9 rounded-lg",
-                            rightCollapsed ? "right-0" : "-left-11"
-                        )}
-                        onClick={() => setRightCollapsed((c) => !c)}
-                    >
-                        {rightCollapsed ? (
-                            <PanelRightOpen className="size-4" />
-                        ) : (
-                            <PanelRightClose className="size-4" />
-                        )}
-                    </Button>
-
-                    <div
-                        className={cn(
-                            "h-full transition-all duration-300",
-                            rightCollapsed ? "w-0 opacity-0" : "opacity-100"
-                        )}
-                        style={{ width: rightCollapsed ? 0 : RIGHT_WIDTH }}
-                    >
-                        {!rightCollapsed && (
-                            <PlacesSidebar
-                                places={places}
-                                days={days}
-                                selectedDayId={selectedDayId}
-                                selectedPlaceId={selectedPlaceId}
-                                onSelectPlace={handleSelectPlace}
-                                onAddPlace={handleAddPlace}
-                                onDeletePlace={handleDeletePlace}
-                                onAssignToDay={handleAssignToDay}
-                                className="h-full"
-                            />
-                        )}
-                    </div>
-                </div>
+                )}
 
                 <div
                     className="pointer-events-none absolute bottom-6 z-30 transition-all duration-300"
                     style={{
-                        right:
-                            rightCollapsed || isMobile ? 16 : RIGHT_WIDTH + 26,
+                        left: sidebarOffset === 0 ? 16 : sidebarOffset,
                     }}
                 >
-                    <PinButton
-                        active={pinMode}
-                        onClick={() => setPinMode((p) => !p)}
-                    />
+                    <Button
+                        variant={s.showRoutePlanner ? "secondary" : "default"}
+                        size="icon"
+                        aria-label="Plan a route"
+                        className={cn(
+                            "pointer-events-auto size-11 rounded-full shadow-lg transition-all",
+                            s.showRoutePlanner &&
+                                "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
+                        )}
+                        onClick={() =>
+                            s.setShowRoutePlanner(!s.showRoutePlanner)
+                        }
+                    >
+                        <RouteIcon className="size-5" />
+                    </Button>
                 </div>
 
-                {isMobile && !mobileSidebar && (
-                    <div className="absolute inset-x-3 top-3 z-30 flex justify-between md:hidden">
-                        <Button
-                            variant="secondary"
-                            className="gap-1.5 shadow-lg"
-                            onClick={() => setMobileSidebar("left")}
-                        >
-                            <MapIcon className="size-4" />
-                            Plan
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            className="gap-1.5 shadow-lg"
-                            onClick={() => setMobileSidebar("right")}
-                        >
-                            <ListIcon className="size-4" />
-                            Places
-                        </Button>
-                    </div>
-                )}
-
-                <Sheet
-                    open={mobileSidebar !== null}
-                    onOpenChange={(open) => !open && setMobileSidebar(null)}
-                >
-                    <SheetContent
-                        side="left"
-                        className="w-full max-w-sm p-0 sm:max-w-md [&>button]:hidden"
-                    >
-                        <div className="flex h-full flex-col">
-                            <div className="flex items-center justify-between border-b px-4 py-3">
-                                <span className="text-sm font-semibold">
-                                    {mobileSidebar === "left"
-                                        ? "Day Plan"
-                                        : "Places"}
-                                </span>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    aria-label="Close sidebar"
-                                    className="size-8 rounded-full"
-                                    onClick={() => setMobileSidebar(null)}
-                                >
-                                    <X className="size-4" />
-                                </Button>
-                            </div>
-                            <div className="min-h-0 flex-1 overflow-hidden">
-                                {mobileSidebar === "left" ? (
-                                    <DayPlanSidebar
-                                        trip={typedTrip}
-                                        days={days}
-                                        placesByDay={placesByDay}
-                                        selectedDayId={selectedDayId}
-                                        selectedPlaceId={selectedPlaceId}
-                                        onSelectDay={handleSelectDay}
-                                        onSelectPlace={(id) => {
-                                            handleSelectPlace(id);
-                                            setMobileSidebar(null);
-                                        }}
-                                        onRemovePlace={handleRemoveFromDay}
-                                        onReorderPlaces={handleReorderPlaces}
-                                        onMovePlaceToDay={handleAssignToDay}
-                                        onUpdateDayTitle={handleUpdateDayTitle}
-                                        onUpdateDayNote={handleUpdateDayNote}
-                                        onEnsureDay={handleEnsureDay}
-                                        className="h-full rounded-none border-0 shadow-none"
-                                    />
-                                ) : (
-                                    <PlacesSidebar
-                                        places={places}
-                                        days={days}
-                                        selectedDayId={selectedDayId}
-                                        selectedPlaceId={selectedPlaceId}
-                                        isMobile
-                                        onSelectPlace={(id) => {
-                                            handleSelectPlace(id);
-                                            setMobileSidebar(null);
-                                        }}
-                                        onAddPlace={handleAddPlace}
-                                        onDeletePlace={handleDeletePlace}
-                                        onAssignToDay={handleAssignToDay}
-                                        className="h-full rounded-none border-0 shadow-none"
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    </SheetContent>
-                </Sheet>
-
-                {showDayDetail && !selectedPlace && (
-                    <DayDetailPanel
-                        day={showDayDetail}
-                        dayIndex={days.findIndex(
-                            (d) => d._id === showDayDetail._id
-                        )}
-                        placeCount={
-                            (placesByDay[showDayDetail._id] ?? []).length
-                        }
-                        lat={dayPlaces[0]?.lat}
-                        lng={dayPlaces[0]?.lng}
-                        onClose={() => setShowDayDetail(null)}
+                <div className="pointer-events-none absolute right-4 bottom-6 z-30">
+                    <PinButton
+                        active={s.pinMode}
+                        onClick={() => s.setPinMode(!s.pinMode)}
                     />
-                )}
+                </div>
 
                 {selectedPlace && (
                     <PlaceInspector
                         place={selectedPlace}
                         day={selectedDay}
                         isAssignedToDay={
-                            !!selectedDayId &&
-                            (placesByDay[selectedDayId] ?? []).some(
+                            !!s.selectedDayId &&
+                            (placesByDay[s.selectedDayId] ?? []).some(
                                 (p) => p._id === selectedPlace._id
                             )
                         }
-                        onClose={() => setSelectedPlaceId(null)}
-                        onEdit={() => handleEditPlace(selectedPlace)}
+                        onClose={() => s.setSelectedPlaceId(null)}
+                        onEdit={() => s.openPlaceForm({ place: selectedPlace })}
                         onDelete={() => handleDeletePlace(selectedPlace._id)}
                         onAssignToDay={
-                            selectedDayId
+                            s.selectedDayId
                                 ? (placeId) =>
-                                      handleAssignToDay(placeId, selectedDayId)
+                                      handleAssignToDay(
+                                          placeId,
+                                          s.selectedDayId!
+                                      )
                                 : undefined
                         }
                         onRemoveFromDay={handleRemoveFromDay}
-                        onUpdatePlace={handleUpdatePlace}
+                        onUpdatePlace={(placeId, data) =>
+                            updatePlace({ placeId, ...data })
+                        }
                     />
                 )}
 
                 <PlaceFormDialog
-                    open={showPlaceForm}
+                    open={s.showPlaceForm}
                     onOpenChange={(open) => {
-                        setShowPlaceForm(open);
-                        if (!open) {
-                            setEditingPlace(null);
-                            setPrefillCoords(null);
-                            setPinMode(false);
-                        }
+                        s.setShowPlaceForm(open);
+                        if (!open) s.closePlaceForm();
                     }}
                     onSave={handleSavePlace}
-                    place={editingPlace}
-                    prefillCoords={prefillCoords}
+                    place={s.editingPlace}
+                    prefillCoords={s.prefillCoords}
                     isSaving={isAddingPlace}
-                    tripEndDate={typedTrip?.endDate}
+                />
+
+                <RoutePlannerCredenza
+                    open={s.showRoutePlanner}
+                    onOpenChange={s.setShowRoutePlanner}
+                    tripId={tripId}
+                    places={places}
+                    onPathAdded={handlePathAdded}
+                    onPathRemoved={handlePathRemoved}
                 />
             </div>
         </div>

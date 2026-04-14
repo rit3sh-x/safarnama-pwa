@@ -287,26 +287,23 @@ export const listPublic = query({
         const user = await requireUserAccess(ctx);
         const s = search?.trim();
 
-        if (!s) {
-            return {
-                page: [],
-                isDone: true,
-                continueCursor: "",
-            };
-        }
-
         const userTripMembers = await ctx.db
             .query("tripMember")
             .withIndex("userId", (q) => q.eq("userId", user._id))
             .collect();
         const userTripIds = new Set(userTripMembers.map((m) => m.tripId));
 
-        const trips = await ctx.db
-            .query("trip")
-            .withSearchIndex("search", (q) =>
-                q.search("searchText", s).eq("isPublic", true)
-            )
-            .paginate(paginationOpts);
+        const trips = s
+            ? await ctx.db
+                  .query("trip")
+                  .withSearchIndex("search", (q) =>
+                      q.search("searchText", s).eq("isPublic", true)
+                  )
+                  .paginate(paginationOpts)
+            : await ctx.db
+                  .query("trip")
+                  .withIndex("isPublic", (q) => q.eq("isPublic", true))
+                  .paginate(paginationOpts);
 
         trips.page = trips.page.filter((t) => !userTripIds.has(t._id));
 
@@ -573,10 +570,7 @@ export const dashboardSummary = query({
             type: m.type,
         }));
 
-        const blogs = await ctx.db
-            .query("blog")
-            .filter((q) => q.eq(q.field("status"), "published"))
-            .collect();
+        const blogs = await ctx.db.query("blog").collect();
         const userBlogCount = blogs.filter((b) =>
             trips.some((t) => t._id === b.tripId)
         ).length;

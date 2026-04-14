@@ -11,6 +11,7 @@ import {
     CredenzaContent,
     CredenzaHeader,
     CredenzaTitle,
+    CredenzaDescription,
     CredenzaBody,
 } from "@/components/ui/credenza";
 import { GlobeIcon } from "lucide-react";
@@ -27,7 +28,7 @@ export function DashboardView() {
                     <Button
                         variant="outline"
                         size="sm"
-                        className="gap-1.5"
+                        className="w-full"
                         onClick={() => setWidgetsOpen(true)}
                     >
                         <GlobeIcon className="size-3.5" />
@@ -67,6 +68,10 @@ export function DashboardView() {
                     <CredenzaContent>
                         <CredenzaHeader>
                             <CredenzaTitle>Currency & Timezone</CredenzaTitle>
+                            <CredenzaDescription>
+                                Check exchange rates and compare world clocks at
+                                a glance.
+                            </CredenzaDescription>
                         </CredenzaHeader>
                         <CredenzaBody className="space-y-4 pb-6">
                             <CurrencyWidget />

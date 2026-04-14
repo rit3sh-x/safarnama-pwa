@@ -54,7 +54,7 @@ export function TripsView() {
 
             <Button
                 onClick={() => setShowCreate(true)}
-                className="fixed right-4 bottom-4 h-14 w-14 rounded-full shadow-lg md:absolute"
+                className="fixed right-8 bottom-20 h-14 w-14 rounded-full shadow-lg md:absolute md:right-4 md:bottom-4"
             >
                 <Plus className="h-6 w-6" />
             </Button>

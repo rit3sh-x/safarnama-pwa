@@ -33,6 +33,7 @@ import { SettingsFooter } from "../components/settings-footer";
 
 export function SettingsView() {
     const [signOutDialogOpen, setSignOutDialogOpen] = useState(false);
+    const [isSigningOut, setIsSigningOut] = useState(false);
     const {
         temperatureUnit,
         setTemperatureUnit,
@@ -151,7 +152,7 @@ export function SettingsView() {
 
                     <div className="space-y-2">
                         <Label>Map style</Label>
-                        <div className="flex gap-1 rounded-xl bg-muted p-1">
+                        <div className="flex gap-1 rounded-full bg-muted p-1">
                             {(
                                 [
                                     {
@@ -223,7 +224,16 @@ export function SettingsView() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => signOut({})}>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setIsSigningOut(true);
+                                setSignOutDialogOpen(false);
+                                signOut({
+                                    onSuccess: () => setIsSigningOut(false),
+                                });
+                            }}
+                            disabled={isSigningOut}
+                        >
                             Sign Out
                         </AlertDialogAction>
                     </AlertDialogFooter>

@@ -1,10 +1,9 @@
+import type { MouseEvent } from "react";
 import { useCallback, useState } from "react";
 import { motion, useReducedMotion, cubicBezier } from "framer-motion";
 import { Loader2Icon, ArrowLeftIcon } from "lucide-react";
-import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 
-import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import {
     InputOTP,
@@ -12,6 +11,7 @@ import {
     InputOTPSlot,
     InputOTPSeparator,
 } from "@/components/ui/input-otp";
+import { verifyTotp } from "../../hooks/auth-handlers";
 import { AuthContainer } from "../components/elements";
 
 export function TwoFactorView() {
@@ -40,30 +40,27 @@ export function TwoFactorView() {
               },
           };
 
-    const verify = useCallback(async (value: string) => {
-        if (value.length < 6) return;
-        setLoading(true);
-        try {
-            const { error } = await authClient.twoFactor.verifyTotp({
-                code: value.toString().padStart(6, "0"),
-                trustDevice: false,
-            });
-            if (error) {
-                toast.error(error.message ?? "Invalid code, please try again.");
-                setCode("");
-                return;
-            }
-        } catch {
-            toast.error("Verification failed. Please try again.");
-            setCode("");
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const handleVerify = useCallback(
+        async (value?: string | MouseEvent<HTMLButtonElement>) => {
+            const nextCode = typeof value === "string" ? value : code;
 
-    const handleVerify = useCallback(() => {
-        verify(code);
-    }, [code, verify]);
+            if (nextCode.length < 6) return;
+
+            setLoading(true);
+            try {
+                const { error } = await verifyTotp({ code: nextCode });
+                if (error) {
+                    setCode("");
+                    return;
+                }
+            } catch {
+                setCode("");
+            } finally {
+                setLoading(false);
+            }
+        },
+        [code]
+    );
 
     return (
         <div className="grid h-full grid-cols-1 md:grid-cols-2">
@@ -82,7 +79,7 @@ export function TwoFactorView() {
                                     maxLength={6}
                                     value={code}
                                     onChange={setCode}
-                                    onComplete={verify}
+                                    onComplete={handleVerify}
                                     disabled={loading}
                                     autoFocus
                                 >

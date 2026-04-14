@@ -81,7 +81,7 @@ export const userSendRequest = mutation({
             });
         }
 
-        return ctx.db.insert("joinRequest", {
+        const requestId = await ctx.db.insert("joinRequest", {
             tripId: trip._id,
             orgId: trip.orgId,
             userId: user._id,
@@ -89,8 +89,18 @@ export const userSendRequest = mutation({
             status: "pending",
             type: "user_request",
             tripTitle: trip.title,
-            userName: user.name ?? "",
+            userName: user.name,
         });
+
+        const requesterName = user.name;
+        await ctx.db.insert("message", {
+            tripId: trip._id,
+            senderId: user._id,
+            type: "join_request",
+            content: `${requesterName} requested to join the trip`,
+        });
+
+        return requestId;
     },
 });
 
@@ -250,12 +260,12 @@ export const userReviewInvite = mutation({
 
 export const adminSendInvite = mutation({
     args: {
-        orgId: v.id("organization"),
+        orgId: v.string(),
         emails: v.array(v.string()),
         message: v.optional(v.string()),
     },
     handler: async (ctx, { orgId, emails, message }) => {
-        const trip = await getTripFromOrgId(ctx, orgId);
+        const trip = await getTripFromOrgId(ctx, orgId as Id<"organization">);
         const { user: sender } = await requireTripPermission(
             ctx,
             trip._id,

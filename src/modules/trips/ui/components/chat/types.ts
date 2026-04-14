@@ -46,7 +46,8 @@ export function toChatMessage(msg: Message): ChatMessage {
         msg.type === "member_joined" ||
         msg.type === "member_left" ||
         msg.type === "member_invited" ||
-        msg.type === "expense_event";
+        msg.type === "expense_event" ||
+        msg.type === "join_request";
     const isOptimistic = !!(msg as MessageWithOptimistic)._optimistic;
 
     return {

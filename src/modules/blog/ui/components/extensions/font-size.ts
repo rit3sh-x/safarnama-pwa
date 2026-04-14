@@ -1,6 +1,21 @@
 import { Extension } from "@tiptap/react";
 import "@tiptap/extension-text-style";
 
+function normalizeFontSize(fontSize: string): string | null {
+    const raw = fontSize.trim().toLowerCase();
+    if (!raw) return null;
+
+    if (raw.endsWith("px")) {
+        const n = Number.parseInt(raw.replace("px", ""), 10);
+        if (!Number.isFinite(n) || n <= 0) return null;
+        return `${n}px`;
+    }
+
+    const n = Number.parseInt(raw, 10);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    return `${n}px`;
+}
+
 declare module "@tiptap/core" {
     interface Commands<ReturnType> {
         fontSize: {
@@ -31,8 +46,11 @@ export const FontSizeExtension = Extension.create({
                             };
                         },
                         parseHTML: (element) => {
+                            const normalized = normalizeFontSize(
+                                element.style.fontSize ?? ""
+                            );
                             return {
-                                fontSize: element.style.fontSize,
+                                fontSize: normalized,
                             };
                         },
                     },
@@ -45,7 +63,16 @@ export const FontSizeExtension = Extension.create({
             setFontSize:
                 (fontSize) =>
                 ({ chain }) => {
-                    return chain().setMark("textStyle", { fontSize }).run();
+                    const normalized = normalizeFontSize(fontSize);
+                    if (!normalized) {
+                        return chain()
+                            .setMark("textStyle", { fontSize: null })
+                            .removeEmptyTextStyle()
+                            .run();
+                    }
+                    return chain()
+                        .setMark("textStyle", { fontSize: normalized })
+                        .run();
                 },
             unsetFontSize:
                 () =>

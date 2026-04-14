@@ -13,7 +13,7 @@ export function ScrollToBottomButton({
     if (!visible) return null;
 
     return (
-        <div className="pointer-events-none absolute right-4 bottom-24 z-20 flex justify-end md:right-8">
+        <div className="pointer-events-none absolute right-4 bottom-4 z-20 flex justify-end">
             <Button
                 variant="outline"
                 size="icon"

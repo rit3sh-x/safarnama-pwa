@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
 import { TaskItem } from "@tiptap/extension-task-item";
 import { TaskList } from "@tiptap/extension-task-list";
 import { Table } from "@tiptap/extension-table";
@@ -16,10 +16,9 @@ import { Placeholder } from "@tiptap/extension-placeholder";
 import { useEditorStore } from "../../hooks/use-editor-store";
 import { FontSizeExtension } from "./extensions/font-size";
 import { LineHeightExtension } from "./extensions/line-height";
-import { ProfanityHighlightExtension } from "./extensions/profanity-highlight";
 
 interface EditorProps {
-    initialContent?: string;
+    initialContent?: string | JSONContent;
     editable?: boolean;
 }
 
@@ -47,9 +46,13 @@ export const Editor = ({ initialContent, editable = true }: EditorProps) => {
         extensions: [
             StarterKit.configure({
                 link: {
-                    openOnClick: false,
-                    defaultProtocol: "https://",
+                    openOnClick: !editable,
+                    defaultProtocol: "https",
                     autolink: true,
+                    HTMLAttributes: {
+                        target: "_blank",
+                        rel: "noopener noreferrer nofollow",
+                    },
                 },
             }),
             FontSizeExtension,
@@ -86,7 +89,6 @@ export const Editor = ({ initialContent, editable = true }: EditorProps) => {
             Placeholder.configure({
                 placeholder: "Start writing your story...",
             }),
-            ProfanityHighlightExtension,
         ],
     });
 

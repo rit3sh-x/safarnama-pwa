@@ -96,6 +96,37 @@ export async function signInWithGoogle() {
     }
 }
 
+export function verifyTotp({
+    code,
+    trustDevice = false,
+    fetchOptions,
+}: {
+    code: string;
+    trustDevice?: boolean;
+    fetchOptions?: {
+        onSuccess?: () => void;
+        onError?: ({ error }: { error: unknown }) => void;
+    };
+}) {
+    return authClient.twoFactor.verifyTotp(
+        {
+            code: code.padStart(6, "0"),
+            trustDevice,
+        },
+        {
+            onSuccess: fetchOptions?.onSuccess,
+            onError: ({ error }) => {
+                toast.error(
+                    error instanceof Error
+                        ? error.message
+                        : "Verification failed. Please try again."
+                );
+                fetchOptions?.onError?.({ error });
+            },
+        }
+    );
+}
+
 export async function changeUsername({
     username,
     imageUrl,

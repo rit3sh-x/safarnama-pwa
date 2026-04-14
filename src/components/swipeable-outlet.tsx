@@ -81,7 +81,7 @@ export function SwipeableOutlet({
                         right: canSwipeRight ? 0.3 : 0,
                     }}
                     onDragEnd={handleDragEnd}
-                    className="absolute inset-0 overflow-y-auto"
+                    className="absolute inset-0 overflow-hidden"
                 >
                     <Outlet />
                 </motion.div>

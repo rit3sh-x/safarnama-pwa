@@ -1,5 +1,6 @@
 import { authClient } from "@/lib/auth-client";
 import { changeUsername } from "@/modules/auth/hooks/auth-handlers";
+import { TRIPS_STORAGE_KEYS } from "@/modules/trips/constants";
 
 export function enableTwoFactor({ password }: { password: string }) {
     return authClient.twoFactor.enable({
@@ -19,7 +20,14 @@ export function disableTwoFactor({ password }: { password: string }) {
 export function signOut({ onSuccess }: { onSuccess?: () => void }) {
     return authClient.signOut({
         fetchOptions: {
-            onSuccess,
+            onSuccess: () => {
+                if (typeof window !== "undefined") {
+                    for (const key of Object.values(TRIPS_STORAGE_KEYS)) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                onSuccess?.();
+            },
         },
     });
 }

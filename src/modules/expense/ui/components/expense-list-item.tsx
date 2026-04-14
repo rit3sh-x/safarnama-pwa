@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+    CheckCircle2Icon,
     HandCoinsIcon,
     MoreVerticalIcon,
     PencilIcon,
@@ -37,6 +38,10 @@ interface ExpenseListItemProps {
     notes?: string;
     canEdit?: boolean;
     owedAmount?: number;
+    /** Current user has already settled this expense. */
+    isSettledByMe?: boolean;
+    /** Settlement amount the current user paid (shown in settled state). */
+    settledAmount?: number;
     onDelete?: (expenseId: Id<"expense">) => void;
     onSettle?: (
         expenseId: Id<"expense">,
@@ -63,6 +68,8 @@ export function ExpenseListItem({
     notes,
     canEdit = false,
     owedAmount,
+    isSettledByMe = false,
+    settledAmount,
     onDelete,
     onSettle,
 }: ExpenseListItemProps) {
@@ -72,34 +79,70 @@ export function ExpenseListItem({
     const [showEdit, setShowEdit] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+    const showOwed =
+        !isSettledByMe && owedAmount !== undefined && owedAmount > 0;
+    const canSettle = showOwed && !!onSettle;
+
     return (
         <>
-            <div className="flex w-full items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50">
+            <div
+                className={cn(
+                    "group/row relative flex w-full items-center gap-3 px-4 py-3 transition-colors",
+                    isSettledByMe ? "hover:bg-muted/30" : "hover:bg-muted/50"
+                )}
+            >
                 <div
                     className={cn(
-                        "flex size-10 shrink-0 items-center justify-center rounded-full bg-muted",
-                        category.color
+                        "flex size-10 shrink-0 items-center justify-center rounded-full bg-muted transition-opacity",
+                        category.color,
+                        isSettledByMe && "opacity-60"
                     )}
                 >
                     <Icon className="size-5" />
                 </div>
 
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">
-                        {title}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                        <p
+                            className={cn(
+                                "truncate text-sm font-medium text-foreground",
+                                isSettledByMe &&
+                                    "text-muted-foreground line-through decoration-muted-foreground/40"
+                            )}
+                        >
+                            {title}
+                        </p>
+                        {isSettledByMe && (
+                            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-400">
+                                <CheckCircle2Icon className="size-2.5" />
+                                Settled
+                            </span>
+                        )}
+                    </div>
                     <p className="text-xs text-muted-foreground">
                         {paidByName} paid &middot; {formatDate(date)}
                     </p>
                 </div>
 
                 <div className="shrink-0 text-right">
-                    <span className="text-sm font-semibold text-foreground tabular-nums">
+                    <span
+                        className={cn(
+                            "text-sm font-semibold tabular-nums",
+                            isSettledByMe
+                                ? "text-muted-foreground"
+                                : "text-foreground"
+                        )}
+                    >
                         ₹{amount.toFixed(2)}
                     </span>
-                    {owedAmount !== undefined && owedAmount > 0 && (
+                    {showOwed && (
                         <p className="text-[10px] text-red-500 tabular-nums">
-                            you owe ₹{owedAmount.toFixed(0)}
+                            you owe ₹{owedAmount!.toFixed(0)}
+                        </p>
+                    )}
+                    {isSettledByMe && settledAmount !== undefined && (
+                        <p className="text-[10px] text-emerald-600 tabular-nums dark:text-emerald-400">
+                            paid ₹{settledAmount.toFixed(0)}
                         </p>
                     )}
                 </div>
@@ -118,24 +161,31 @@ export function ExpenseListItem({
                         <MoreVerticalIcon className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" sideOffset={4}>
-                        {owedAmount !== undefined &&
-                            owedAmount > 0 &&
-                            onSettle && (
-                                <DropdownMenuItem
-                                    onClick={() =>
-                                        onSettle(
-                                            expenseId,
-                                            paidBy,
-                                            owedAmount,
-                                            title
-                                        )
-                                    }
-                                    className="text-emerald-600 focus:text-emerald-600"
-                                >
-                                    <HandCoinsIcon className="size-4" />
-                                    Settle ₹{owedAmount.toFixed(0)}
-                                </DropdownMenuItem>
-                            )}
+                        {canSettle && (
+                            <DropdownMenuItem
+                                onClick={() =>
+                                    onSettle!(
+                                        expenseId,
+                                        paidBy,
+                                        owedAmount!,
+                                        title
+                                    )
+                                }
+                                className="text-emerald-600 focus:text-emerald-600"
+                            >
+                                <HandCoinsIcon className="size-4" />
+                                Settle ₹{owedAmount!.toFixed(0)}
+                            </DropdownMenuItem>
+                        )}
+                        {isSettledByMe && (
+                            <DropdownMenuItem
+                                disabled
+                                className="text-emerald-600 focus:text-emerald-600"
+                            >
+                                <CheckCircle2Icon className="size-4" />
+                                Already settled
+                            </DropdownMenuItem>
+                        )}
                         {canEdit && (
                             <>
                                 <DropdownMenuItem

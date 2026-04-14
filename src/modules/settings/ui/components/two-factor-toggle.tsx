@@ -21,15 +21,15 @@ import {
     CredenzaHeader,
     CredenzaTitle,
 } from "@/components/ui/credenza";
-import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
+import { useAuthentication } from "@/modules/auth/hooks/use-authentication";
 import { authClient } from "@/lib/auth-client";
 import logoSrc from "@/assets/icon-transparent.svg";
 
 type Step = "idle" | "password" | "qr" | "verify" | "disable-confirm";
 
 export function TwoFactorToggle() {
-    const { user } = useAuthenticatedUser();
-    const isEnabled = !!user.twoFactorEnabled;
+    const { user } = useAuthentication();
+    const isEnabled = !!user?.twoFactorEnabled;
 
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState<Step>("idle");

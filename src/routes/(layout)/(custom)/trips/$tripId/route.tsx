@@ -1,7 +1,8 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { TripLayout } from "@/modules/trips/ui/layouts/trip-layout";
 import type { Id } from "@backend/dataModel";
-import { getIsMobile } from "@/hooks/use-mobile";
+import { getIsMobile, useIsMobile } from "@/hooks/use-mobile";
 import { z } from "zod";
 
 const tripParamsSchema = z.object({
@@ -27,6 +28,15 @@ export const Route = createFileRoute("/(layout)/(custom)/trips/$tripId")({
 });
 
 function Page() {
+    const isMobile = useIsMobile();
+    const navigate = useNavigate();
     const { tripId } = Route.useParams();
+
+    useEffect(() => {
+        if (!isMobile) {
+            navigate({ to: "/trips", replace: true });
+        }
+    }, [isMobile, navigate]);
+
     return <TripLayout tripId={tripId} />;
 }

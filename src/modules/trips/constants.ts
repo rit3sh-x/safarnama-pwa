@@ -10,6 +10,14 @@ export const COVER_IMAGE_MAX_SIZE = 1 * 1024 * 1024;
 
 export const SAME_GROUP_THRESHOLD_MS = 60_000;
 
+export const TRIPS_STORAGE_KEYS = {
+    searchMap: "trips_search_map",
+    navOption: "trips_nav_option",
+    selectedTrip: "trips_selected_trip",
+    panelView: "trips_panel_view",
+    publicPreview: "trips_public_preview",
+} as const;
+
 export const QUICK_REACTIONS = [
     { emoji: "👍", label: "like" },
     { emoji: "❤️", label: "love" },

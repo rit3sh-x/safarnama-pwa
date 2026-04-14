@@ -11,6 +11,7 @@ import {
     useExpenses,
     useBalances,
     useRemoveExpense,
+    useSettlements,
 } from "../../hooks/use-expenses";
 import { useTripMembers } from "../../hooks/use-trip-members";
 import { ExpenseListItem } from "../components/expense-list-item";
@@ -33,6 +34,7 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
     const selectedTrip = useAtomValue(selectedTripAtom);
     const { expenses, isLoading, isDone, loadMore } = useExpenses(tripId);
     const { balances, isLoading: isBalancesLoading } = useBalances(tripId);
+    const { settlements } = useSettlements(tripId);
     const { members } = useTripMembers(tripId);
 
     const { mutate: removeExpense } = useRemoveExpense();
@@ -53,6 +55,17 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
         return map;
     }, [members]);
 
+    const mySettledByExpense = useMemo(() => {
+        const map = new Map<Id<"expense">, number>();
+        if (!settlements) return map;
+        for (const s of settlements) {
+            if (s.expenseId && s.fromUserId === currentUserId) {
+                map.set(s.expenseId, s.amount);
+            }
+        }
+        return map;
+    }, [settlements, currentUserId]);
+
     const getPaidByName = (userId: string) => {
         if (userId === currentUserId) return "You";
         return userMap.get(userId)?.name ?? "Unknown";
@@ -60,7 +73,7 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
 
     return (
         <div className="relative flex h-full flex-col overflow-hidden bg-background">
-            <div className="flex h-14 shrink-0 items-center border-b bg-card px-1">
+            <div className="hidden h-14 shrink-0 items-center border-b bg-card px-1 md:flex">
                 <div className="flex items-center gap-2 px-2">
                     <Button
                         variant="ghost"
@@ -120,33 +133,43 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                         </div>
                     )}
 
-                    {expenses.map((expense) => (
-                        <ExpenseListItem
-                            key={expense._id}
-                            expenseId={expense._id}
-                            title={expense.title}
-                            amount={expense.amount}
-                            paidBy={expense.paidBy}
-                            paidByName={getPaidByName(expense.paidBy)}
-                            date={expense.date}
-                            notes={expense.notes}
-                            canEdit
-                            owedAmount={
-                                expense.paidBy !== currentUserId
-                                    ? expense.amount / (members.length || 1)
-                                    : undefined
-                            }
-                            onDelete={(id) => removeExpense({ expenseId: id })}
-                            onSettle={(expenseId, toUserId, amt, title) =>
-                                setSettleTarget({
-                                    toUserId,
-                                    amount: amt,
-                                    expenseId,
-                                    expenseTitle: title,
-                                })
-                            }
-                        />
-                    ))}
+                    {expenses.map((expense) => {
+                        const settledAmount = mySettledByExpense.get(
+                            expense._id
+                        );
+                        const isSettledByMe = settledAmount !== undefined;
+                        return (
+                            <ExpenseListItem
+                                key={expense._id}
+                                expenseId={expense._id}
+                                title={expense.title}
+                                amount={expense.amount}
+                                paidBy={expense.paidBy}
+                                paidByName={getPaidByName(expense.paidBy)}
+                                date={expense.date}
+                                notes={expense.notes}
+                                canEdit
+                                owedAmount={
+                                    expense.paidBy !== currentUserId
+                                        ? expense.amount / (members.length || 1)
+                                        : undefined
+                                }
+                                isSettledByMe={isSettledByMe}
+                                settledAmount={settledAmount}
+                                onDelete={(id) =>
+                                    removeExpense({ expenseId: id })
+                                }
+                                onSettle={(expenseId, toUserId, amt, title) =>
+                                    setSettleTarget({
+                                        toUserId,
+                                        amount: amt,
+                                        expenseId,
+                                        expenseTitle: title,
+                                    })
+                                }
+                            />
+                        );
+                    })}
 
                     {!isDone && expenses.length > 0 && (
                         <InfiniteScrollTrigger

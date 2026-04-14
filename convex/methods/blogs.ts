@@ -1,4 +1,4 @@
-import { ConvexError, v } from "convex/values";
+import { v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import {
     requireTripAdmin,
@@ -9,8 +9,8 @@ import { rateLimit } from "../lib/rateLimit";
 import { components } from "../_generated/api";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc } from "../betterAuth/_generated/dataModel";
+import type { Doc as SchemaDoc } from "../_generated/dataModel";
 import type { RatingValue } from "../types";
-import { checkProfanity, extractTextFromTiptap } from "../lib/profanity";
 
 export const browse = query({
     args: {
@@ -21,7 +21,7 @@ export const browse = query({
         await requireUserAccess(ctx);
         const searchTerm = search?.trim();
 
-        const enrichWithRatings = async (blogs: typeof results.page) => {
+        const enrichWithRatings = async (blogs: SchemaDoc<"blog">[]) => {
             return Promise.all(
                 blogs.map(async (blog) => {
                     const ratings = await ctx.db
@@ -42,23 +42,14 @@ export const browse = query({
             );
         };
 
-        if (searchTerm) {
-            const results = await ctx.db
-                .query("blog")
-                .withSearchIndex("search", (qb) =>
-                    qb.search("title", searchTerm).eq("status", "published")
-                )
-                .take(paginationOpts.numItems);
-
-            const enriched = await enrichWithRatings(results);
-            return { page: enriched, isDone: true, continueCursor: "" };
-        }
-
-        const results = await ctx.db
-            .query("blog")
-            .filter((q) => q.and(q.eq(q.field("status"), "published")))
-            .order("desc")
-            .paginate(paginationOpts);
+        const results = searchTerm
+            ? await ctx.db
+                  .query("blog")
+                  .withSearchIndex("search", (qb) =>
+                      qb.search("title", searchTerm)
+                  )
+                  .paginate(paginationOpts)
+            : await ctx.db.query("blog").order("desc").paginate(paginationOpts);
 
         const enrichedPage = await enrichWithRatings(results.page);
         return { ...results, page: enrichedPage };
@@ -74,8 +65,7 @@ export const get = query({
             .withIndex("tripId", (q) => q.eq("tripId", tripId))
             .unique();
 
-        if (blog?.status === "published") return blog;
-        return null;
+        return blog;
     },
 });
 
@@ -131,6 +121,7 @@ export const getById = query({
         return {
             ...blog,
             isOwner,
+            tripIsPublic: trip.isPublic,
             avgRating,
             totalRatings,
             distribution,
@@ -145,23 +136,10 @@ export const upsert = mutation({
         title: v.string(),
         content: v.string(),
         coverImage: v.optional(v.string()),
-        status: v.union(v.literal("draft"), v.literal("published")),
     },
     handler: async (ctx, { tripId, ...fields }) => {
         const { user } = await requireTripAdmin(ctx, tripId);
         await rateLimit(ctx, "upsertBlog", user._id);
-
-        if (fields.status === "published") {
-            const titleCheck = checkProfanity(fields.title);
-            if (titleCheck.hasProfanity)
-                throw new ConvexError("Title contains inappropriate language");
-            const textContent = extractTextFromTiptap(fields.content);
-            const contentCheck = checkProfanity(textContent);
-            if (contentCheck.hasProfanity)
-                throw new ConvexError(
-                    "Content contains inappropriate language"
-                );
-        }
 
         const now = Date.now();
         const trip = await getTripFromTripId(ctx, tripId);
@@ -180,11 +158,6 @@ export const upsert = mutation({
             await ctx.db.patch(existing._id, {
                 ...fields,
                 ...denormalized,
-                publishedAt:
-                    fields.status === "published" &&
-                    existing.status !== "published"
-                        ? now
-                        : existing.publishedAt,
                 updatedAt: now,
             });
             return existing._id;
@@ -193,7 +166,7 @@ export const upsert = mutation({
                 tripId,
                 ...fields,
                 ...denormalized,
-                publishedAt: fields.status === "published" ? now : undefined,
+                publishedAt: now,
                 updatedAt: now,
             });
             return blogId;

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "../../../hooks/use-editor-store";
+import { normalizeHref } from "@/modules/blog/lib/utils";
 
 interface FormatButtonProps {
     icon: typeof BoldIcon;
@@ -98,7 +99,8 @@ export function FloatingFormatToolbar() {
                 icon={Link2Icon}
                 isActive={editor.isActive("link")}
                 onClick={() => {
-                    const href = window.prompt("Enter URL");
+                    const rawHref = window.prompt("Enter URL");
+                    const href = rawHref ? normalizeHref(rawHref) : null;
                     if (href) {
                         editor
                             .chain()

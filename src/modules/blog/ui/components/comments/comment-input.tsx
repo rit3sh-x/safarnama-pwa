@@ -5,7 +5,6 @@ import { stringToHex } from "@/lib/utils";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { ProfanityTextarea } from "./profanity-textarea";
 
 interface CommentInputProps {
     onSubmit: (content: string) => void | Promise<void>;
@@ -50,14 +49,6 @@ export function CommentInput({
         if (!trimmed) return;
         setClientError(null);
 
-        const { checkProfanity } = await import("@/modules/blog/lib/profanity");
-        const check = await checkProfanity(trimmed);
-        if (check.hasProfanity) {
-            const words = check.detectedWords.join(", ");
-            setClientError(`Remove flagged words: ${words}`);
-            return;
-        }
-
         try {
             await onSubmit(trimmed);
             setValue("");
@@ -97,7 +88,7 @@ export function CommentInput({
             </Avatar>
 
             <div className="flex-1">
-                <ProfanityTextarea
+                <textarea
                     ref={textareaRef}
                     aria-label={placeholder}
                     value={value}
@@ -141,7 +132,7 @@ export function CommentInput({
                             className="gap-1.5"
                         >
                             <SendHorizontalIcon className="size-3.5" />
-                            {initialValue ? "Save" : "Comment"}
+                            {initialValue ? "Send" : "Comment"}
                         </Button>
                     </div>
                 )}

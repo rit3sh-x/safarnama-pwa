@@ -194,26 +194,48 @@ export const useAddReaction = () => {
         if (!currentUser) return;
 
         updateMessageInStore(localStore, args.messageId, (msg) => {
-            const reactions = [
-                ...((msg.reactions as {
-                    emoji: string;
-                    userIds: string[];
-                    count: number;
-                }[]) ?? []),
-            ];
-            const existing = reactions.find((r) => r.emoji === args.emoji);
-            if (existing) {
-                if (!existing.userIds.includes(currentUser._id)) {
-                    existing.userIds = [...existing.userIds, currentUser._id];
-                    existing.count++;
-                }
+            const prev =
+                (msg.reactions as
+                    | {
+                          emoji: string;
+                          userIds: string[];
+                          count: number;
+                      }[]
+                    | undefined) ?? [];
+
+            const stripped = prev
+                .map((r) => {
+                    if (!r.userIds.includes(currentUser._id)) return r;
+                    const userIds = r.userIds.filter(
+                        (id) => id !== currentUser._id
+                    );
+                    return { ...r, userIds, count: userIds.length };
+                })
+                .filter((r) => r.count > 0);
+
+            const targetIdx = stripped.findIndex((r) => r.emoji === args.emoji);
+            let reactions: typeof stripped;
+            if (targetIdx === -1) {
+                reactions = [
+                    ...stripped,
+                    {
+                        emoji: args.emoji,
+                        userIds: [currentUser._id],
+                        count: 1,
+                    },
+                ];
             } else {
-                reactions.push({
-                    emoji: args.emoji,
-                    userIds: [currentUser._id],
-                    count: 1,
-                });
+                reactions = stripped.map((r, i) =>
+                    i === targetIdx
+                        ? {
+                              ...r,
+                              userIds: [...r.userIds, currentUser._id],
+                              count: r.count + 1,
+                          }
+                        : r
+                );
             }
+
             return { ...msg, reactions };
         });
     });

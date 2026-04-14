@@ -137,7 +137,7 @@ export function MobileInsertButton() {
             <Button
                 aria-label="Insert element"
                 size="icon"
-                className="fixed right-4 bottom-20 z-40 size-12 rounded-full shadow-lg"
+                className="fixed right-4 bottom-4 z-40 size-12 rounded-full shadow-lg"
                 onClick={() => setOpen(true)}
             >
                 <PlusIcon className="size-5" />

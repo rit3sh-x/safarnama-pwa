@@ -3,7 +3,8 @@ import { Switch } from "@/components/ui/switch";
 import { useNotifications } from "../../hooks/use-notifications";
 
 export function NotificationsToggle() {
-    const { supported, enabled, isPending, toggle } = useNotifications();
+    const { supported, isPushCapable, isPwa, enabled, isPending, toggle } =
+        useNotifications();
 
     return (
         <div className="space-y-3">
@@ -18,23 +19,26 @@ export function NotificationsToggle() {
                             Push Notifications
                         </p>
                         <p className="text-xs text-muted-foreground">
-                            {!supported
+                            {!isPushCapable
                                 ? "Not supported in this browser"
-                                : enabled
-                                  ? "You'll receive push notifications"
-                                  : "Enable to receive updates"}
+                                : !isPwa
+                                  ? "Install and open the app to enable push notifications"
+                                  : enabled
+                                    ? "You'll receive push notifications"
+                                    : "Enable to receive updates"}
                         </p>
                     </div>
                 </div>
-                {isPending ? (
-                    <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
-                ) : (
+                <div className="flex items-center gap-2">
+                    {isPending && (
+                        <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                    )}
                     <Switch
                         checked={enabled}
                         onCheckedChange={toggle}
                         disabled={!supported || isPending}
                     />
-                )}
+                </div>
             </div>
         </div>
     );

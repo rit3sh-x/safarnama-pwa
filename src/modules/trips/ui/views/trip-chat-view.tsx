@@ -246,7 +246,7 @@ export function TripChatView({
     }, []);
 
     return (
-        <div className="flex h-full flex-col overflow-hidden bg-background">
+        <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
             {isPanel && (
                 <ChatHeader
                     name={selectedTrip?.name ?? "Chat"}

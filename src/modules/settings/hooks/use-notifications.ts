@@ -7,30 +7,69 @@ import {
     subscribeToPush,
     unsubscribeFromPush,
 } from "@/hooks/use-subscription";
+import { isRunningAsPWA } from "@/modules/home/hooks/use-pwa";
+
+async function withTimeout<T>(
+    task: Promise<T>,
+    ms: number,
+    fallback: T
+): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+        return await Promise.race([
+            task,
+            new Promise<T>((resolve) => {
+                timer = setTimeout(() => resolve(fallback), ms);
+            }),
+        ]);
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+}
 
 export function useNotifications() {
-    const supported =
+    const isPushCapable =
         typeof window !== "undefined" &&
         "Notification" in window &&
         "serviceWorker" in navigator &&
         "PushManager" in window;
+    const isPwa = typeof window !== "undefined" && isRunningAsPWA();
+    const supported = isPushCapable && isPwa;
 
-    const [enabled, setEnabled] = useState(() => isSubscriptionEnabled());
+    const [enabled, setEnabled] = useState(
+        () => isSubscriptionEnabled() && supported
+    );
     const [isPending, setIsPending] = useState(false);
 
-    const subscribe = useMutation(api.methods.notifications.subscribe);
-    const unsubscribe = useMutation(api.methods.notifications.unsubscribe);
+    const subscribe = useMutation(
+        api.methods.notifications.subscribe
+    ).withOptimisticUpdate(() => {});
+    const unsubscribe = useMutation(
+        api.methods.notifications.unsubscribe
+    ).withOptimisticUpdate(() => {});
 
     const toggle = useCallback(
         async (checked: boolean) => {
-            if (!supported || isPending) return;
+            if (isPending) return;
+
+            if (!supported) {
+                setEnabled(false);
+                if (checked) {
+                    toast.error("Install the app to enable push notifications");
+                }
+                return;
+            }
 
             setEnabled(checked);
             setIsPending(true);
 
             try {
                 if (checked) {
-                    const success = await subscribeToPush(subscribe);
+                    const success = await withTimeout(
+                        subscribeToPush(subscribe),
+                        8000,
+                        false
+                    );
                     if (!success) {
                         setEnabled(false);
                         toast.error("Notification permission denied");
@@ -38,7 +77,11 @@ export function useNotifications() {
                     }
                     toast.success("Push notifications enabled");
                 } else {
-                    await unsubscribeFromPush(unsubscribe);
+                    await withTimeout(
+                        unsubscribeFromPush(unsubscribe),
+                        5000,
+                        undefined
+                    );
                     toast.success("Push notifications disabled");
                 }
             } catch (err) {
@@ -55,5 +98,12 @@ export function useNotifications() {
         [supported, isPending, subscribe, unsubscribe]
     );
 
-    return { supported, enabled, isPending, toggle };
+    return {
+        supported,
+        isPushCapable,
+        isPwa,
+        enabled,
+        isPending,
+        toggle,
+    };
 }

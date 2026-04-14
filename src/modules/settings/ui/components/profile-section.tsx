@@ -1,14 +1,22 @@
 import { useState } from "react";
 import { PencilIcon } from "lucide-react";
-import { useAuthenticatedUser } from "@/modules/auth/hooks/use-authentication";
+import { useAuthentication } from "@/modules/auth/hooks/use-authentication";
 import { stringToHex, getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EditProfileCredenza } from "./edit-profile-credenza";
 
 export function ProfileSection() {
-    const { user } = useAuthenticatedUser();
+    const { user } = useAuthentication();
     const [editOpen, setEditOpen] = useState(false);
+
+    if (!user || !user.username) return null;
+
+    const profileUser = {
+        username: user.username,
+        image: user.image,
+        email: user.email,
+    };
 
     const { bg: avatarBgColor, text: avatarTextColor } = stringToHex(
         user.username
@@ -51,11 +59,11 @@ export function ProfileSection() {
                 Edit Profile
             </Button>
 
-            {editOpen && (
+            {editOpen && user.username && (
                 <EditProfileCredenza
                     open={editOpen}
                     onOpenChange={setEditOpen}
-                    user={user}
+                    user={profileUser}
                 />
             )}
         </div>

@@ -10,15 +10,12 @@
       var resolved = theme === "dark" || theme === "light" ? theme : prefersDark ? "dark" : "light"
       d.classList.add(resolved)
       d.style.colorScheme = resolved
-      var meta = document.querySelector('meta[name="theme-color"]')
-      if (meta) meta.setAttribute("content", resolved === "dark" ? "#1a1512" : "#ffffff")
     })()
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a1512" />
+  <meta http-equiv="Permissions-Policy" content="geolocation=(self)" />
 
   <title>Safarnama</title>
   <meta name="description" content="Modern trips for modern people" />

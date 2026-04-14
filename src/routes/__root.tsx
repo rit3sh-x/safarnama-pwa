@@ -16,7 +16,7 @@ function Page() {
     }
 
     return (
-        <div className="h-dvh w-dvw">
+        <div className="h-svh w-svw">
             <Outlet />
             <TanStackRouterDevtools />
         </div>

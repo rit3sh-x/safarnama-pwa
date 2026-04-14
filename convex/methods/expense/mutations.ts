@@ -35,7 +35,13 @@ export const create = mutation({
 
         const expenseId = await ctx.db.insert("expense", {
             tripId,
-            ...fields,
+            amount: fields.amount,
+            date: fields.date,
+            notes: fields.notes,
+            paidBy: fields.paidBy,
+            receiptUrl: fields.receiptUrl,
+            splitType: fields.splitType,
+            title: fields.title,
             updatedAt: Date.now(),
         });
 
@@ -156,6 +162,22 @@ export const createSettlement = mutation({
                 code: "BAD_REQUEST",
                 message: "Cannot settle with yourself",
             });
+        }
+
+        if (expenseId) {
+            const existing = await ctx.db
+                .query("settlement")
+                .withIndex("expenseId_fromUserId", (q) =>
+                    q.eq("expenseId", expenseId).eq("fromUserId", user._id)
+                )
+                .first();
+
+            if (existing) {
+                throw new ConvexError({
+                    code: "ALREADY_SETTLED",
+                    message: "You've already settled this expense.",
+                });
+            }
         }
 
         const settlementId = await ctx.db.insert("settlement", {

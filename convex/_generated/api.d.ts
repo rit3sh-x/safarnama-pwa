@@ -15,8 +15,6 @@ import type * as lib_debtSimplification from "../lib/debtSimplification.js";
 import type * as lib_helpers from "../lib/helpers.js";
 import type * as lib_members from "../lib/members.js";
 import type * as lib_notify from "../lib/notify.js";
-import type * as lib_profanity from "../lib/profanity.js";
-import type * as lib_prompt from "../lib/prompt.js";
 import type * as lib_rateLimit from "../lib/rateLimit.js";
 import type * as lib_types from "../lib/types.js";
 import type * as lib_utils from "../lib/utils.js";
@@ -54,8 +52,6 @@ declare const fullApi: ApiFromModules<{
   "lib/helpers": typeof lib_helpers;
   "lib/members": typeof lib_members;
   "lib/notify": typeof lib_notify;
-  "lib/profanity": typeof lib_profanity;
-  "lib/prompt": typeof lib_prompt;
   "lib/rateLimit": typeof lib_rateLimit;
   "lib/types": typeof lib_types;
   "lib/utils": typeof lib_utils;

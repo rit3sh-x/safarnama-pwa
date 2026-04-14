@@ -34,8 +34,12 @@ export function EditorToolbar() {
 
     if (!editor) return null;
 
-    const textColor = editor.getAttributes("textStyle").color || "#000000";
-    const highlightColor = editor.getAttributes("highlight").color || "#f1c40f";
+    const textColor = editor.getAttributes("textStyle").color as
+        | string
+        | undefined;
+    const highlightColor = editor.getAttributes("highlight").color as
+        | string
+        | undefined;
 
     return (
         <TooltipProvider>

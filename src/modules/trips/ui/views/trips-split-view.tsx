@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import {
     selectedTripAtom,
@@ -19,10 +19,40 @@ import {
 import type { TripPanelView } from "../../types";
 import type { Id } from "@backend/dataModel";
 
+const LIST_MIN_PX = 320;
+const LIST_DEFAULT_PERCENT = 32;
+const LIST_HARD_CAP_PERCENT = 50;
+
+function usePixelMinPercent(minPx: number, cap: number) {
+    const [percent, setPercent] = useState(() => {
+        if (typeof window === "undefined") return 25;
+        return Math.min(cap, Math.ceil((minPx / window.innerWidth) * 100));
+    });
+
+    useEffect(() => {
+        const update = () => {
+            setPercent(
+                Math.min(cap, Math.ceil((minPx / window.innerWidth) * 100))
+            );
+        };
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, [minPx, cap]);
+
+    return percent;
+}
+
 export function TripsSplitView() {
     const selectedTrip = useAtomValue(selectedTripAtom);
     const [panelView, setPanelView] = useAtom(tripPanelViewAtom);
     const [publicPreviewId, setPublicPreview] = useAtom(publicTripPreviewAtom);
+
+    const listMinPercent = usePixelMinPercent(
+        LIST_MIN_PX,
+        LIST_HARD_CAP_PERCENT
+    );
+    const listDefaultPercent = Math.max(LIST_DEFAULT_PERCENT, listMinPercent);
 
     useEffect(() => {
         setPanelView("chat");
@@ -35,11 +65,11 @@ export function TripsSplitView() {
             className="h-full w-full min-w-0"
         >
             <ResizablePanel
-                defaultSize="32%"
-                minSize="25%"
-                maxSize="45%"
+                defaultSize={`${listDefaultPercent}%`}
+                minSize={`${listMinPercent}%`}
+                maxSize={`${listMinPercent > 45 ? listMinPercent + 5 : 45}%`}
                 collapsible={false}
-                className="relative min-w-[320px] overflow-hidden"
+                className="relative overflow-hidden"
             >
                 <TripsView />
             </ResizablePanel>
@@ -47,8 +77,8 @@ export function TripsSplitView() {
             <ResizableHandle />
 
             <ResizablePanel
-                defaultSize="68%"
-                minSize="40%"
+                defaultSize={`${100 - listDefaultPercent}%`}
+                minSize={`${Math.max(40, 100 - (listMinPercent + 15))}%`}
                 collapsible={false}
                 className="min-w-0 overflow-hidden"
             >

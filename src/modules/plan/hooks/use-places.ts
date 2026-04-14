@@ -137,8 +137,6 @@ export const useAddPlace = () => {
                     address: args.address,
                     imageUrl: args.imageUrl,
                     osmId: args.osmId,
-                    placeTime: args.placeTime,
-                    endTime: args.endTime,
                 };
                 localStore.setQuery(api.methods.places.list, qArgs, {
                     ...value,

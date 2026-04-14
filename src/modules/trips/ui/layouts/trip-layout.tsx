@@ -26,29 +26,33 @@ export function TripLayout({ tripId }: TripLayoutProps) {
 
     if (isMobile) {
         return (
-            <div className="flex h-full flex-col bg-background">
-                <ChatHeader
-                    name={trip?.name ?? "Trip"}
-                    tripId={tripId}
-                    logo={trip?.logo}
-                    onBack={() => router.history.back()}
-                    onGroupPress={() =>
-                        router.navigate({
-                            to: "/trips/$tripId/info",
-                            params: { tripId },
-                        })
-                    }
-                />
+            <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
+                <div className="shrink-0">
+                    <ChatHeader
+                        name={trip?.name ?? "Trip"}
+                        tripId={tripId}
+                        logo={trip?.logo}
+                        onBack={() => router.history.back()}
+                        onGroupPress={() =>
+                            router.navigate({
+                                to: "/trips/$tripId/info",
+                                params: { tripId },
+                            })
+                        }
+                    />
+                </div>
                 <SwipeableOutlet
                     currentIndex={currentIndex}
                     direction={direction}
                     onNext={navigateNext}
                     onPrev={navigatePrev}
                 />
-                <TripTabBar
-                    currentIndex={currentIndex}
-                    onTabPress={navigateToTab}
-                />
+                <div className="shrink-0">
+                    <TripTabBar
+                        currentIndex={currentIndex}
+                        onTabPress={navigateToTab}
+                    />
+                </div>
             </div>
         );
     }

@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/combobox";
 import { TIMEZONE_KEY } from "../../constants";
 import { formatInTimeZone } from "date-fns-tz";
+import { useSettings } from "@/modules/settings/hooks/use-settings";
 
 interface TimeZone {
     label: string;
@@ -42,14 +43,6 @@ const ALL_ZONES: TimeZone[] = [
     { label: "Honolulu", value: "Pacific/Honolulu" },
 ];
 
-function getTime(tz: string): string {
-    try {
-        return formatInTimeZone(new Date(), tz, "HH:mm");
-    } catch {
-        return "—";
-    }
-}
-
 function getOffset(tz: string): string {
     try {
         return formatInTimeZone(new Date(), tz, "XXX");
@@ -68,6 +61,8 @@ export default function TimezoneWidget() {
                   { label: "Tokyo", value: "Asia/Tokyo" },
               ];
     });
+    const { timeFormat } = useSettings();
+    const timePattern = timeFormat === "12h" ? "h:mm a" : "HH:mm";
 
     const [showAdd, setShowAdd] = useState(false);
 
@@ -97,7 +92,7 @@ export default function TimezoneWidget() {
     const localTime = formatInTimeZone(
         new Date(),
         Intl.DateTimeFormat().resolvedOptions().timeZone,
-        "HH:mm"
+        timePattern
     );
 
     const rawZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -151,7 +146,11 @@ export default function TimezoneWidget() {
                                     >
                                         <span>{item.label}</span>
                                         <span className="text-xs text-muted-foreground tabular-nums">
-                                            {getTime(item.value)}
+                                            {formatInTimeZone(
+                                                new Date(),
+                                                item.value,
+                                                timePattern
+                                            )}
                                         </span>
                                     </ComboboxItem>
                                 )}
@@ -171,7 +170,11 @@ export default function TimezoneWidget() {
                                 >
                                     <div>
                                         <p className="text-lg font-bold tabular-nums">
-                                            {getTime(z.value)}
+                                            {formatInTimeZone(
+                                                new Date(),
+                                                z.value,
+                                                timePattern
+                                            )}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
                                             {z.label} {getOffset(z.value)}

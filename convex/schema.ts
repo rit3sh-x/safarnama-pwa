@@ -32,8 +32,7 @@ export default defineSchema({
         title: v.string(),
         content: v.string(),
         coverImage: v.optional(v.string()),
-        status: v.union(v.literal("draft"), v.literal("published")),
-        publishedAt: v.optional(v.number()),
+        publishedAt: v.number(),
         updatedAt: v.number(),
         tripTitle: v.string(),
         tripDestination: v.string(),
@@ -41,7 +40,6 @@ export default defineSchema({
         .index("tripId", ["tripId"])
         .searchIndex("search", {
             searchField: "title",
-            filterFields: ["status"],
         }),
 
     blogComment: defineTable({
@@ -98,7 +96,8 @@ export default defineSchema({
             v.literal("expense_event"),
             v.literal("member_joined"),
             v.literal("member_left"),
-            v.literal("member_invited")
+            v.literal("member_invited"),
+            v.literal("join_request")
         ),
         content: v.string(),
         expenseId: v.optional(v.id("expense")),
@@ -156,7 +155,7 @@ export default defineSchema({
         emoji: v.string(),
     })
         .index("messageId", ["messageId"])
-        .index("messageId_userId_emoji", ["messageId", "userId", "emoji"]),
+        .index("messageId_userId", ["messageId", "userId"]),
 
     day: defineTable({
         tripId: v.id("trip"),
@@ -236,7 +235,8 @@ export default defineSchema({
         .index("tripId", ["tripId"])
         .index("fromUserId", ["fromUserId"])
         .index("toUserId", ["toUserId"])
-        .index("expenseId", ["expenseId"]),
+        .index("expenseId", ["expenseId"])
+        .index("expenseId_fromUserId", ["expenseId", "fromUserId"]),
 
     tripBalance: defineTable({
         tripId: v.id("trip"),

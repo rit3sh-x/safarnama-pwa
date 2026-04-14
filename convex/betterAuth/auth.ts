@@ -60,7 +60,6 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
             },
         },
         plugins: [
-            crossDomain({ siteUrl }),
             convex({
                 authConfig,
                 jwksRotateOnTokenGenerationError: true,
@@ -68,6 +67,8 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
             username({
                 maxUsernameLength: 20,
                 minUsernameLength: 3,
+                usernameNormalization: false,
+                displayUsernameNormalization: false,
             }),
             twoFactor({
                 issuer: "safarnama",
@@ -106,6 +107,7 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
                     },
                 },
             }),
+            crossDomain({ siteUrl }),
         ],
     } satisfies BetterAuthOptions;
 };
