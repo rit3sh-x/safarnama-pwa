@@ -1,10 +1,9 @@
 import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
-import { nanoid } from "nanoid";
 
-const SEED_ORG_ID = nanoid(10);
-const SEED_USER_ID = nanoid(10);
+const SEED_ORG_ID = "seed_org_id";
+const SEED_USER_ID = "seed_user_id";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
