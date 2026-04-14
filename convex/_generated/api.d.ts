@@ -36,6 +36,7 @@ import type * as methods_requests from "../methods/requests.js";
 import type * as methods_trips from "../methods/trips.js";
 import type * as methods_users from "../methods/users.js";
 import type * as rateLimiter from "../rateLimiter.js";
+import type * as seed from "../seed.js";
 import type * as types from "../types.js";
 
 import type {
@@ -73,6 +74,7 @@ declare const fullApi: ApiFromModules<{
   "methods/trips": typeof methods_trips;
   "methods/users": typeof methods_users;
   rateLimiter: typeof rateLimiter;
+  seed: typeof seed;
   types: typeof types;
 }>;
 
