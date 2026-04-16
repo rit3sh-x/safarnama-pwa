@@ -36,8 +36,21 @@ export default defineSchema({
         updatedAt: v.number(),
         tripTitle: v.string(),
         tripDestination: v.string(),
+        tags: v.optional(v.array(v.string())),
+        startDate: v.optional(v.number()),
+        endDate: v.optional(v.number()),
+        budget: v.optional(v.number()),
+        currency: v.optional(v.string()),
+        placeIds: v.optional(v.array(v.id("place"))),
+        placeCount: v.optional(v.number()),
+        placeCoords: v.optional(
+            v.array(v.object({ lat: v.number(), lng: v.number() }))
+        ),
+        avgRating: v.optional(v.number()),
+        totalRatings: v.optional(v.number()),
     })
         .index("tripId", ["tripId"])
+        .index("publishedAt", ["publishedAt"])
         .searchIndex("search", {
             searchField: "title",
         }),

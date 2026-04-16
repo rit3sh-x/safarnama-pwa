@@ -354,6 +354,15 @@
     outline: none;
   }
 
+  .scrollbar-hidden {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
   .leaflet-container {
     @apply !bg-muted;
     font-family: inherit;

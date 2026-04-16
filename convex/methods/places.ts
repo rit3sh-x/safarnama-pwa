@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
-import { requireTripMember } from "../lib/utils";
+import { requireTripMember, requireUserAccess } from "../lib/utils";
 import { getOrThrow } from "../lib/helpers";
 import { paginationOptsValidator } from "convex/server";
 
@@ -84,6 +84,68 @@ export const get = query({
     handler: async (ctx, { placeId }) => {
         const place = await getOrThrow(ctx, placeId, "Place");
         await requireTripMember(ctx, place.tripId);
+        return place;
+    },
+});
+
+export const recommended = query({
+    args: {},
+    handler: async (ctx) => {
+        await requireUserAccess(ctx);
+        const publicTrips = await ctx.db
+            .query("trip")
+            .withIndex("isPublic", (q) => q.eq("isPublic", true))
+            .take(20);
+
+        if (publicTrips.length === 0) return [];
+
+        const allPlaces: Array<{
+            _id: string;
+            name: string;
+            lat?: number;
+            lng?: number;
+            address?: string;
+            imageUrl?: string;
+            tripDestination: string;
+        }> = [];
+
+        for (const trip of publicTrips) {
+            const places = await ctx.db
+                .query("place")
+                .withIndex("tripId", (q) => q.eq("tripId", trip._id))
+                .take(5);
+            for (const p of places) {
+                if (p.lat !== undefined && p.lng !== undefined) {
+                    allPlaces.push({
+                        _id: p._id,
+                        name: p.name,
+                        lat: p.lat,
+                        lng: p.lng,
+                        address: p.address,
+                        imageUrl: p.imageUrl,
+                        tripDestination: trip.destination,
+                    });
+                }
+            }
+        }
+
+        for (let i = allPlaces.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allPlaces[i], allPlaces[j]] = [allPlaces[j], allPlaces[i]];
+        }
+
+        return allPlaces.slice(0, 10);
+    },
+});
+
+export const getPublic = query({
+    args: { placeId: v.id("place") },
+    handler: async (ctx, { placeId }) => {
+        await requireUserAccess(ctx);
+        const place = await ctx.db.get(placeId);
+        if (!place) return null;
+        const trip = await ctx.db.get(place.tripId);
+        if (!trip || !trip.isPublic) return null;
         return place;
     },
 });

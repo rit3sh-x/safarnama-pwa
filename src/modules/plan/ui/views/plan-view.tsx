@@ -69,7 +69,7 @@ export function PlanView({ tripId }: PlanViewProps) {
 
     const s = usePlanState();
 
-    const { coords: userCoords } = useLocation();
+    const { coords: userCoords, error: locationError } = useLocation();
     const userLocation = useMemo(
         () =>
             userCoords
@@ -77,6 +77,18 @@ export function PlanView({ tripId }: PlanViewProps) {
                 : null,
         [userCoords]
     );
+
+    useEffect(() => {
+        if (locationError?.code === 1) return;
+        if (locationError?.code === 2) {
+            console.warn(
+                "[PlanView] Location unavailable:",
+                locationError.message
+            );
+        } else if (locationError?.code === 3) {
+            console.warn("[PlanView] Location request timed out");
+        }
+    }, [locationError]);
 
     const [plottedPaths, setPlottedPaths] = useState<PathEntry[]>(() =>
         loadAllPaths(tripId)

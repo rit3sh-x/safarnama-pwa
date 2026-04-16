@@ -12,6 +12,7 @@ import type * as crons from "../crons.js";
 import type * as http from "../http.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_debtSimplification from "../lib/debtSimplification.js";
+import type * as lib_geo from "../lib/geo.js";
 import type * as lib_helpers from "../lib/helpers.js";
 import type * as lib_members from "../lib/members.js";
 import type * as lib_notify from "../lib/notify.js";
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   "lib/constants": typeof lib_constants;
   "lib/debtSimplification": typeof lib_debtSimplification;
+  "lib/geo": typeof lib_geo;
   "lib/helpers": typeof lib_helpers;
   "lib/members": typeof lib_members;
   "lib/notify": typeof lib_notify;

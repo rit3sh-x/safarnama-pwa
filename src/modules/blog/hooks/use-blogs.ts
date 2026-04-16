@@ -8,6 +8,7 @@ import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import type { Id } from "@backend/dataModel";
 import type { RatingValue } from "@backend/types";
+import type { BlogFilters } from "../atoms";
 
 export function useBlog(blogId: Id<"blog">) {
     const data = useQuery(api.methods.blogs.getById, { blogId });
@@ -27,10 +28,26 @@ export function useBlogByTrip(tripId: Id<"trip">) {
     };
 }
 
-export function useBrowseBlogs(search?: string) {
+export function useBrowseBlogs(
+    search?: string,
+    filters?: Partial<BlogFilters>
+) {
     const { results, status, loadMore } = usePaginatedQuery(
         api.methods.blogs.browse,
-        { search: search?.trim() || undefined },
+        {
+            search: search?.trim() || undefined,
+            tags:
+                filters?.tags && filters.tags.length > 0
+                    ? filters.tags
+                    : undefined,
+            minBudget: filters?.minBudget,
+            maxBudget: filters?.maxBudget,
+            minDays: filters?.minDays,
+            maxDays: filters?.maxDays,
+            nearLat: filters?.nearMe?.lat,
+            nearLng: filters?.nearMe?.lng,
+            radiusKm: filters?.nearMe?.radiusKm,
+        },
         { initialNumItems: PAGINATION.BLOGS_PAGE_SIZE }
     );
 
@@ -62,6 +79,12 @@ export const useSaveBlog = () => {
             title: args.title,
             content: args.content,
             coverImage: args.coverImage,
+            tags: args.tags ?? currentTripBlog?.tags,
+            startDate: args.startDate ?? currentTripBlog?.startDate,
+            endDate: args.endDate ?? currentTripBlog?.endDate,
+            budget: args.budget ?? currentTripBlog?.budget,
+            currency: args.currency ?? currentTripBlog?.currency,
+            placeIds: args.placeIds ?? currentTripBlog?.placeIds,
             publishedAt: currentTripBlog?.publishedAt ?? now,
             updatedAt: now,
             tripTitle: currentTripBlog?.tripTitle ?? "",
@@ -95,6 +118,7 @@ export const useSaveBlog = () => {
                             number
                         >),
                     userRating: existing?.userRating ?? null,
+                    places: existing?.places ?? [],
                 }
             );
         }

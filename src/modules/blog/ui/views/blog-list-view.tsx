@@ -4,42 +4,60 @@ import { BlogSearch } from "../components/blog-list/blog-search";
 import { BlogCard } from "../components/blog-list/blog-card";
 import { BlogListSkeleton } from "../components/blog-list/blog-list-skeleton";
 import { BlogEmptyState } from "../components/blog-list/blog-empty-state";
-import { blogSearchAtom } from "../../atoms";
+import { BlogFilters } from "../components/blog-list/blog-filters";
+import { blogSearchAtom, blogFiltersAtom } from "../../atoms";
 import { useAtomValue } from "jotai";
 
 export function BlogListView() {
     const search = useAtomValue(blogSearchAtom);
+    const filters = useAtomValue(blogFiltersAtom);
     const searchText = search?.trim() || undefined;
-    const isSearching = !!searchText;
 
-    const searchQuery = useBrowseBlogs(searchText);
-    const feedQuery = useBrowseBlogs(undefined);
+    const activeFilterCount =
+        filters.tags.length +
+        (filters.minBudget !== undefined || filters.maxBudget !== undefined
+            ? 1
+            : 0) +
+        (filters.minDays !== undefined || filters.maxDays !== undefined
+            ? 1
+            : 0) +
+        (filters.nearMe ? 1 : 0);
+    const hasFilters = activeFilterCount > 0;
+    const isFiltering = !!searchText || hasFilters;
 
-    const activeQuery = isSearching ? searchQuery : feedQuery;
-    const results = activeQuery.blogs;
-    const isLoading = activeQuery.isLoading;
-    const canLoadMore = !activeQuery.isDone;
+    const query = useBrowseBlogs(searchText, filters);
+    const results = query.blogs;
+    const isLoading = query.isLoading;
+    const canLoadMore = !query.isDone;
     const isLoadingMore = canLoadMore && results.length > 0 && !isLoading;
-    const handleLoadMore = () => activeQuery.loadMore();
+    const handleLoadMore = () => query.loadMore();
 
-    const showFallback =
-        isSearching &&
-        !isLoading &&
-        results.length === 0 &&
-        feedQuery.blogs.length > 0;
-
-    const headerText = isSearching
-        ? isLoading
-            ? `Searching for \u201c${search}\u201d\u2026`
-            : results.length === 0
-              ? `No results for \u201c${search}\u201d`
-              : `${results.length} ${results.length === 1 ? "result" : "results"} for \u201c${search}\u201d`
-        : "Recommended for you";
+    const headerText = (() => {
+        if (isLoading) {
+            return searchText
+                ? `Searching for \u201c${search}\u201d\u2026`
+                : "Loading\u2026";
+        }
+        if (searchText) {
+            const count = results.length;
+            return count === 0
+                ? `No results for \u201c${search}\u201d`
+                : `${count} ${count === 1 ? "result" : "results"} for \u201c${search}\u201d`;
+        }
+        if (hasFilters) {
+            const count = results.length;
+            return count === 0
+                ? "No blogs match your filters"
+                : `${count} ${count === 1 ? "blog" : "blogs"} matching your filters`;
+        }
+        return "Recommended for you";
+    })();
 
     return (
         <div className="flex h-full flex-col">
             <div className="mx-auto w-full max-w-3xl shrink-0 space-y-4 p-4">
                 <BlogSearch />
+                <BlogFilters />
                 <p className="text-xs font-medium text-muted-foreground">
                     {headerText}
                 </p>
@@ -48,63 +66,32 @@ export function BlogListView() {
                 <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pb-4">
                     {isLoading ? (
                         <BlogListSkeleton />
-                    ) : results.length === 0 && !showFallback ? (
-                        <BlogEmptyState hasSearch={isSearching} />
+                    ) : results.length === 0 ? (
+                        <BlogEmptyState hasSearch={isFiltering} />
                     ) : (
                         <>
-                            {results.length > 0 && (
-                                <div className="space-y-3">
-                                    {results.map((blog) => (
-                                        <BlogCard
-                                            key={blog._id}
-                                            blogId={blog._id}
-                                            title={blog.title}
-                                            destination={blog.tripDestination}
-                                            coverImage={blog.coverImage}
-                                            publishedAt={blog.publishedAt}
-                                            avgRating={blog.avgRating}
-                                            totalRatings={blog.totalRatings}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                            <div className="space-y-3">
+                                {results.map((blog) => (
+                                    <BlogCard
+                                        key={blog._id}
+                                        blogId={blog._id}
+                                        title={blog.title}
+                                        destination={blog.tripDestination}
+                                        coverImage={blog.coverImage}
+                                        publishedAt={blog.publishedAt}
+                                        avgRating={blog.avgRating}
+                                        totalRatings={blog.totalRatings}
+                                        tags={blog.tags}
+                                    />
+                                ))}
+                            </div>
 
-                            {results.length > 0 && (
-                                <InfiniteScrollTrigger
-                                    canLoadMore={canLoadMore}
-                                    isLoadingMore={isLoadingMore}
-                                    onLoadMore={handleLoadMore}
-                                    noMoreText=""
-                                />
-                            )}
-
-                            {showFallback && (
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-3 pt-2">
-                                        <div className="h-px flex-1 bg-border/60" />
-                                        <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                                            You might like
-                                        </span>
-                                        <div className="h-px flex-1 bg-border/60" />
-                                    </div>
-                                    <div className="space-y-3">
-                                        {feedQuery.blogs.map((blog) => (
-                                            <BlogCard
-                                                key={blog._id}
-                                                blogId={blog._id}
-                                                title={blog.title}
-                                                destination={
-                                                    blog.tripDestination
-                                                }
-                                                coverImage={blog.coverImage}
-                                                publishedAt={blog.publishedAt}
-                                                avgRating={blog.avgRating}
-                                                totalRatings={blog.totalRatings}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            <InfiniteScrollTrigger
+                                canLoadMore={canLoadMore}
+                                isLoadingMore={isLoadingMore}
+                                onLoadMore={handleLoadMore}
+                                noMoreText=""
+                            />
                         </>
                     )}
                 </div>

@@ -1,0 +1,17 @@
+export const SUGGESTED_TAGS = [
+    "solo",
+    "family",
+    "adventure",
+    "budget",
+    "luxury",
+    "food",
+    "culture",
+    "nature",
+    "mountain",
+    "beach",
+    "road-trip",
+    "backpacking",
+    "photography",
+    "winter",
+    "summer",
+];

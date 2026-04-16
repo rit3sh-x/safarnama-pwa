@@ -1,87 +1,140 @@
 import { v } from "convex/values";
 import { internalMutation } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 
 const SEED_ORG_ID = "seed_org_id";
 const SEED_USER_ID = "seed_user_id";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const DESTINATIONS: { city: string; country: string; img: string }[] = [
+type Destination = {
+    city: string;
+    country: string;
+    img: string;
+    center: [number, number];
+};
+
+const DESTINATIONS: Destination[] = [
     {
         city: "Paris",
         country: "France",
         img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200",
+        center: [48.8566, 2.3522],
+    },
+    {
+        city: "Solan",
+        country: "India",
+        img: "https://images.unsplash.com/photo-1559141362-be4b781e79c2?w=1200",
+        center: [30.9083, 77.0967],
+    },
+    {
+        city: "Kasol",
+        country: "India",
+        img: "https://images.unsplash.com/photo-1612638039814-1a67ea727114?w=1200",
+        center: [32.0098, 77.3151],
+    },
+    {
+        city: "Dharamshala",
+        country: "India",
+        img: "https://images.unsplash.com/photo-1581321863389-ef7d7bfe4b75?w=1200",
+        center: [32.219, 76.3234],
+    },
+    {
+        city: "Hauz Khas",
+        country: "India",
+        img: "https://images.unsplash.com/photo-1747491746369-1a7ee2f2e825?w=1200",
+        center: [28.5494, 77.2001],
+    },
+    {
+        city: "Westphalia",
+        country: "Germany",
+        img: "https://images.unsplash.com/photo-1607778775701-dc20311cfb0f?w=1200",
+        center: [51.9607, 7.6261],
     },
     {
         city: "Tokyo",
         country: "Japan",
         img: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200",
+        center: [35.6762, 139.6503],
     },
     {
         city: "Reykjavik",
         country: "Iceland",
         img: "https://images.unsplash.com/photo-1504829857797-ddff29c27927?w=1200",
+        center: [64.1466, -21.9426],
     },
     {
         city: "Lisbon",
         country: "Portugal",
         img: "https://images.unsplash.com/photo-1513735492246-483525079686?w=1200",
+        center: [38.7223, -9.1393],
     },
     {
         city: "Marrakech",
         country: "Morocco",
         img: "https://images.unsplash.com/photo-1597212618440-806262de4f6b?w=1200",
+        center: [31.6295, -7.9811],
     },
     {
         city: "Kyoto",
         country: "Japan",
         img: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200",
+        center: [35.0116, 135.7681],
     },
     {
         city: "Istanbul",
         country: "Türkiye",
         img: "https://images.unsplash.com/photo-1527838832700-5059252407fa?w=1200",
+        center: [41.0082, 28.9784],
     },
     {
         city: "Cusco",
         country: "Peru",
         img: "https://images.unsplash.com/photo-1526392060635-9d6019884377?w=1200",
+        center: [-13.5319, -71.9675],
     },
     {
         city: "Cape Town",
         country: "South Africa",
         img: "https://images.unsplash.com/photo-1580060839134-75a5edca2e99?w=1200",
+        center: [-33.9249, 18.4241],
     },
     {
         city: "Hanoi",
         country: "Vietnam",
         img: "https://images.unsplash.com/photo-1555921015-5532091f6026?w=1200",
+        center: [21.0285, 105.8542],
     },
     {
         city: "Bali",
         country: "Indonesia",
         img: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=1200",
+        center: [-8.65, 115.2167],
     },
     {
         city: "Edinburgh",
         country: "Scotland",
         img: "https://images.unsplash.com/photo-1505761671935-60b3a7427bad?w=1200",
+        center: [55.9533, -3.1883],
     },
     {
         city: "Oaxaca",
         country: "Mexico",
         img: "https://images.unsplash.com/photo-1518638150340-f706e86654de?w=1200",
+        center: [17.0732, -96.7266],
     },
     {
         city: "Petra",
         country: "Jordan",
         img: "https://images.unsplash.com/photo-1527838832700-5059252407fa?w=1200",
+        center: [30.3285, 35.4444],
     },
     {
         city: "Queenstown",
         country: "New Zealand",
         img: "https://images.unsplash.com/photo-1469521669194-babb45599def?w=1200",
+        center: [-45.0312, 168.6626],
     },
 ];
 
@@ -120,6 +173,116 @@ const BLOG_PARAGRAPHS = [
     "By the last day we were moving more slowly on purpose. Stretched out the final coffee. Ordered one more of the pastry we'd been rationing. Took the long way to the airport.",
 ];
 
+const TAGS = [
+    "solo",
+    "family",
+    "adventure",
+    "budget",
+    "luxury",
+    "food",
+    "culture",
+    "nature",
+    "mountain",
+    "beach",
+    "road-trip",
+    "backpacking",
+    "photography",
+    "winter",
+    "summer",
+];
+
+const PLACE_NAMES = [
+    "Old Town Square",
+    "Central Market",
+    "Sunset Viewpoint",
+    "Riverside Café",
+    "Historic Temple",
+    "Art District Mural",
+    "Street Food Lane",
+    "Hidden Garden",
+    "Harbor Walk",
+    "Night Bazaar",
+    "Museum Quarter",
+    "Mountain Lookout",
+];
+
+async function fetchPlaceImage(
+    name: string,
+    lat: number,
+    lng: number
+): Promise<string | undefined> {
+    // Try Wikipedia page image first
+    try {
+        const params = new URLSearchParams({
+            action: "query",
+            format: "json",
+            titles: name,
+            prop: "pageimages",
+            piprop: "original",
+            pilimit: "1",
+            redirects: "1",
+            origin: "*",
+        });
+        const res = await fetch(`https://en.wikipedia.org/w/api.php?${params}`);
+        if (res.ok) {
+            const data = await res.json();
+            const pages = data?.query?.pages;
+            if (pages) {
+                for (const page of Object.values(pages) as Array<{
+                    original?: { source?: string };
+                }>) {
+                    if (page.original?.source) return page.original.source;
+                }
+            }
+        }
+    } catch {
+        /* fall through */
+    }
+
+    // Fallback: Wikimedia Commons geosearch
+    try {
+        const params = new URLSearchParams({
+            action: "query",
+            format: "json",
+            generator: "geosearch",
+            ggsprimary: "all",
+            ggsnamespace: "6",
+            ggsradius: "500",
+            ggscoord: `${lat}|${lng}`,
+            ggslimit: "3",
+            prop: "imageinfo",
+            iiprop: "url|mime",
+            iiurlwidth: "600",
+            origin: "*",
+        });
+        const res = await fetch(
+            `https://commons.wikimedia.org/w/api.php?${params}`
+        );
+        if (res.ok) {
+            const data = await res.json();
+            const pages = data?.query?.pages;
+            if (pages) {
+                for (const page of Object.values(pages) as Array<{
+                    imageinfo?: Array<{ url?: string; mime?: string }>;
+                }>) {
+                    const info = page.imageinfo?.[0];
+                    if (
+                        info?.url &&
+                        (info.mime?.startsWith("image/jpeg") ||
+                            info.mime?.startsWith("image/png"))
+                    ) {
+                        return info.url;
+                    }
+                }
+            }
+        }
+    } catch {
+        /* ignore */
+    }
+
+    return undefined;
+}
+
 function pick<T>(arr: readonly T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
 }
@@ -134,12 +297,34 @@ function pickN<T>(arr: readonly T[], n: number): T[] {
     return out;
 }
 
+function shuffle<T>(arr: readonly T[]): T[] {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
 function randomTripDates(): { start: number; end: number } {
     const offsetDays = Math.floor(Math.random() * 270) - 180;
     const lengthDays = 3 + Math.floor(Math.random() * 12);
     const start = Date.now() + offsetDays * DAY_MS;
     const end = start + lengthDays * DAY_MS;
     return { start, end };
+}
+
+function randomBudget(country: string): { amount: number; currency: string } {
+    if (country === "India") {
+        return {
+            amount: 10_000 + Math.floor(Math.random() * 90_000),
+            currency: "INR",
+        };
+    }
+    return {
+        amount: 500 + Math.floor(Math.random() * 4_500),
+        currency: "USD",
+    };
 }
 
 interface TipTapTextMark {
@@ -207,14 +392,19 @@ async function seedTripsAndBlogsImpl(
         count: number;
         isPublic: boolean;
     }
-): Promise<{ trips: number; blogs: number }> {
+): Promise<{ trips: number; blogs: number; places: number }> {
     const { orgId, userId, count, isPublic } = opts;
     const now = Date.now();
     let tripsCreated = 0;
     let blogsCreated = 0;
+    let placesCreated = 0;
+    const seededDestinations = shuffle(DESTINATIONS);
 
     for (let i = 0; i < count; i++) {
-        const dest = pick(DESTINATIONS);
+        const dest =
+            i < seededDestinations.length
+                ? seededDestinations[i]
+                : pick(DESTINATIONS);
         const titleTemplate = pick(TITLE_TEMPLATES);
         const title = titleTemplate.replace("{city}", dest.city);
         const description = pick(DESCRIPTIONS);
@@ -243,6 +433,31 @@ async function seedTripsAndBlogsImpl(
             userId,
         });
 
+        const placeCount = 3 + Math.floor(Math.random() * 4);
+        const chosenPlaceNames = pickN(PLACE_NAMES, placeCount);
+        const [centerLat, centerLng] = dest.center;
+        const placeIds: Id<"place">[] = [];
+        const placeCoords: { lat: number; lng: number }[] = [];
+        for (let pi = 0; pi < chosenPlaceNames.length; pi++) {
+            const jitterLat = (Math.random() - 0.5) * 0.04;
+            const jitterLng = (Math.random() - 0.5) * 0.04;
+            const lat = centerLat + jitterLat;
+            const lng = centerLng + jitterLng;
+            const placeName = `${chosenPlaceNames[pi]}, ${dest.city}`;
+            const imageUrl = await fetchPlaceImage(placeName, lat, lng);
+            const placeId = await ctx.db.insert("place", {
+                tripId,
+                name: chosenPlaceNames[pi],
+                lat,
+                lng,
+                order: pi,
+                imageUrl,
+            });
+            placeIds.push(placeId);
+            placeCoords.push({ lat, lng });
+            placesCreated++;
+        }
+
         const paragraphCount = 3 + Math.floor(Math.random() * 4);
         const content = buildBlogContent(
             title,
@@ -253,6 +468,10 @@ async function seedTripsAndBlogsImpl(
         const publishedAt =
             now - i * 60_000 - Math.floor(Math.random() * 30_000);
 
+        const tagCount = 2 + Math.floor(Math.random() * 3);
+        const tags = pickN(TAGS, tagCount);
+        const { amount: budget, currency } = randomBudget(dest.country);
+
         await ctx.db.insert("blog", {
             tripId,
             title,
@@ -262,11 +481,21 @@ async function seedTripsAndBlogsImpl(
             updatedAt: publishedAt,
             tripTitle: title,
             tripDestination: destinationLabel,
+            tags,
+            startDate: start,
+            endDate: end,
+            budget,
+            currency,
+            placeIds,
+            placeCount: placeIds.length,
+            placeCoords,
+            avgRating: 0,
+            totalRatings: 0,
         });
         blogsCreated++;
     }
 
-    return { trips: tripsCreated, blogs: blogsCreated };
+    return { trips: tripsCreated, blogs: blogsCreated, places: placesCreated };
 }
 
 export const seedTripsAndBlogs = internalMutation({
@@ -279,12 +508,16 @@ export const seedTripsAndBlogs = internalMutation({
     returns: v.object({
         trips: v.number(),
         blogs: v.number(),
+        places: v.number(),
     }),
-    handler: async (ctx, { orgId, userId, count = 15, isPublic = true }) => {
+    handler: async (
+        ctx,
+        { orgId, userId, count = DESTINATIONS.length, isPublic = true }
+    ) => {
         return seedTripsAndBlogsImpl(ctx, {
             orgId,
             userId,
-            count: count ?? 15,
+            count: count ?? DESTINATIONS.length,
             isPublic: isPublic ?? true,
         });
     },
@@ -297,13 +530,14 @@ export const data = internalMutation({
     returns: v.object({
         trips: v.number(),
         blogs: v.number(),
+        places: v.number(),
         seedUserId: v.string(),
     }),
     handler: async (ctx, { count }) => {
         const result = await seedTripsAndBlogsImpl(ctx, {
             orgId: SEED_ORG_ID,
             userId: SEED_USER_ID,
-            count: count ?? 15,
+            count: count ?? DESTINATIONS.length,
             isPublic: true,
         });
         return { ...result, seedUserId: SEED_USER_ID };
@@ -313,7 +547,12 @@ export const data = internalMutation({
 async function wipeUserImpl(
     ctx: MutationCtx,
     userId: string
-): Promise<{ trips: number; blogs: number; members: number }> {
+): Promise<{
+    trips: number;
+    blogs: number;
+    members: number;
+    places: number;
+}> {
     const trips = await ctx.db
         .query("trip")
         .withIndex("createdBy", (q) => q.eq("createdBy", userId))
@@ -321,6 +560,7 @@ async function wipeUserImpl(
 
     let blogsDeleted = 0;
     let membersDeleted = 0;
+    let placesDeleted = 0;
 
     for (const trip of trips) {
         const tripBlogs = await ctx.db
@@ -330,6 +570,15 @@ async function wipeUserImpl(
         for (const b of tripBlogs) {
             await ctx.db.delete(b._id);
             blogsDeleted++;
+        }
+
+        const tripPlaces = await ctx.db
+            .query("place")
+            .withIndex("tripId", (q) => q.eq("tripId", trip._id))
+            .collect();
+        for (const p of tripPlaces) {
+            await ctx.db.delete(p._id);
+            placesDeleted++;
         }
 
         const members = await ctx.db
@@ -348,6 +597,7 @@ async function wipeUserImpl(
         trips: trips.length,
         blogs: blogsDeleted,
         members: membersDeleted,
+        places: placesDeleted,
     };
 }
 
@@ -359,6 +609,7 @@ export const wipeUserTripsAndBlogs = internalMutation({
         trips: v.number(),
         blogs: v.number(),
         members: v.number(),
+        places: v.number(),
     }),
     handler: async (ctx, { userId }) => wipeUserImpl(ctx, userId),
 });
@@ -369,8 +620,52 @@ export const wipe = internalMutation({
         trips: v.number(),
         blogs: v.number(),
         members: v.number(),
+        places: v.number(),
     }),
     handler: async (ctx) => {
         return wipeUserImpl(ctx, SEED_USER_ID);
+    },
+});
+
+export const backfillBlogAggregates = internalMutation({
+    args: {},
+    returns: v.object({ patched: v.number() }),
+    handler: async (ctx) => {
+        const blogs = await ctx.db.query("blog").collect();
+        let patched = 0;
+
+        for (const blog of blogs) {
+            const ratings = await ctx.db
+                .query("blogRating")
+                .withIndex("blogId", (q) => q.eq("blogId", blog._id))
+                .collect();
+            const totalRatings = ratings.length;
+            const avgRating =
+                totalRatings > 0
+                    ? Math.round(
+                          (ratings.reduce((s, r) => s + r.rating, 0) /
+                              totalRatings) *
+                              10
+                      ) / 10
+                    : 0;
+
+            const placeCoords: { lat: number; lng: number }[] = [];
+            for (const pid of blog.placeIds ?? []) {
+                const p = await ctx.db.get(pid);
+                if (p && p.lat !== undefined && p.lng !== undefined) {
+                    placeCoords.push({ lat: p.lat, lng: p.lng });
+                }
+            }
+
+            await ctx.db.patch(blog._id, {
+                avgRating,
+                totalRatings,
+                placeCount: blog.placeIds?.length ?? 0,
+                placeCoords,
+            });
+            patched++;
+        }
+
+        return { patched };
     },
 });

@@ -12,6 +12,7 @@ interface BlogCardProps {
     publishedAt?: number;
     avgRating?: number;
     totalRatings?: number;
+    tags?: string[];
 }
 
 export function BlogCard({
@@ -22,6 +23,7 @@ export function BlogCard({
     publishedAt,
     avgRating,
     totalRatings,
+    tags,
 }: BlogCardProps) {
     const navigate = useNavigate();
 
@@ -64,7 +66,7 @@ export function BlogCard({
                         {title}
                     </h3>
 
-                    <p className="text-sm text-muted-foreground">
+                    <p className="truncate text-sm text-muted-foreground">
                         {destination}
                     </p>
 
@@ -84,6 +86,24 @@ export function BlogCard({
                             </span>
                         )}
                     </div>
+
+                    {tags && tags.length > 0 && (
+                        <div className="flex gap-1 overflow-hidden">
+                            {tags.slice(0, 2).map((t) => (
+                                <span
+                                    key={t}
+                                    className="shrink-0 truncate rounded-full bg-foreground/6 px-2 py-px text-[10px] text-muted-foreground"
+                                >
+                                    #{t}
+                                </span>
+                            ))}
+                            {tags.length > 2 && (
+                                <span className="shrink-0 rounded-full bg-foreground/6 px-2 py-px text-[10px] text-muted-foreground">
+                                    +{tags.length - 2}
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </Card>

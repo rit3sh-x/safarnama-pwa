@@ -1,8 +1,29 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
+import type { MutationCtx } from "../_generated/server";
+import type { Id } from "../_generated/dataModel";
 import { requireUserAccess } from "../lib/utils";
 import { rateLimit } from "../lib/rateLimit";
 import type { RatingValue } from "@backend/types";
+
+async function recomputeBlogAggregates(
+    ctx: MutationCtx,
+    blogId: Id<"blog">
+): Promise<void> {
+    const ratings = await ctx.db
+        .query("blogRating")
+        .withIndex("blogId", (q) => q.eq("blogId", blogId))
+        .collect();
+    const totalRatings = ratings.length;
+    const avgRating =
+        totalRatings > 0
+            ? Math.round(
+                  (ratings.reduce((s, r) => s + r.rating, 0) / totalRatings) *
+                      10
+              ) / 10
+            : 0;
+    await ctx.db.patch(blogId, { avgRating, totalRatings });
+}
 
 export const rate = mutation({
     args: {
@@ -35,6 +56,8 @@ export const rate = mutation({
                 rating: ratingValue,
             });
         }
+
+        await recomputeBlogAggregates(ctx, blogId);
     },
 });
 

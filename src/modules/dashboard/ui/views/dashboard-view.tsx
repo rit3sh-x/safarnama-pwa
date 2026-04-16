@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useDashboardSummary } from "../../hooks/use-dashboard";
 import { DashboardUpcomingTrips } from "../components/dashboard-upcoming-trips";
 import { DashboardRecentActivity } from "../components/dashboard-recent-activity";
+import {
+    BlogRecommendations,
+    PlaceRecommendations,
+} from "../components/dashboard-recommendations";
 import { CurrencyWidget } from "../components/currency-widget";
 import TimezoneWidget from "../components/timezone-widget";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -40,6 +44,9 @@ export function DashboardView() {
             <div className="flex min-h-0 flex-1">
                 <div className="min-h-0 flex-1 overflow-y-auto">
                     <div className="space-y-6 p-4 pb-8">
+                        <BlogRecommendations />
+                        <PlaceRecommendations />
+
                         <DashboardUpcomingTrips
                             activeTrips={summary?.activeTrips ?? []}
                             upcomingTrips={summary?.upcomingTrips ?? []}

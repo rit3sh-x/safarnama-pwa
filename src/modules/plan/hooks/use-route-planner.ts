@@ -27,16 +27,15 @@ const PROFILE: Record<TravelMode, string> = {
     cycling: "bike",
 };
 
-export function buildPathId(mode: TravelMode, placeIds: string[]): string {
-    return `${mode}:${placeIds.join("-")}`;
+function canonicalizePlaceIds(placeIds: string[]): string[] {
+    if (placeIds.length < 2) return placeIds;
+    const forward = placeIds.join("|");
+    const reversed = [...placeIds].reverse().join("|");
+    return forward <= reversed ? placeIds : [...placeIds].reverse();
 }
 
-function reversePathId(pathId: string): string {
-    const colon = pathId.indexOf(":");
-    if (colon === -1) return pathId;
-    const mode = pathId.slice(0, colon);
-    const chain = pathId.slice(colon + 1).split("-");
-    return `${mode}:${chain.reverse().join("-")}`;
+export function buildPathId(mode: TravelMode, placeIds: string[]): string {
+    return `${mode}:${canonicalizePlaceIds(placeIds).join("|")}`;
 }
 
 type PathMap = Record<string, PathEntry>;
@@ -66,8 +65,13 @@ function loadPathsMap(tripId: string): PathMap {
         const parsed = JSON.parse(raw) as unknown;
         if (!parsed || typeof parsed !== "object") return {};
         const out: PathMap = {};
-        for (const [key, val] of Object.entries(parsed as PathMap)) {
-            if (isValidEntry(val)) out[key] = val;
+        for (const val of Object.values(parsed as PathMap)) {
+            if (!isValidEntry(val)) continue;
+            const canonicalId = buildPathId(
+                val.mode as TravelMode,
+                val.placeIds
+            );
+            out[canonicalId] = { ...val, pathId: canonicalId };
         }
         return out;
     } catch {
@@ -92,30 +96,22 @@ export function loadAllPaths(tripId: string): PathEntry[] {
 }
 
 export function loadPath(tripId: string, pathId: string): PathEntry | null {
-    const map = loadPathsMap(tripId);
-    return map[pathId] ?? map[reversePathId(pathId)] ?? null;
+    return loadPathsMap(tripId)[pathId] ?? null;
 }
 
 export function savePath(tripId: string, entry: PathEntry): void {
     const map = loadPathsMap(tripId);
-    delete map[reversePathId(entry.pathId)];
-    map[entry.pathId] = entry;
+    const canonicalId = buildPathId(entry.mode, entry.placeIds);
+    map[canonicalId] = { ...entry, pathId: canonicalId };
     writePathsMap(tripId, map);
 }
 
 export function removePath(tripId: string, pathId: string): void {
     const map = loadPathsMap(tripId);
-    let changed = false;
     if (pathId in map) {
         delete map[pathId];
-        changed = true;
+        writePathsMap(tripId, map);
     }
-    const rev = reversePathId(pathId);
-    if (rev in map) {
-        delete map[rev];
-        changed = true;
-    }
-    if (changed) writePathsMap(tripId, map);
 }
 
 export function formatDistance(meters: number): string {

@@ -10,6 +10,8 @@ import { useBlog } from "../../hooks/use-blogs";
 import { Editor } from "../components/editor";
 import { BlogRatingSection } from "../components/blog-rating-section";
 import { CommentSection } from "../components/comments/comment-section";
+import { BlogFactsStrip } from "../components/blog-facts-strip";
+import { BlogPlacesList } from "../components/blog-places-list";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -125,35 +127,66 @@ export function BlogViewerView({ blogId }: BlogViewerViewProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
-                    {blog.coverImage && (
-                        <div className="pt-6">
+                {blog.coverImage ? (
+                    <div className="mx-auto w-full max-w-3xl px-4 pt-6 sm:px-6">
+                        <div className="relative w-full overflow-hidden rounded-xl">
                             <img
                                 src={blog.coverImage}
                                 alt={blog.title}
                                 loading="lazy"
-                                className="max-h-100 w-full rounded-xl object-cover"
+                                className="h-[55vh] max-h-140 min-h-80 w-full object-cover"
                             />
+                            <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-transparent" />
+                            <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8 md:p-10">
+                                <h1 className="font-serif text-3xl leading-tight font-bold text-white drop-shadow-sm sm:text-4xl md:text-5xl">
+                                    {blog.title}
+                                </h1>
+                                <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/85">
+                                    <span>{blog.tripDestination}</span>
+                                    {publishedDate && (
+                                        <span className="flex items-center gap-1">
+                                            <CalendarIcon className="size-3.5" />
+                                            {publishedDate}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
+
+                <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+                    {!blog.coverImage && (
+                        <div className="pt-8 md:pt-12">
+                            <h1 className="font-serif text-3xl leading-tight font-bold text-foreground sm:text-4xl md:text-5xl">
+                                {blog.title}
+                            </h1>
+
+                            <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+                                <span>{blog.tripDestination}</span>
+                                {publishedDate && (
+                                    <span className="flex items-center gap-1">
+                                        <CalendarIcon className="size-3.5" />
+                                        {publishedDate}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     )}
 
-                    <div className="pt-8 md:pt-12">
-                        <h1 className="font-serif text-3xl leading-tight font-bold text-foreground sm:text-4xl md:text-5xl">
-                            {blog.title}
-                        </h1>
-
-                        <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-                            <span>{blog.tripDestination}</span>
-                            {publishedDate && (
-                                <span className="flex items-center gap-1">
-                                    <CalendarIcon className="size-3.5" />
-                                    {publishedDate}
-                                </span>
-                            )}
-                        </div>
+                    <div className="pt-6">
+                        <BlogFactsStrip
+                            startDate={blog.startDate}
+                            endDate={blog.endDate}
+                            budget={blog.budget}
+                            currency={blog.currency}
+                            tags={blog.tags}
+                        />
                     </div>
 
                     <Editor initialContent={initialContent} editable={false} />
+
+                    <BlogPlacesList places={blog.places} />
 
                     <BlogRatingSection blogId={blog._id} />
 

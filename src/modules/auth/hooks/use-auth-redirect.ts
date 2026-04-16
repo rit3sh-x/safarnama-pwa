@@ -34,6 +34,7 @@ const AUTH_REDIRECTS = [
             "/expenses",
             "/settings",
             "/plan",
+            "/place",
             "/public",
         ],
     },

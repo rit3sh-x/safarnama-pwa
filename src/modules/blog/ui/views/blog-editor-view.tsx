@@ -11,6 +11,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useBlogByTrip, useSaveBlog } from "../../hooks/use-blogs";
 import { Editor } from "../components/editor";
 import { BlogTitleInput } from "../components/blog-title-input";
+import { BlogCoverImageInput } from "../components/blog-cover-image-input";
+import {
+    BlogMetaPanel,
+    type BlogMetaValue,
+} from "../components/blog-meta-panel";
 import { EditorToolbar } from "../components/toolbar/editor-toolbar";
 import { FloatingFormatToolbar } from "../components/toolbar/floating-format-toolbar";
 import { MobileInsertButton } from "../components/toolbar/mobile-insert-button";
@@ -131,6 +136,17 @@ function BlogEditor({ tripId, blog }: BlogEditorProps) {
     const [title, setTitle] = useState(
         () => initialDraft?.title ?? blog?.title ?? ""
     );
+    const [coverImage, setCoverImage] = useState<string | undefined>(
+        () => blog?.coverImage
+    );
+    const [meta, setMeta] = useState<BlogMetaValue>(() => ({
+        tags: blog?.tags ?? [],
+        startDate: blog?.startDate,
+        endDate: blog?.endDate,
+        budget: blog?.budget,
+        currency: blog?.currency ?? "USD",
+        placeIds: blog?.placeIds ?? [],
+    }));
     const [hasLocalDraft, setHasLocalDraft] = useState(
         () => initialDraft !== null
     );
@@ -169,6 +185,18 @@ function BlogEditor({ tripId, blog }: BlogEditorProps) {
         setHasLocalDraft(true);
     }, []);
 
+    const handleCoverImageChange = useCallback((next: string | undefined) => {
+        setCoverImage(next);
+        setIsDirty(true);
+        setHasLocalDraft(true);
+    }, []);
+
+    const handleMetaChange = useCallback((patch: Partial<BlogMetaValue>) => {
+        setMeta((prev) => ({ ...prev, ...patch }));
+        setIsDirty(true);
+        setHasLocalDraft(true);
+    }, []);
+
     const handlePublish = useCallback(async () => {
         if (!editor) return;
         const trimmedTitle = title.trim();
@@ -182,7 +210,13 @@ function BlogEditor({ tripId, blog }: BlogEditorProps) {
                 tripId,
                 title: trimmedTitle,
                 content: JSON.stringify(editor.getJSON()),
-                coverImage: blog?.coverImage,
+                coverImage,
+                tags: meta.tags,
+                startDate: meta.startDate,
+                endDate: meta.endDate,
+                budget: meta.budget,
+                currency: meta.currency,
+                placeIds: meta.placeIds,
             });
             clearLocalDraft(tripId);
             setIsDirty(false);
@@ -201,7 +235,17 @@ function BlogEditor({ tripId, blog }: BlogEditorProps) {
                 err instanceof Error ? err.message : "Failed to publish"
             );
         }
-    }, [editor, title, saveBlog, tripId, blog, navigate, router]);
+    }, [
+        editor,
+        title,
+        coverImage,
+        meta,
+        saveBlog,
+        tripId,
+        blog,
+        navigate,
+        router,
+    ]);
 
     useBlocker({
         shouldBlockFn: ({ next }) => {
@@ -341,11 +385,20 @@ function BlogEditor({ tripId, blog }: BlogEditorProps) {
 
             <div className="min-h-0 flex-1 overflow-y-auto">
                 <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+                    <BlogCoverImageInput
+                        value={coverImage}
+                        onChange={handleCoverImageChange}
+                    />
                     <BlogTitleInput
                         value={title}
                         onChange={handleTitleChange}
                     />
                     <Editor initialContent={initialContent} editable />
+                    <BlogMetaPanel
+                        tripId={tripId}
+                        value={meta}
+                        onChange={handleMetaChange}
+                    />
                 </div>
             </div>
 
