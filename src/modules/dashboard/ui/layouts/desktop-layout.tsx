@@ -1,5 +1,6 @@
 import { Outlet } from "@tanstack/react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAppBadge } from "@/hooks/use-app-badge";
 import { TopBar } from "../components/top-bar";
 import { useTabNavigation } from "../../hooks/use-tab-navigation";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -8,6 +9,7 @@ import { DashboardSidebar } from "@/modules/dashboard/ui/components/dashboard-si
 export const DesktopLayout = () => {
     const isMobile = useIsMobile();
     const { currentTab } = useTabNavigation();
+    useAppBadge();
 
     const title = currentTab.title;
 

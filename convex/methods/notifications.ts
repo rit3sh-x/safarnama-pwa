@@ -108,6 +108,19 @@ export const getUserSubscriptions = internalQuery({
     },
 });
 
+export const countUnreadForUser = internalQuery({
+    args: { userId: v.string() },
+    handler: async (ctx, { userId }) => {
+        const unread = await ctx.db
+            .query("notification")
+            .withIndex("userId_isRead", (q) =>
+                q.eq("userId", userId).eq("isRead", false)
+            )
+            .collect();
+        return unread.length;
+    },
+});
+
 export const removeSubscription = internalMutation({
     args: { subscriptionId: v.id("pushSubscription") },
     handler: async (ctx, { subscriptionId }) => {

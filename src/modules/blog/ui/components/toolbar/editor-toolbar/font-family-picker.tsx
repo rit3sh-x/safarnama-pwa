@@ -10,21 +10,26 @@ import {
 
 const fonts = [
     {
-        label: "Sans (Inter)",
-        value: "Inter Variable",
+        label: "System",
+        value: "system-ui",
         previewClass: "font-sans",
     },
     {
-        label: "Serif (Lora)",
+        label: "Inter",
+        value: "Inter Variable",
+        previewClass: "font-inter",
+    },
+    {
+        label: "Lora",
         value: "Lora Variable",
-        previewClass: "font-serif",
+        previewClass: "font-lora",
     },
     { label: "Monospace", value: "monospace", previewClass: "font-mono" },
 ];
 
 export function FontFamilyPicker() {
     const { editor } = useEditorStore();
-    const [selectedFont, setSelectedFont] = useState("Inter Variable");
+    const [selectedFont, setSelectedFont] = useState("system-ui");
 
     useEffect(() => {
         if (!editor) return;
@@ -33,7 +38,7 @@ export function FontFamilyPicker() {
             const family =
                 (editor.getAttributes("textStyle").fontFamily as
                     | string
-                    | undefined) ?? "Inter Variable";
+                    | undefined) ?? "system-ui";
             setSelectedFont(family);
         };
 
@@ -52,7 +57,7 @@ export function FontFamilyPicker() {
         (editor?.getAttributes("textStyle").fontFamily as string | undefined) ??
         selectedFont;
     const displayName =
-        fonts.find((f) => f.value === currentFont)?.label ?? "Sans";
+        fonts.find((f) => f.value === currentFont)?.label ?? "System";
 
     return (
         <Popover>

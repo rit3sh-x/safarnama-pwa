@@ -26,7 +26,12 @@ export const sendPush = internalAction({
             { userId }
         );
 
-        const payload = JSON.stringify({ title, body, url });
+        const unreadCount = await ctx.runQuery(
+            internal.methods.notifications.countUnreadForUser,
+            { userId }
+        );
+
+        const payload = JSON.stringify({ title, body, url, unreadCount });
 
         for (const sub of subscriptions) {
             try {

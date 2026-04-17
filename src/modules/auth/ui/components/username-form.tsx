@@ -2,7 +2,7 @@ import { z } from "zod";
 import { useForm } from "@tanstack/react-form";
 import { useCallback, useRef, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
-import { CameraIcon, Loader2 } from "lucide-react";
+import { CameraIcon, ChevronLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { changeUsername } from "../../hooks/auth-handlers";
@@ -18,13 +18,8 @@ import {
 } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 
 const schema = z.object({
     username: z
@@ -34,56 +29,16 @@ const schema = z.object({
         .regex(/^[a-zA-Z0-9_]+$/, "Letters, numbers, and underscores only"),
 });
 
-function getCroppedImage(imageSrc: string, crop: Area): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-        const image = new Image();
-        image.onload = () => {
-            const canvas = document.createElement("canvas");
-            canvas.width = crop.width;
-            canvas.height = crop.height;
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return reject(new Error("Canvas context unavailable"));
-
-            ctx.drawImage(
-                image,
-                crop.x,
-                crop.y,
-                crop.width,
-                crop.height,
-                0,
-                0,
-                crop.width,
-                crop.height
-            );
-
-            canvas.toBlob(
-                (blob) => {
-                    if (blob) resolve(blob);
-                    else reject(new Error("Failed to create blob"));
-                },
-                "image/jpeg",
-                0.85
-            );
-        };
-        image.onerror = reject;
-        image.crossOrigin = "anonymous";
-        image.src = imageSrc;
-    });
-}
-
 export function UsernameForm() {
     const [croppedPreview, setCroppedPreview] = useState<string | null>(null);
     const [croppedBlob, setCroppedBlob] = useState<Blob | null>(null);
     const [imageError, setImageError] = useState<string | null>(null);
-
-    const [cropDialogOpen, setCropDialogOpen] = useState(false);
-    const [rawImage, setRawImage] = useState<string | null>(null);
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
-    const [zoom, setZoom] = useState(1);
-    const [croppedArea, setCroppedArea] = useState<Area | null>(null);
+    const [cropSrc, setCropSrc] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
     const uploadFile = useUploadFileToConvex();
+
+    const view: "form" | "crop" = cropSrc ? "crop" : "form";
 
     const form = useForm({
         defaultValues: {
@@ -123,39 +78,49 @@ export function UsernameForm() {
         },
     });
 
+    const startCrop = useCallback((file: File) => {
+        setImageError(null);
+        const url = URL.createObjectURL(file);
+        setCropSrc(url);
+    }, []);
+
+    const applyCrop = useCallback(
+        (blob: Blob) => {
+            if (croppedPreview) URL.revokeObjectURL(croppedPreview);
+            setCroppedBlob(blob);
+            setCroppedPreview(URL.createObjectURL(blob));
+            if (cropSrc) URL.revokeObjectURL(cropSrc);
+            setCropSrc(null);
+        },
+        [croppedPreview, cropSrc]
+    );
+
+    const cancelCrop = useCallback(() => {
+        if (cropSrc) URL.revokeObjectURL(cropSrc);
+        setCropSrc(null);
+    }, [cropSrc]);
+
     const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         setImageError(null);
         const file = e.target.files?.[0];
-        if (!file) return;
-
-        const url = URL.createObjectURL(file);
-        setRawImage(url);
-        setCrop({ x: 0, y: 0 });
-        setZoom(1);
-        setCropDialogOpen(true);
-
+        if (file) startCrop(file);
         e.target.value = "";
     };
 
-    const onCropComplete = useCallback((_: Area, croppedPixels: Area) => {
-        setCroppedArea(croppedPixels);
-    }, []);
-
-    const handleCropConfirm = async () => {
-        if (!rawImage || !croppedArea) return;
-
-        try {
-            const blob = await getCroppedImage(rawImage, croppedArea);
-            setCroppedBlob(blob);
-            setCroppedPreview(URL.createObjectURL(blob));
-        } catch {
-            setImageError("Failed to crop image");
-        } finally {
-            setCropDialogOpen(false);
-            if (rawImage) URL.revokeObjectURL(rawImage);
-            setRawImage(null);
-        }
-    };
+    if (view === "crop" && cropSrc) {
+        return (
+            <AuthContainer
+                title="Crop your photo"
+                subtitle="Drag to reposition. Use the slider to zoom in."
+            >
+                <CropView
+                    src={cropSrc}
+                    onApply={applyCrop}
+                    onCancel={cancelCrop}
+                />
+            </AuthContainer>
+        );
+    }
 
     return (
         <AuthContainer
@@ -201,43 +166,6 @@ export function UsernameForm() {
                         </p>
                     )}
                 </div>
-
-                <Dialog open={cropDialogOpen} onOpenChange={setCropDialogOpen}>
-                    <DialogContent showCloseButton={false}>
-                        <DialogHeader>
-                            <DialogTitle>Crop your photo</DialogTitle>
-                        </DialogHeader>
-
-                        <div className="relative h-64 w-full">
-                            {rawImage && (
-                                <Cropper
-                                    image={rawImage}
-                                    crop={crop}
-                                    zoom={zoom}
-                                    aspect={1}
-                                    cropShape="round"
-                                    onCropChange={setCrop}
-                                    onZoomChange={setZoom}
-                                    onCropComplete={onCropComplete}
-                                />
-                            )}
-                        </div>
-
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    setCropDialogOpen(false);
-                                    if (rawImage) URL.revokeObjectURL(rawImage);
-                                    setRawImage(null);
-                                }}
-                            >
-                                Cancel
-                            </Button>
-                            <Button onClick={handleCropConfirm}>Save</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
 
                 <form.Field name="username">
                     {(field) => {
@@ -294,5 +222,119 @@ export function UsernameForm() {
                 </Button>
             </div>
         </AuthContainer>
+    );
+}
+
+function CropView({
+    src,
+    onApply,
+    onCancel,
+}: {
+    src: string;
+    onApply: (blob: Blob) => void;
+    onCancel: () => void;
+}) {
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const cropAreaRef = useRef<Area | null>(null);
+    const [working, setWorking] = useState(false);
+
+    const onCropComplete = useCallback((_: Area, area: Area) => {
+        cropAreaRef.current = area;
+    }, []);
+
+    const handleApply = useCallback(async () => {
+        if (!cropAreaRef.current) return;
+        setWorking(true);
+        try {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            await new Promise<void>((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = reject;
+                img.src = src;
+            });
+
+            const { x, y, width, height } = cropAreaRef.current;
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d")!;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
+
+            const blob = await new Promise<Blob>((resolve) =>
+                canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.9)
+            );
+            onApply(blob);
+        } finally {
+            setWorking(false);
+        }
+    }, [src, onApply]);
+
+    return (
+        <div className="flex flex-col gap-4">
+            <div className="relative mx-auto aspect-square w-full max-w-sm touch-none overflow-hidden rounded-2xl border bg-muted">
+                <Cropper
+                    image={src}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    cropShape="round"
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onCropComplete={onCropComplete}
+                />
+            </div>
+
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <Label className="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+                        Zoom
+                    </Label>
+                    <span className="font-mono text-xs text-muted-foreground tabular-nums">
+                        {zoom.toFixed(2)}×
+                    </span>
+                </div>
+                <Slider
+                    value={[zoom]}
+                    onValueChange={(value) =>
+                        setZoom(Array.isArray(value) ? (value[0] ?? 1) : value)
+                    }
+                    min={1}
+                    max={3}
+                    step={0.01}
+                />
+            </div>
+
+            <div className="flex gap-3">
+                <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={onCancel}
+                    disabled={working}
+                >
+                    <ChevronLeft className="size-4" />
+                    Back
+                </Button>
+                <Button
+                    type="button"
+                    className="flex-1"
+                    onClick={handleApply}
+                    disabled={working}
+                >
+                    {working ? (
+                        <span className="inline-flex items-center gap-2">
+                            <Loader2 className="size-4 animate-spin" />
+                            Applying
+                        </span>
+                    ) : (
+                        "Use this crop"
+                    )}
+                </Button>
+            </div>
+        </div>
     );
 }

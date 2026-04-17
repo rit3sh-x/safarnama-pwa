@@ -10,7 +10,12 @@ self.addEventListener("push", (event) => {
                 data = { title: "Safarnama", body: event.data.text() };
             }
 
-            const { title = "Safarnama", body = "", url = "/" } = data;
+            const {
+                title = "Safarnama",
+                body = "",
+                url = "/",
+                unreadCount,
+            } = data;
 
             await self.registration.showNotification(title, {
                 body,
@@ -18,6 +23,21 @@ self.addEventListener("push", (event) => {
                 badge: "/logo.png",
                 data: { url },
             });
+
+            try {
+                if (
+                    self.navigator &&
+                    typeof self.navigator.setAppBadge === "function"
+                ) {
+                    if (typeof unreadCount === "number" && unreadCount >= 0) {
+                        await self.navigator.setAppBadge(unreadCount);
+                    } else {
+                        await self.navigator.setAppBadge();
+                    }
+                }
+            } catch {
+                // ignore
+            }
         })()
     );
 });
