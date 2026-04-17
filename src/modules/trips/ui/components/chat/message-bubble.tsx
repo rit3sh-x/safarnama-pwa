@@ -205,13 +205,14 @@ function MessageBubbleInner({
                                     onClick={() =>
                                         onImageClick(message.imageUrl!)
                                     }
-                                    className="my-1 block overflow-hidden rounded-xl"
+                                    className="my-1 block h-56 w-56 overflow-hidden rounded-xl bg-black/5"
                                 >
                                     <img
                                         src={message.imageUrl}
                                         alt="Shared image"
-                                        className="max-h-64 max-w-full rounded-xl object-cover"
-                                        loading="lazy"
+                                        width={224}
+                                        height={224}
+                                        className="size-full rounded-xl object-cover"
                                     />
                                 </button>
                             )}
@@ -692,4 +693,70 @@ function MessageContextMenuContent({
     );
 }
 
-export const MessageBubble = memo(MessageBubbleInner);
+function sameReactions(
+    a: MessageBubbleProps["message"]["reactions"],
+    b: MessageBubbleProps["message"]["reactions"]
+): boolean {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        const x = a[i];
+        const y = b[i];
+        if (x.emoji !== y.emoji) return false;
+        if (x.count !== y.count) return false;
+        if (x.userIds.length !== y.userIds.length) return false;
+    }
+    return true;
+}
+
+function samePoll(
+    a: MessageBubbleProps["message"]["poll"],
+    b: MessageBubbleProps["message"]["poll"]
+): boolean {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    return (
+        a._id === b._id &&
+        a.totalVotes === b.totalVotes &&
+        a.closedAt === b.closedAt &&
+        a.currentUserVotes.length === b.currentUserVotes.length &&
+        a.currentUserVotes.every((v, i) => v === b.currentUserVotes[i])
+    );
+}
+
+function arePropsEqual(a: MessageBubbleProps, b: MessageBubbleProps): boolean {
+    if (a.isOwn !== b.isOwn) return false;
+    if (a.isGrouped !== b.isGrouped) return false;
+    if (a.showAvatar !== b.showAvatar) return false;
+    if (a.currentUserId !== b.currentUserId) return false;
+    if (a.isAdmin !== b.isAdmin) return false;
+    if (a.searchQuery !== b.searchQuery) return false;
+    if (a.onReply !== b.onReply) return false;
+    if (a.onEdit !== b.onEdit) return false;
+    if (a.onDelete !== b.onDelete) return false;
+    if (a.onPin !== b.onPin) return false;
+    if (a.onReaction !== b.onReaction) return false;
+    if (a.onImageClick !== b.onImageClick) return false;
+    if (a.onVotePoll !== b.onVotePoll) return false;
+    if (a.onClosePoll !== b.onClosePoll) return false;
+    if (a.replyMessage?._id !== b.replyMessage?._id) return false;
+    if (a.replyMessage?.content !== b.replyMessage?.content) return false;
+    if (a.replyMessage?.isDeleted !== b.replyMessage?.isDeleted) return false;
+
+    const x = a.message;
+    const y = b.message;
+    return (
+        x._id === y._id &&
+        x.content === y.content &&
+        x.isEdited === y.isEdited &&
+        x.isDeleted === y.isDeleted &&
+        x.isPinned === y.isPinned &&
+        x.isPending === y.isPending &&
+        x.imageUrl === y.imageUrl &&
+        x.senderName === y.senderName &&
+        x.senderImage === y.senderImage &&
+        sameReactions(x.reactions, y.reactions) &&
+        samePoll(x.poll, y.poll)
+    );
+}
+
+export const MessageBubble = memo(MessageBubbleInner, arePropsEqual);

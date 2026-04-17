@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useMutation, usePaginatedQuery } from "convex/react";
 import type { OptimisticLocalStore } from "convex/browser";
 import { api } from "@backend/api";
@@ -8,6 +8,7 @@ import { PAGINATION } from "@/lib/constants";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import type { Id } from "@backend/dataModel";
+import { toChatMessage, type ChatMessage } from "../ui/components/chat/types";
 
 function updateMessageInStore(
     localStore: OptimisticLocalStore,
@@ -42,6 +43,29 @@ export function useMessages(tripId: Id<"trip"> | undefined) {
         isLoading: status === "LoadingFirstPage",
         canLoadMore: status === "CanLoadMore",
         loadMore: () => loadMore(PAGINATION.MESSAGES_PAGE_SIZE),
+    };
+}
+
+export function useChatMessages(tripId: Id<"trip"> | undefined) {
+    const { messages, isLoading, canLoadMore, loadMore } = useMessages(tripId);
+
+    const chatMessages = useMemo<ChatMessage[]>(
+        () => messages.map(toChatMessage).reverse(),
+        [messages]
+    );
+
+    const messageMap = useMemo(() => {
+        const map = new Map<string, ChatMessage>();
+        for (const m of chatMessages) map.set(m._id, m);
+        return map;
+    }, [chatMessages]);
+
+    return {
+        messages: chatMessages,
+        messageMap,
+        isLoading,
+        canLoadMore,
+        loadMore,
     };
 }
 

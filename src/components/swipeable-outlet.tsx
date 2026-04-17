@@ -1,5 +1,10 @@
 import { Outlet, useRouterState } from "@tanstack/react-router";
-import { AnimatePresence, motion, type PanInfo } from "framer-motion";
+import {
+    AnimatePresence,
+    motion,
+    type PanInfo,
+    useDragControls,
+} from "framer-motion";
 import { useCallback, type RefObject } from "react";
 import { TABS } from "../modules/dashboard/constants";
 
@@ -35,6 +40,7 @@ export function SwipeableOutlet({
     onPrev,
 }: SwipeableOutletProps) {
     const pathname = useRouterState({ select: (s) => s.location.pathname });
+    const dragControls = useDragControls();
 
     const handleDragEnd = useCallback(
         (_: unknown, info: PanInfo) => {
@@ -74,6 +80,13 @@ export function SwipeableOutlet({
                         opacity: { duration: 0.15 },
                     }}
                     drag="x"
+                    dragListener={false}
+                    dragControls={dragControls}
+                    onPointerDown={(e) => {
+                        const target = e.target as HTMLElement;
+                        if (target.closest("[data-scroll-lock]")) return;
+                        dragControls.start(e);
+                    }}
                     dragConstraints={{ left: 0, right: 0 }}
                     dragDirectionLock
                     dragElastic={{

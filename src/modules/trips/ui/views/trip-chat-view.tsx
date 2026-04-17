@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-    useMessages,
+    useChatMessages,
     useSendMessage,
     useEditMessage,
     useDeleteMessage,
@@ -21,7 +21,6 @@ import {
     MessageSearch,
     DeleteMessageDialog,
     CreatePollDialog,
-    toChatMessage,
 } from "../components/chat";
 import type { ChatMessage } from "../components/chat";
 import { ChatHeader } from "../components/chat-header";
@@ -45,7 +44,13 @@ export function TripChatView({
     const router = useRouter();
     const { user } = useAuthenticatedUser();
     const selectedTrip = useAtomValue(selectedTripAtom);
-    const { messages, isLoading, canLoadMore, loadMore } = useMessages(tripId);
+    const {
+        messages: chatMessages,
+        messageMap,
+        isLoading,
+        canLoadMore,
+        loadMore,
+    } = useChatMessages(tripId);
     const { mutate: sendMessage } = useSendMessage();
     const { mutate: editMessage } = useEditMessage();
     const { mutate: deleteMessage } = useDeleteMessage();
@@ -74,8 +79,8 @@ export function TripChatView({
     const [showPollDialog, setShowPollDialog] = useState(false);
 
     useEffect(() => {
-        if (messages.length > 0) markRead();
-    }, [messages.length, markRead]);
+        if (chatMessages.length > 0) markRead();
+    }, [chatMessages.length, markRead]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -87,17 +92,6 @@ export function TripChatView({
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
-
-    const chatMessages: ChatMessage[] = useMemo(
-        () => messages.map((m) => toChatMessage(m)).reverse(),
-        [messages]
-    );
-
-    const messageMap = useMemo(() => {
-        const map = new Map<string, ChatMessage>();
-        for (const m of chatMessages) map.set(m._id, m);
-        return map;
-    }, [chatMessages]);
 
     const handleSend = useCallback(
         (text: string) => {

@@ -11,6 +11,8 @@ import type { Id } from "@backend/dataModel";
 
 const START_INDEX = 100_000;
 
+const ChatFooter = () => <div className="h-3" />;
+
 interface ChatMessageListProps {
     messages: ChatMessage[];
     messageMap: Map<string, ChatMessage>;
@@ -69,6 +71,29 @@ export function ChatMessageList({
             onLoadMore();
         }
     }, [canLoadMore, isLoading, onLoadMore]);
+
+    const virtuosoComponents = useMemo(
+        () => ({
+            Header: canLoadMore
+                ? () => (
+                      <div className="flex justify-center py-2">
+                          {isLoading && (
+                              <span className="text-xs text-muted-foreground">
+                                  Loading earlier messages...
+                              </span>
+                          )}
+                      </div>
+                  )
+                : undefined,
+            Footer: ChatFooter,
+        }),
+        [canLoadMore, isLoading]
+    );
+
+    const followOutput = useCallback(
+        (isAtBottom: boolean) => (isAtBottom ? ("auto" as const) : false),
+        []
+    );
 
     const itemContent = useCallback(
         (virtuosoIndex: number) => {
@@ -145,7 +170,10 @@ export function ChatMessageList({
     }
 
     return (
-        <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div
+            data-scroll-lock
+            className="relative min-h-0 flex-1 overflow-hidden"
+        >
             <Virtuoso
                 className="h-full w-full"
                 ref={virtuosoRef}
@@ -158,25 +186,11 @@ export function ChatMessageList({
                     return messages[dataIndex]?._id ?? String(virtuosoIndex);
                 }}
                 startReached={handleStartReached}
-                followOutput="smooth"
+                followOutput={followOutput}
                 atBottomStateChange={setAtBottom}
-                atBottomThreshold={4}
+                atBottomThreshold={50}
                 style={{ height: "100%" }}
-                increaseViewportBy={{ top: 200, bottom: 200 }}
-                components={{
-                    Header: canLoadMore
-                        ? () => (
-                              <div className="flex justify-center py-2">
-                                  {isLoading && (
-                                      <span className="text-xs text-muted-foreground">
-                                          Loading earlier messages...
-                                      </span>
-                                  )}
-                              </div>
-                          )
-                        : undefined,
-                    Footer: () => <div className="h-3" />,
-                }}
+                components={virtuosoComponents}
             />
 
             <ScrollToBottomButton
