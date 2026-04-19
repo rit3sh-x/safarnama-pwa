@@ -38,9 +38,7 @@ interface ExpenseListItemProps {
     notes?: string;
     canEdit?: boolean;
     owedAmount?: number;
-    /** Current user has already settled this expense. */
     isSettledByMe?: boolean;
-    /** Settlement amount the current user paid (shown in settled state). */
     settledAmount?: number;
     onDelete?: (expenseId: Id<"expense">) => void;
     onSettle?: (

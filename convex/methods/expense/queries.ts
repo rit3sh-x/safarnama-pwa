@@ -97,12 +97,14 @@ export const globalSummary = query({
         let totalSpent = 0;
         let totalOwed = 0;
         let totalOwing = 0;
+        let expenseCount = 0;
         const monthlyMap = new Map<string, number>();
         const perTrip: {
             tripId: string;
             tripTitle: string;
             totalExpenses: number;
             userBalance: number;
+            expenseCount: number;
         }[] = [];
 
         for (const trip of trips) {
@@ -117,6 +119,7 @@ export const globalSummary = query({
                 .reduce((sum, e) => sum + e.amount, 0);
 
             totalSpent += userPaid;
+            expenseCount += expenses.length;
 
             for (const expense of expenses) {
                 if (expense.paidBy !== user._id) continue;
@@ -157,12 +160,13 @@ export const globalSummary = query({
                 tripTitle: trip.title,
                 totalExpenses: tripTotal,
                 userBalance: tripOwed - tripOwing,
+                expenseCount: expenses.length,
             });
         }
 
         const now = new Date();
         const monthlySpending: { month: string; amount: number }[] = [];
-        for (let i = 5; i >= 0; i--) {
+        for (let i = 11; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
             const label = d.toLocaleDateString("en-US", {
@@ -175,8 +179,24 @@ export const globalSummary = query({
             });
         }
 
+        const currentKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        const prevD = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const prevKey = `${prevD.getFullYear()}-${String(prevD.getMonth() + 1).padStart(2, "0")}`;
+        const thisMonthSpent = monthlyMap.get(currentKey) ?? 0;
+        const lastMonthSpent = monthlyMap.get(prevKey) ?? 0;
+
         perTrip.sort((a, b) => b.totalExpenses - a.totalExpenses);
 
-        return { totalSpent, totalOwed, totalOwing, monthlySpending, perTrip };
+        return {
+            totalSpent,
+            totalOwed,
+            totalOwing,
+            expenseCount,
+            tripCount: trips.length,
+            thisMonthSpent,
+            lastMonthSpent,
+            monthlySpending,
+            perTrip,
+        };
     },
 });

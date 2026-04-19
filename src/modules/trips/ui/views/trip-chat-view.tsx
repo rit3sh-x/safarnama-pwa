@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTour } from "@/hooks/use-tour";
 import {
     useChatMessages,
     useSendMessage,
@@ -92,6 +93,37 @@ export function TripChatView({
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
+
+    const tourSteps = useMemo(
+        () => [
+            {
+                element: '[data-tour="chat-header"]',
+                popover: {
+                    title: "Trip Chat",
+                    description:
+                        "Search messages, invite members, or open group info from here.",
+                },
+            },
+            {
+                element: '[data-tour="chat-messages"]',
+                popover: {
+                    title: "Messages",
+                    description:
+                        "Reply, react, pin, or edit by long-pressing any message.",
+                },
+            },
+            {
+                element: '[data-tour="chat-input"]',
+                popover: {
+                    title: "Send",
+                    description:
+                        "Share text, images, files, or a poll. Attach via the paperclip.",
+                },
+            },
+        ],
+        []
+    );
+    useTour("chat", tourSteps, isPanel);
 
     const handleSend = useCallback(
         (text: string) => {
@@ -242,23 +274,25 @@ export function TripChatView({
     return (
         <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
             {isPanel && (
-                <ChatHeader
-                    name={selectedTrip?.name ?? "Chat"}
-                    tripId={tripId}
-                    logo={selectedTrip?.logo ?? undefined}
-                    showBack={false}
-                    onBack={() => router.history.back()}
-                    onGroupPress={
-                        onGroupPress ??
-                        (() =>
-                            router.navigate({
-                                to: "/trips/$tripId/info",
-                                params: { tripId },
-                            }))
-                    }
-                    onSearchPress={() => setShowSearch((v) => !v)}
-                    onInvitePress={() => setShowInvite(true)}
-                />
+                <div data-tour="chat-header">
+                    <ChatHeader
+                        name={selectedTrip?.name ?? "Chat"}
+                        tripId={tripId}
+                        logo={selectedTrip?.logo ?? undefined}
+                        showBack={false}
+                        onBack={() => router.history.back()}
+                        onGroupPress={
+                            onGroupPress ??
+                            (() =>
+                                router.navigate({
+                                    to: "/trips/$tripId/info",
+                                    params: { tripId },
+                                }))
+                        }
+                        onSearchPress={() => setShowSearch((v) => !v)}
+                        onInvitePress={() => setShowInvite(true)}
+                    />
+                </div>
             )}
 
             {showSearch && (
@@ -272,36 +306,43 @@ export function TripChatView({
                 />
             )}
 
-            <ChatMessageList
-                messages={chatMessages}
-                messageMap={messageMap}
-                isLoading={isLoading}
-                canLoadMore={canLoadMore}
-                onLoadMore={loadMore}
-                currentUserId={currentUserId}
-                isAdmin={isAdmin}
-                searchQuery={showSearch ? searchQuery : undefined}
-                onReply={handleReply}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onPin={handlePin}
-                onReaction={handleReaction}
-                onImageClick={setLightboxSrc}
-                onVotePoll={handleVotePoll}
-                onClosePoll={handleClosePoll}
-            />
+            <div
+                data-tour="chat-messages"
+                className="flex min-h-0 flex-1 flex-col"
+            >
+                <ChatMessageList
+                    messages={chatMessages}
+                    messageMap={messageMap}
+                    isLoading={isLoading}
+                    canLoadMore={canLoadMore}
+                    onLoadMore={loadMore}
+                    currentUserId={currentUserId}
+                    isAdmin={isAdmin}
+                    searchQuery={showSearch ? searchQuery : undefined}
+                    onReply={handleReply}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onPin={handlePin}
+                    onReaction={handleReaction}
+                    onImageClick={setLightboxSrc}
+                    onVotePoll={handleVotePoll}
+                    onClosePoll={handleClosePoll}
+                />
+            </div>
 
-            <ChatInputToolbar
-                onSend={handleSend}
-                onSendImage={handleSendImage}
-                replyTo={replyTo}
-                editingMessage={editingMessage}
-                isUploading={isUploading}
-                onClearReply={() => setReplyTo(null)}
-                onClearEdit={() => setEditingMessage(null)}
-                onUploadFile={handleUploadFile}
-                onOpenPollDialog={() => setShowPollDialog(true)}
-            />
+            <div data-tour="chat-input">
+                <ChatInputToolbar
+                    onSend={handleSend}
+                    onSendImage={handleSendImage}
+                    replyTo={replyTo}
+                    editingMessage={editingMessage}
+                    isUploading={isUploading}
+                    onClearReply={() => setReplyTo(null)}
+                    onClearEdit={() => setEditingMessage(null)}
+                    onUploadFile={handleUploadFile}
+                    onOpenPollDialog={() => setShowPollDialog(true)}
+                />
+            </div>
 
             <CreatePollDialog
                 open={showPollDialog}

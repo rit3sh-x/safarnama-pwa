@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAtomValue } from "jotai";
+import { useTour } from "@/hooks/use-tour";
 import { ArrowLeft, Plus, Receipt } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,36 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
 
     const currentUserId = user._id;
 
+    const tourSteps = useMemo(
+        () => [
+            {
+                element: '[data-tour="expense-balances"]',
+                popover: {
+                    title: "Balances",
+                    description:
+                        "See who owes whom. Tap a balance to settle up.",
+                },
+            },
+            {
+                element: '[data-tour="expense-list"]',
+                popover: {
+                    title: "Expenses",
+                    description:
+                        "Every expense logged for this trip. Tap to edit.",
+                },
+            },
+            {
+                element: '[data-tour="expense-add"]',
+                popover: {
+                    title: "Add Expense",
+                    description: "Log a new expense and split it with members.",
+                },
+            },
+        ],
+        []
+    );
+    useTour("expense", tourSteps);
+
     const userMap = useMemo(() => {
         const map = new Map<string, { name: string; username: string }>();
         for (const m of members)
@@ -91,7 +122,7 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                <div className="border-b">
+                <div data-tour="expense-balances" className="border-b">
                     <div className="px-4 pt-4 pb-1">
                         <h2 className="text-sm font-semibold text-muted-foreground">
                             Balances
@@ -113,7 +144,7 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
                     )}
                 </div>
 
-                <div>
+                <div data-tour="expense-list">
                     <div className="px-4 pt-4 pb-1">
                         <h2 className="text-sm font-semibold text-muted-foreground">
                             Expenses
@@ -184,6 +215,7 @@ export function TripExpenseView({ tripId, onBack }: TripExpenseViewProps) {
 
             <div className="pointer-events-none absolute right-4 bottom-6 z-20 flex justify-end md:right-8">
                 <Button
+                    data-tour="expense-add"
                     size="lg"
                     className="pointer-events-auto gap-2 rounded-full shadow-lg"
                     onClick={() => setShowAddExpense(true)}

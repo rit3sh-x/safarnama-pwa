@@ -8,6 +8,7 @@ import {
     XIcon,
 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTour } from "@/hooks/use-tour";
 import { useBlogByTrip, useSaveBlog } from "../../hooks/use-blogs";
 import { Editor } from "../components/editor";
 import { BlogTitleInput } from "../components/blog-title-input";
@@ -112,6 +113,53 @@ function BlogEditor({ tripId, blog }: BlogEditorProps) {
     const isMobile = useIsMobile();
     const { mutate: saveBlog, isPending: isSaving } = useSaveBlog();
     const { editor } = useEditorStore();
+
+    const tourSteps = useMemo(
+        () => [
+            {
+                element: '[data-tour="blog-cover"]',
+                popover: {
+                    title: "Cover Image",
+                    description:
+                        "Add a hero image to set the tone. Tap to upload.",
+                },
+            },
+            {
+                element: '[data-tour="blog-title"]',
+                popover: {
+                    title: "Title",
+                    description:
+                        "Lead with something memorable. First line readers see.",
+                },
+            },
+            {
+                element: '[data-tour="blog-toolbar"]',
+                popover: {
+                    title: "Rich Formatting",
+                    description:
+                        "Headings, lists, images, tables. Select text for inline toolbar.",
+                },
+            },
+            {
+                element: '[data-tour="blog-meta"]',
+                popover: {
+                    title: "Tags & Meta",
+                    description:
+                        "Tag your post so travelers can discover it in recommendations.",
+                },
+            },
+            {
+                element: '[data-tour="blog-publish"]',
+                popover: {
+                    title: "Publish",
+                    description:
+                        "Saves draft automatically. Hit Publish when you're ready to share.",
+                },
+            },
+        ],
+        []
+    );
+    useTour("blog-editor", tourSteps);
 
     const [{ initialDraft, initialContent }] = useState<{
         initialDraft: LocalDraft | null;
@@ -349,6 +397,7 @@ function BlogEditor({ tripId, blog }: BlogEditorProps) {
                         {isMobile ? "Save" : "Save draft"}
                     </Button>
                     <Button
+                        data-tour="blog-publish"
                         size="sm"
                         onClick={handlePublish}
                         disabled={isSaving}
@@ -378,27 +427,33 @@ function BlogEditor({ tripId, blog }: BlogEditorProps) {
             )}
 
             {!isMobile && (
-                <div className="shrink-0">
+                <div data-tour="blog-toolbar" className="shrink-0">
                     <EditorToolbar />
                 </div>
             )}
 
             <div className="min-h-0 flex-1 overflow-y-auto">
                 <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
-                    <BlogCoverImageInput
-                        value={coverImage}
-                        onChange={handleCoverImageChange}
-                    />
-                    <BlogTitleInput
-                        value={title}
-                        onChange={handleTitleChange}
-                    />
+                    <div data-tour="blog-cover">
+                        <BlogCoverImageInput
+                            value={coverImage}
+                            onChange={handleCoverImageChange}
+                        />
+                    </div>
+                    <div data-tour="blog-title">
+                        <BlogTitleInput
+                            value={title}
+                            onChange={handleTitleChange}
+                        />
+                    </div>
                     <Editor initialContent={initialContent} editable />
-                    <BlogMetaPanel
-                        tripId={tripId}
-                        value={meta}
-                        onChange={handleMetaChange}
-                    />
+                    <div data-tour="blog-meta">
+                        <BlogMetaPanel
+                            tripId={tripId}
+                            value={meta}
+                            onChange={handleMetaChange}
+                        />
+                    </div>
                 </div>
             </div>
 

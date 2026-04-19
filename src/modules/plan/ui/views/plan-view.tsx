@@ -20,6 +20,7 @@ import {
 } from "../../hooks/use-route-planner";
 import { useSettings } from "@/modules/settings/hooks/use-settings";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTour } from "@/hooks/use-tour";
 import { useTripDetails } from "@/modules/trips/hooks/use-trips";
 import {
     useAddPlaceToDay,
@@ -68,6 +69,45 @@ export function PlanView({ tripId }: PlanViewProps) {
     const isLoading = isTripLoading || isDaysLoading || isPlacesLoading;
 
     const s = usePlanState();
+
+    const tourSteps = useMemo(
+        () => [
+            {
+                element: '[data-tour="plan-map"]',
+                popover: {
+                    title: "Interactive Map",
+                    description:
+                        "Drag, zoom, and explore. Click markers to inspect places.",
+                },
+            },
+            {
+                element: '[data-tour="plan-sidebar"]',
+                popover: {
+                    title: "Days & Places",
+                    description:
+                        "Organize places by day. Drag to reorder. Tap a day to filter.",
+                },
+            },
+            {
+                element: '[data-tour="plan-route"]',
+                popover: {
+                    title: "Route Planner",
+                    description:
+                        "Plot routes between places and see distance and duration.",
+                },
+            },
+            {
+                element: '[data-tour="plan-pin"]',
+                popover: {
+                    title: "Pin a Place",
+                    description:
+                        "Click the map to drop a pin and create a new place.",
+                },
+            },
+        ],
+        []
+    );
+    useTour("plan", tourSteps, !isLoading);
 
     const { coords: userCoords, error: locationError } = useLocation();
     const userLocation = useMemo(
@@ -269,6 +309,7 @@ export function PlanView({ tripId }: PlanViewProps) {
             <PlanHeader trip={typedTrip} tripId={tripId} />
             <div className="relative min-h-0 flex-1">
                 <div
+                    data-tour="plan-map"
                     className={cn(
                         "absolute inset-0 z-0",
                         s.pinMode &&
@@ -326,6 +367,7 @@ export function PlanView({ tripId }: PlanViewProps) {
                 {isMobile && !s.mobileSheetOpen && (
                     <div className="absolute top-3 left-3 z-30 md:hidden">
                         <Button
+                            data-tour="plan-sidebar"
                             variant="secondary"
                             className="gap-1.5 shadow-lg"
                             onClick={() => s.setMobileSheetOpen(true)}
@@ -343,6 +385,7 @@ export function PlanView({ tripId }: PlanViewProps) {
                     }}
                 >
                     <Button
+                        data-tour="plan-route"
                         variant={s.showRoutePlanner ? "secondary" : "default"}
                         size="icon"
                         aria-label="Plan a route"
@@ -359,7 +402,10 @@ export function PlanView({ tripId }: PlanViewProps) {
                     </Button>
                 </div>
 
-                <div className="pointer-events-none absolute right-4 bottom-6 z-30">
+                <div
+                    data-tour="plan-pin"
+                    className="pointer-events-none absolute right-4 bottom-6 z-30"
+                >
                     <PinButton
                         active={s.pinMode}
                         onClick={() => s.setPinMode(!s.pinMode)}

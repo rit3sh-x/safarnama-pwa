@@ -366,25 +366,25 @@
   }
 
   .leaflet-container {
-    @apply !bg-muted;
+    @apply bg-muted!;
     font-family: inherit;
   }
 
   .leaflet-popup-content-wrapper {
-    @apply !bg-transparent !shadow-none !p-0 !rounded-none;
+    @apply bg-transparent! shadow-none! p-0! rounded-none!;
   }
 
   .leaflet-popup-content {
-    @apply !m-0 !w-auto;
+    @apply m-0! w-auto!;
   }
 
   .leaflet-popup-tip-container,
   .leaflet-popup-tip {
-    @apply !hidden;
+    @apply hidden!;
   }
 
   .leaflet-react-marker {
-    @apply !bg-transparent !border-0 !shadow-none;
+    @apply bg-transparent! border-0! shadow-none!;
   }
 }
 
@@ -601,4 +601,100 @@
   &.resize-cursor {
     cursor: col-resize;
   }
+}
+
+.driver-popover {
+  background: var(--popover) !important;
+  color: var(--popover-foreground) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-lg) !important;
+  font-family: inherit !important;
+  padding: 16px !important;
+  max-width: 320px !important;
+}
+
+.driver-popover-title {
+  color: var(--foreground) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  margin-bottom: 6px !important;
+}
+
+.driver-popover-description {
+  color: var(--muted-foreground) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+.driver-popover-close-btn {
+  color: var(--muted-foreground) !important;
+  opacity: 0.7 !important;
+  transition: opacity 150ms ease;
+}
+.driver-popover-close-btn:hover {
+  opacity: 1 !important;
+  color: var(--foreground) !important;
+}
+
+.driver-popover-footer {
+  margin-top: 14px !important;
+  gap: 6px !important;
+}
+
+.driver-popover-progress-text {
+  color: var(--muted-foreground) !important;
+  font-size: 11px !important;
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: 0.05em !important;
+}
+
+.driver-popover-footer button {
+  background: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border-radius: calc(var(--radius) - 2px) !important;
+  border: none !important;
+  text-shadow: none !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  transition:
+    background 150ms ease,
+    opacity 150ms ease;
+}
+.driver-popover-footer button:hover {
+  opacity: 0.92 !important;
+}
+
+.driver-popover-footer button.driver-popover-prev-btn {
+  background: var(--muted) !important;
+  color: var(--foreground) !important;
+}
+
+.driver-btn-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+.driver-btn-inner svg {
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: var(--popover) !important;
+}
+.driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: var(--popover) !important;
+}
+.driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: var(--popover) !important;
+}
+.driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: var(--popover) !important;
+}
+
+.driver-overlay {
+  fill: var(--background) !important;
 }
