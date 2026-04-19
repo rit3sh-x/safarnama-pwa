@@ -1,11 +1,13 @@
 const COOKIE_KEY = "safarnama_cookie";
 
 /**
- * Workaround for @convex-dev/better-auth crossDomainClient bug where
- * get-session returning null wipes all cookies (including two_factor),
- * breaking 2FA sign-in flow. Preserves non-session cookies on empty writes.
+ * Workaround for @convex-dev/better-auth crossDomainClient: when get-session
+ * returns null it writes "{}" and wipes cookies — including the two_factor
+ * challenge token needed for verifyTotp. Mirror upstream PR #325: on empty
+ * writes, preserve non-session cookies (two_factor, etc.) and drop the
+ * session_token/session_data/convex_jwt triple.
  *
- * TODO: Remove once upstream PR is merged: https://github.com/get-convex/better-auth
+ * TODO: Remove once upstream PR merged: https://github.com/get-convex/better-auth/pull/325
  */
 export const storage = {
     setItem(key: string, value: string) {
@@ -19,9 +21,12 @@ export const storage = {
                 ) {
                     const prev = localStorage.getItem(key);
                     if (prev) {
-                        const prevParsed = JSON.parse(prev);
+                        const parsed = JSON.parse(prev) as Record<
+                            string,
+                            unknown
+                        >;
                         const preserved: Record<string, unknown> = {};
-                        for (const [k, v] of Object.entries(prevParsed)) {
+                        for (const [k, v] of Object.entries(parsed)) {
                             if (
                                 !k.includes("session_token") &&
                                 !k.includes("session_data") &&
@@ -42,5 +47,8 @@ export const storage = {
     },
     getItem(key: string) {
         return localStorage.getItem(key);
+    },
+    removeItem(key: string) {
+        localStorage.removeItem(key);
     },
 };

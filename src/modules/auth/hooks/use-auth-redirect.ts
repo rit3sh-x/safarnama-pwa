@@ -1,16 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, useRouterState } from "@tanstack/react-router";
 import { useAuthentication } from "./use-authentication";
-
-const REDIRECT_SETTLE_MS = 500;
-
-const AUTH_ROUTES = [
-    "/onboarding",
-    "/signin",
-    "/create-account",
-    "/two-factor",
-    "/create-username",
-];
 
 const AUTH_REDIRECTS = [
     { check: "showOnboarding", to: "/onboarding", allow: ["/onboarding"] },
@@ -40,33 +30,21 @@ const AUTH_REDIRECTS = [
     },
 ] as const;
 
+function isCrossDomainHandoff() {
+    if (typeof window === "undefined") return false;
+    const params = new URLSearchParams(window.location.search);
+    return params.has("ott") || params.has("convex_token");
+}
+
 export function useAuthRedirect() {
     const auth = useAuthentication();
     const router = useRouter();
     const pathname = useRouterState({ select: (s) => s.location.pathname });
-    const settleUntilRef = useRef(0);
-    const [, setSettleTick] = useState(0);
+    const search = useRouterState({ select: (s) => s.location.searchStr });
 
     useEffect(() => {
-        const enteringAuthFlow = AUTH_ROUTES.some((p) =>
-            pathname.startsWith(p)
-        );
-        if (!enteringAuthFlow) {
-            settleUntilRef.current = 0;
-            return;
-        }
-
-        settleUntilRef.current = Date.now() + REDIRECT_SETTLE_MS;
-        const timer = setTimeout(() => {
-            setSettleTick((v) => v + 1);
-        }, REDIRECT_SETTLE_MS);
-
-        return () => clearTimeout(timer);
-    }, [pathname]);
-
-    useEffect(() => {
-        const isSettling = Date.now() < settleUntilRef.current;
-        if (auth.isLoading || isSettling || pathname === "/") return;
+        if (auth.isLoading || pathname === "/") return;
+        if (isCrossDomainHandoff()) return;
 
         for (const rule of AUTH_REDIRECTS) {
             if (!auth[rule.check]) continue;
@@ -77,7 +55,7 @@ export function useAuthRedirect() {
             router.navigate({ to: rule.to, replace: true });
             return;
         }
-    }, [auth, pathname, router]);
+    }, [auth, pathname, search, router]);
 
     return { isLoading: auth.isLoading };
 }

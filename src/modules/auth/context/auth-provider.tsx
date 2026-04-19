@@ -19,12 +19,10 @@ export function AuthenticationProvider({ children }: { children: ReactNode }) {
 
     const hasUsername = !!user?.username;
 
-    const showOnboarding = !isLoading && isFirstTime;
-    const showAuth = !isLoading && !isFirstTime && !isAuthenticated;
-    const showUsername =
-        !isLoading && !isFirstTime && isAuthenticated && !hasUsername;
-    const showHome =
-        !isLoading && !isFirstTime && isAuthenticated && hasUsername;
+    const showOnboarding = !isLoading && !isAuthenticated && isFirstTime;
+    const showAuth = !isLoading && !isAuthenticated && !isFirstTime;
+    const showUsername = !isLoading && isAuthenticated && !hasUsername;
+    const showHome = !isLoading && isAuthenticated && hasUsername;
 
     return (
         <AuthenticationContext.Provider

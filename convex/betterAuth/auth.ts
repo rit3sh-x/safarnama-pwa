@@ -11,6 +11,7 @@ import { ROLE_MAP, ROLES } from "./roles";
 import schema from "./schema";
 
 const siteUrl = process.env.SITE_URL!;
+const convexSiteUrl = process.env.CONVEX_SITE_URL!;
 
 export const authComponent = createClient<DataModel, typeof schema>(
     components.betterAuth,
@@ -23,7 +24,7 @@ export const authComponent = createClient<DataModel, typeof schema>(
 export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
     return {
         appName: "Safarnama",
-        baseURL: siteUrl,
+        baseURL: convexSiteUrl,
         trustedOrigins: [siteUrl],
         database: authComponent.adapter(ctx),
         emailAndPassword: {
@@ -49,6 +50,7 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
             google: {
                 clientId: process.env.GOOGLE_CLIENT_ID!,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+
                 mapProfileToUser(profile) {
                     return {
                         email: profile.email,

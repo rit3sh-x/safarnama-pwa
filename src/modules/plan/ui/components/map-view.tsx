@@ -12,6 +12,7 @@ import {
 import type { PathEntry } from "../../hooks/use-route-planner";
 import { PATH_COLORS } from "../../constants";
 import { PlaceMarker } from "./place-marker";
+import { useSettings } from "@/modules/settings/hooks/use-settings";
 import type { Doc, Id } from "@backend/dataModel";
 
 interface MapClickEvent {
@@ -136,6 +137,7 @@ export function MapView({
     hasInspector = false,
 }: MapViewProps) {
     const mapRef = useRef<MapRef>(null);
+    const { mapStyle } = useSettings();
 
     const padding = useMemo(() => {
         const isMobile =
@@ -161,6 +163,7 @@ export function MapView({
             zoom={zoom}
             minZoom={2}
             maxZoom={20}
+            mapStyle={mapStyle}
         >
             <MapInteractions onClick={onMapClick} />
             <BoundsFitter

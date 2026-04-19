@@ -26,7 +26,11 @@ import { useTheme } from "@/hooks/use-theme";
 const defaultTileUrls = {
     light: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
     dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    satellite:
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
 };
+
+type MapStyle = "standard" | "satellite";
 
 // --- Theme -------------------------------------------------------------------
 
@@ -101,7 +105,10 @@ type MapProps = {
     styles?: {
         light?: string;
         dark?: string;
+        satellite?: string;
     };
+    /** Map style. "satellite" uses imagery and ignores theme. Default "standard". */
+    mapStyle?: MapStyle;
     /** Initial center as [longitude, latitude]. */
     center?: [number, number];
     zoom?: number;
@@ -149,6 +156,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
         className,
         theme: themeProp,
         styles,
+        mapStyle = "standard",
         center = [0, 0],
         zoom = 2,
         minZoom = 2,
@@ -178,9 +186,13 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
         () => ({
             light: styles?.light ?? defaultTileUrls.light,
             dark: styles?.dark ?? defaultTileUrls.dark,
+            satellite: styles?.satellite ?? defaultTileUrls.satellite,
         }),
         [styles]
     );
+
+    const activeTileUrl =
+        mapStyle === "satellite" ? tileUrls.satellite : tileUrls[resolvedTheme];
 
     useImperativeHandle(ref, () => mapInstance as L.Map, [mapInstance]);
 
@@ -201,7 +213,7 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
             worldCopyJump: true,
         });
 
-        const tile = L.tileLayer(tileUrls[resolvedTheme], {
+        const tile = L.tileLayer(activeTileUrl, {
             subdomains: "abcd",
             maxZoom,
             crossOrigin: true,
@@ -230,11 +242,11 @@ const Map = forwardRef<MapRef, MapProps>(function Map(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Swap tiles when theme changes
+    // Swap tiles when theme or map style changes
     useEffect(() => {
         if (!mapInstance || !tileLayerRef.current) return;
-        tileLayerRef.current.setUrl(tileUrls[resolvedTheme]);
-    }, [mapInstance, resolvedTheme, tileUrls]);
+        tileLayerRef.current.setUrl(activeTileUrl);
+    }, [mapInstance, activeTileUrl]);
 
     // Update zoom bounds reactively
     useEffect(() => {
