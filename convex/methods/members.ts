@@ -7,6 +7,7 @@ import {
 } from "../lib/utils";
 import { findMember, removeMemberFromTrip } from "../lib/members";
 import { notifyUser } from "../lib/notify";
+import { rateLimit } from "../lib/rateLimit";
 import { components } from "../_generated/api";
 import type { Doc } from "../betterAuth/_generated/dataModel";
 import { paginationOptsValidator, type PaginationResult } from "convex/server";
@@ -119,6 +120,7 @@ export const remove = mutation({
             tripId,
             "member:remove"
         );
+        await rateLimit(ctx, "removeMember", user._id);
 
         if (targetUserId === user._id) {
             throw new ConvexError({
@@ -163,6 +165,7 @@ export const leave = mutation({
     args: { tripId: v.id("trip") },
     handler: async (ctx, { tripId }) => {
         const { member, user, trip } = await requireTripMember(ctx, tripId);
+        await rateLimit(ctx, "leaveTrip", user._id);
 
         if (member.role === "owner") {
             const allMembers: PaginationResult<Doc<"member">> =
@@ -209,7 +212,8 @@ export const changeRole = mutation({
         role: v.union(v.literal("owner"), v.literal("member")),
     },
     handler: async (ctx, { tripId, targetUserId, role }) => {
-        const { trip } = await requireTripAdmin(ctx, tripId);
+        const { trip, user } = await requireTripAdmin(ctx, tripId);
+        await rateLimit(ctx, "changeRole", user._id);
 
         const target = await findMember(ctx, targetUserId, trip.orgId);
         if (!target)

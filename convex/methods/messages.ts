@@ -459,6 +459,7 @@ export const closePoll = mutation({
         const poll = await getOrThrow(ctx, pollId, "Poll");
 
         const { user, member } = await requireTripMember(ctx, poll.tripId);
+        await rateLimit(ctx, "closePoll", user._id);
         if (poll.createdBy !== user._id && member.role !== "owner")
             throw new ConvexError({
                 code: "FORBIDDEN",
@@ -473,6 +474,7 @@ export const markRead = mutation({
     args: { tripId: v.id("trip") },
     handler: async (ctx, { tripId }) => {
         const { user } = await requireTripMember(ctx, tripId);
+        await rateLimit(ctx, "markRead", user._id);
         const now = Date.now();
 
         const existing = await ctx.db

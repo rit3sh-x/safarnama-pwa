@@ -8,6 +8,7 @@ import {
 import { internal } from "../_generated/api";
 import { requireUserAccess } from "../lib/utils";
 import { getOrThrow } from "../lib/helpers";
+import { rateLimit } from "../lib/rateLimit";
 import { components } from "../_generated/api";
 import type { Doc } from "../betterAuth/_generated/dataModel";
 
@@ -136,6 +137,7 @@ export const subscribe = mutation({
     },
     handler: async (ctx, { endpoint, p256dh, auth }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "pushSubscribe", user._id);
 
         const existing = await ctx.db
             .query("pushSubscription")
@@ -158,6 +160,7 @@ export const unsubscribe = mutation({
     args: { endpoint: v.string() },
     handler: async (ctx, { endpoint }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "pushUnsubscribe", user._id);
         const sub = await ctx.db
             .query("pushSubscription")
             .withIndex("endpoint", (q) => q.eq("endpoint", endpoint))
@@ -199,6 +202,7 @@ export const markAsRead = mutation({
     args: { notificationId: v.id("notification") },
     handler: async (ctx, { notificationId }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "markNotificationRead", user._id);
         const notification = await getOrThrow(
             ctx,
             notificationId,
@@ -218,6 +222,7 @@ export const markAllAsRead = mutation({
     args: {},
     handler: async (ctx) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "markAllNotificationsRead", user._id);
         const unread = await ctx.db
             .query("notification")
             .withIndex("userId_isRead", (q) =>

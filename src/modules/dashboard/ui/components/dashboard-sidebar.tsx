@@ -1,5 +1,3 @@
-"use client";
-
 import { LogOutIcon } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 

@@ -3,6 +3,7 @@ import { mutation, query } from "../_generated/server";
 import { requireTripMember, requireUserAccess } from "../lib/utils";
 import { getOrThrow } from "../lib/helpers";
 import { paginationOptsValidator } from "convex/server";
+import { rateLimit } from "../lib/rateLimit";
 
 export const add = mutation({
     args: {
@@ -17,7 +18,8 @@ export const add = mutation({
         osmId: v.optional(v.string()),
     },
     handler: async (ctx, { tripId, dayId, ...fields }) => {
-        await requireTripMember(ctx, tripId);
+        const { user } = await requireTripMember(ctx, tripId);
+        await rateLimit(ctx, "addPlace", user._id);
 
         if (dayId) {
             const day = await ctx.db.get(dayId);
@@ -163,7 +165,8 @@ export const update = mutation({
     },
     handler: async (ctx, { placeId, ...fields }) => {
         const place = await getOrThrow(ctx, placeId, "Place");
-        await requireTripMember(ctx, place.tripId);
+        const { user } = await requireTripMember(ctx, place.tripId);
+        await rateLimit(ctx, "updatePlace", user._id);
         await ctx.db.patch(placeId, fields);
     },
 });
@@ -175,7 +178,8 @@ export const assignToDay = mutation({
     },
     handler: async (ctx, { placeId, dayId }) => {
         const place = await getOrThrow(ctx, placeId, "Place");
-        await requireTripMember(ctx, place.tripId);
+        const { user } = await requireTripMember(ctx, place.tripId);
+        await rateLimit(ctx, "movePlace", user._id);
 
         if (dayId) {
             const day = await ctx.db.get(dayId);
@@ -197,7 +201,8 @@ export const reorder = mutation({
     },
     handler: async (ctx, { dayId, placeIds }) => {
         const day = await getOrThrow(ctx, dayId, "Day");
-        await requireTripMember(ctx, day.tripId);
+        const { user } = await requireTripMember(ctx, day.tripId);
+        await rateLimit(ctx, "reorderPlaces", user._id);
 
         await Promise.all(
             placeIds.map((placeId, i) => ctx.db.patch(placeId, { order: i }))
@@ -209,7 +214,8 @@ export const remove = mutation({
     args: { placeId: v.id("place") },
     handler: async (ctx, { placeId }) => {
         const place = await getOrThrow(ctx, placeId, "Place");
-        await requireTripMember(ctx, place.tripId);
+        const { user } = await requireTripMember(ctx, place.tripId);
+        await rateLimit(ctx, "deletePlace", user._id);
         await ctx.db.delete(placeId);
     },
 });

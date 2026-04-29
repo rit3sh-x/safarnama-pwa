@@ -155,6 +155,7 @@ export const userCancelRequest = mutation({
     args: { requestId: v.id("joinRequest") },
     handler: async (ctx, { requestId }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "cancelRequest", user._id);
         const req = await ctx.db.get(requestId);
 
         if (!req)
@@ -189,6 +190,7 @@ export const userReviewInvite = mutation({
     },
     handler: async (ctx, { requestId, action }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "reviewInvite", user._id);
         const req = await ctx.db.get(requestId);
 
         if (!req)
@@ -485,7 +487,12 @@ export const adminCancelInvite = mutation({
                 message: "Invite already reviewed",
             });
 
-        await requireTripPermission(ctx, req.tripId, "member:invite");
+        const { user } = await requireTripPermission(
+            ctx,
+            req.tripId,
+            "member:invite"
+        );
+        await rateLimit(ctx, "cancelInvite", user._id);
         await ctx.db.delete(requestId);
     },
 });
@@ -514,7 +521,12 @@ export const adminReviewRequest = mutation({
                 message: "Request already reviewed",
             });
 
-        await requireTripPermission(ctx, req.tripId, "member:add");
+        const { user: reviewer } = await requireTripPermission(
+            ctx,
+            req.tripId,
+            "member:add"
+        );
+        await rateLimit(ctx, "reviewRequest", reviewer._id);
 
         await ctx.db.patch(requestId, {
             status: action === "accept" ? "accepted" : "rejected",

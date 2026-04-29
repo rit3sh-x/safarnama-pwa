@@ -10,6 +10,9 @@ import { ENV } from "varlock/env";
 const ONE_YEAR = 60 * 60 * 24 * 365;
 const ONE_MONTH = 60 * 60 * 24 * 30;
 const ONE_DAY = 60 * 60 * 24;
+const CONVEX_ORIGIN_PATTERN = new RegExp(
+    `^${new URL(ENV.VITE_CONVEX_URL).origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/`
+);
 
 export default defineConfig({
     plugins: [
@@ -236,8 +239,7 @@ export default defineConfig({
 
                 runtimeCaching: [
                     {
-                        urlPattern: ({ url }) =>
-                            url.origin === ENV.VITE_CONVEX_URL,
+                        urlPattern: CONVEX_ORIGIN_PATTERN,
                         handler: "NetworkFirst",
                         options: {
                             cacheName: "convex-api-cache",
@@ -516,7 +518,7 @@ export default defineConfig({
         allowedHosts: true,
     },
     preview: {
-        port: 4000,
+        port: 3000,
         strictPort: true,
         host: "0.0.0.0",
         allowedHosts: true,

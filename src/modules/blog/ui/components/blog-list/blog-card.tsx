@@ -62,7 +62,7 @@ export function BlogCard({
                 )}
 
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <h3 className="truncate font-serif text-base font-semibold text-foreground">
+                    <h3 className="truncate text-base font-semibold text-foreground">
                         {title}
                     </h3>
 

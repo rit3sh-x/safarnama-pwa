@@ -16,6 +16,8 @@ export const generateUploadUrl = mutation({
 export const confirmUpload = mutation({
     args: { storageId: v.id("_storage") },
     handler: async (ctx, { storageId }) => {
+        const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "confirmUpload", user._id);
         const metadata = await ctx.db.system.get("_storage", storageId);
 
         if (!metadata) {

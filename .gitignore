@@ -39,6 +39,7 @@ lerna-debug.log*
 cache/
 coverage
 env.d.ts
+public/icons
 
 # Tools
 .claude

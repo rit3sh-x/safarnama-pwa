@@ -103,6 +103,91 @@ const rateLimits = {
         period: MINUTE,
         capacity: 5,
     },
+
+    deleteComment: { kind: "fixed window", rate: 10, period: MINUTE },
+
+    addDay: { kind: "token bucket", rate: 20, period: MINUTE, capacity: 5 },
+    updateDay: { kind: "token bucket", rate: 30, period: MINUTE, capacity: 8 },
+    deleteDay: { kind: "fixed window", rate: 10, period: MINUTE },
+    movePlace: { kind: "token bucket", rate: 60, period: MINUTE, capacity: 10 },
+
+    addPlace: { kind: "token bucket", rate: 20, period: MINUTE, capacity: 5 },
+    updatePlace: {
+        kind: "token bucket",
+        rate: 30,
+        period: MINUTE,
+        capacity: 8,
+    },
+    reorderPlaces: {
+        kind: "token bucket",
+        rate: 60,
+        period: MINUTE,
+        capacity: 10,
+    },
+    deletePlace: { kind: "fixed window", rate: 15, period: MINUTE },
+
+    removeMember: { kind: "fixed window", rate: 5, period: MINUTE },
+    leaveTrip: { kind: "fixed window", rate: 5, period: MINUTE },
+    changeRole: { kind: "token bucket", rate: 5, period: MINUTE, capacity: 2 },
+
+    reviewRequest: {
+        kind: "token bucket",
+        rate: 15,
+        period: MINUTE,
+        capacity: 5,
+    },
+    cancelRequest: {
+        kind: "token bucket",
+        rate: 10,
+        period: MINUTE,
+        capacity: 3,
+    },
+    cancelInvite: {
+        kind: "token bucket",
+        rate: 10,
+        period: MINUTE,
+        capacity: 3,
+    },
+    reviewInvite: {
+        kind: "token bucket",
+        rate: 15,
+        period: MINUTE,
+        capacity: 5,
+    },
+
+    closePoll: { kind: "fixed window", rate: 5, period: MINUTE },
+    markRead: { kind: "token bucket", rate: 60, period: MINUTE, capacity: 20 },
+
+    pushSubscribe: {
+        kind: "token bucket",
+        rate: 5,
+        period: HOUR,
+        capacity: 2,
+    },
+    pushUnsubscribe: {
+        kind: "token bucket",
+        rate: 5,
+        period: HOUR,
+        capacity: 2,
+    },
+    markNotificationRead: {
+        kind: "token bucket",
+        rate: 60,
+        period: MINUTE,
+        capacity: 20,
+    },
+    markAllNotificationsRead: {
+        kind: "fixed window",
+        rate: 10,
+        period: MINUTE,
+    },
+
+    confirmUpload: {
+        kind: "token bucket",
+        rate: 10,
+        period: MINUTE,
+        capacity: 3,
+    },
 } as const;
 
 export type RateLimitName = keyof typeof rateLimits;

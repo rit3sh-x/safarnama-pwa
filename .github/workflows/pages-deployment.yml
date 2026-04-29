@@ -36,6 +36,9 @@ jobs:
           VITE_CONVEX_SITE_URL: ${{ secrets.VITE_CONVEX_SITE_URL }}
           VITE_VAPID_PUBLIC_KEY: ${{ secrets.VITE_VAPID_PUBLIC_KEY }}
 
+      - name: Generate icons
+        run: pnpm run gen:icons
+
       - name: Build
         run: pnpm run build
         env:

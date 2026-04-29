@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react";
+import type { BetterAuthClientOptions } from "better-auth/client";
 import {
     usernameClient,
     organizationClient,
@@ -9,9 +10,8 @@ import {
     crossDomainClient,
 } from "@convex-dev/better-auth/client/plugins";
 import { ENV } from "varlock/env";
-import { storage } from "./auth-utils";
 
-export const authClient = createAuthClient({
+const authClientOptions = {
     baseURL: ENV.VITE_CONVEX_SITE_URL,
     plugins: [
         twoFactorClient(),
@@ -20,7 +20,13 @@ export const authClient = createAuthClient({
         organizationClient(),
         crossDomainClient({
             storagePrefix: "safarnama",
-            storage,
         }),
     ],
-});
+} satisfies BetterAuthClientOptions;
+
+type SafarnamaAuthClient = ReturnType<
+    typeof createAuthClient<typeof authClientOptions>
+>;
+
+export const authClient: SafarnamaAuthClient =
+    createAuthClient(authClientOptions);

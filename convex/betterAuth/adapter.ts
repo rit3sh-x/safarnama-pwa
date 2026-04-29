@@ -1,93 +1,51 @@
 import { createApi } from "@convex-dev/better-auth";
 import { createAuthOptions } from "./auth";
 import schema from "./schema";
-import type { RegisteredMutation } from "convex/server";
+import type {
+    FunctionArgs,
+    FunctionReference,
+    FunctionReturnType,
+    FunctionType,
+    FunctionVisibility,
+    RegisteredAction,
+    RegisteredMutation,
+    RegisteredQuery,
+} from "convex/server";
 
-type AuthMutationWithModel<
-    Args extends Record<string, unknown>,
-    Ret,
-> = RegisteredMutation<"public", Args, Ret>;
+type RegisteredFunction<Func extends FunctionReference<FunctionType>> =
+    Func extends FunctionReference<infer Type, infer Visibility>
+        ? Type extends "query"
+            ? RegisteredQuery<
+                  Extract<Visibility, FunctionVisibility>,
+                  FunctionArgs<Func>,
+                  FunctionReturnType<Func>
+              >
+            : Type extends "mutation"
+              ? RegisteredMutation<
+                    Extract<Visibility, FunctionVisibility>,
+                    FunctionArgs<Func>,
+                    FunctionReturnType<Func>
+                >
+              : Type extends "action"
+                ? RegisteredAction<
+                      Extract<Visibility, FunctionVisibility>,
+                      FunctionArgs<Func>,
+                      FunctionReturnType<Func>
+                  >
+                : never
+        : never;
 
-const _api = createApi(schema, createAuthOptions);
+type BetterAuthApi = ReturnType<typeof createApi<typeof schema>>;
+type BetterAuthFunction<Name extends keyof BetterAuthApi> = RegisteredFunction<
+    BetterAuthApi[Name] & FunctionReference<FunctionType>
+>;
+
+const _api: BetterAuthApi = createApi(schema, createAuthOptions);
 
 export const create = _api.create;
 export const findOne = _api.findOne;
 export const findMany = _api.findMany;
-export const updateOne: AuthMutationWithModel<
-    {
-        onUpdateHandle?: string;
-        input: {
-            where?: {
-                operator?: string;
-                connector?: "AND" | "OR";
-                value: string | number | boolean | string[] | number[] | null;
-                field: string;
-            }[];
-            update: Record<string, unknown>;
-            model: string;
-        };
-    },
-    Promise<unknown>
-> = _api.updateOne;
-export const updateMany: AuthMutationWithModel<
-    {
-        onUpdateHandle?: string;
-        input: {
-            where?: {
-                operator?: string;
-                connector?: "AND" | "OR";
-                value: string | number | boolean | string[] | number[] | null;
-                field: string;
-            }[];
-            update: Record<string, unknown>;
-            model: string;
-        };
-        paginationOpts: {
-            id?: number;
-            endCursor?: string | null;
-            maximumRowsRead?: number;
-            maximumBytesRead?: number;
-            numItems: number;
-            cursor: string | null;
-        };
-    },
-    Promise<unknown>
-> = _api.updateMany;
-export const deleteOne: AuthMutationWithModel<
-    {
-        onDeleteHandle?: string;
-        input: {
-            where?: {
-                operator?: string;
-                connector?: "AND" | "OR";
-                value: string | number | boolean | string[] | number[] | null;
-                field: string;
-            }[];
-            model: string;
-        };
-    },
-    Promise<unknown>
-> = _api.deleteOne;
-export const deleteMany: AuthMutationWithModel<
-    {
-        onDeleteHandle?: string;
-        input: {
-            where?: {
-                operator?: string;
-                connector?: "AND" | "OR";
-                value: string | number | boolean | string[] | number[] | null;
-                field: string;
-            }[];
-            model: string;
-        };
-        paginationOpts: {
-            id?: number;
-            endCursor?: string | null;
-            maximumRowsRead?: number;
-            maximumBytesRead?: number;
-            numItems: number;
-            cursor: string | null;
-        };
-    },
-    Promise<unknown>
-> = _api.deleteMany;
+export const updateOne: BetterAuthFunction<"updateOne"> = _api.updateOne;
+export const updateMany: BetterAuthFunction<"updateMany"> = _api.updateMany;
+export const deleteOne: BetterAuthFunction<"deleteOne"> = _api.deleteOne;
+export const deleteMany: BetterAuthFunction<"deleteMany"> = _api.deleteMany;

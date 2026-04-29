@@ -163,6 +163,7 @@ export const remove = mutation({
     args: { commentId: v.id("blogComment") },
     handler: async (ctx, { commentId }) => {
         const user = await requireUserAccess(ctx);
+        await rateLimit(ctx, "deleteComment", user._id);
         const comment = await getOrThrow(ctx, commentId, "Comment");
         if (comment.authorId !== user._id)
             throw new ConvexError("Not authorized to delete this comment");

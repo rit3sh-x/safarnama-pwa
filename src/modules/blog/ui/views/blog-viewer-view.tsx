@@ -155,42 +155,71 @@ export function BlogViewerView({ blogId }: BlogViewerViewProps) {
                     </div>
                 ) : null}
 
-                <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
-                    {!blog.coverImage && (
-                        <div className="pt-8 md:pt-12">
-                            <h1 className="font-serif text-3xl leading-tight font-bold text-foreground sm:text-4xl md:text-5xl">
-                                {blog.title}
-                            </h1>
+                <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
+                    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-10">
+                        <div className="min-w-0">
+                            {!blog.coverImage && (
+                                <div className="pt-8 md:pt-12">
+                                    <h1 className="font-serif text-3xl leading-tight font-bold text-foreground sm:text-4xl md:text-5xl">
+                                        {blog.title}
+                                    </h1>
 
-                            <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-                                <span>{blog.tripDestination}</span>
-                                {publishedDate && (
-                                    <span className="flex items-center gap-1">
-                                        <CalendarIcon className="size-3.5" />
-                                        {publishedDate}
-                                    </span>
-                                )}
+                                    <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+                                        <span>{blog.tripDestination}</span>
+                                        {publishedDate && (
+                                            <span className="flex items-center gap-1">
+                                                <CalendarIcon className="size-3.5" />
+                                                {publishedDate}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="pt-6 lg:hidden">
+                                <BlogFactsStrip
+                                    startDate={blog.startDate}
+                                    endDate={blog.endDate}
+                                    budget={blog.budget}
+                                    currency={blog.currency}
+                                    tags={blog.tags}
+                                />
                             </div>
+
+                            <Editor
+                                initialContent={initialContent}
+                                editable={false}
+                            />
+
+                            <div className="lg:hidden">
+                                <BlogPlacesList places={blog.places} />
+                            </div>
+
+                            <BlogRatingSection blogId={blog._id} />
+
+                            <CommentSection blogId={blog._id} />
                         </div>
-                    )}
 
-                    <div className="pt-6">
-                        <BlogFactsStrip
-                            startDate={blog.startDate}
-                            endDate={blog.endDate}
-                            budget={blog.budget}
-                            currency={blog.currency}
-                            tags={blog.tags}
-                        />
+                        <aside className="sticky top-6 hidden max-h-[calc(100vh-3rem)] self-start overflow-y-auto pt-6 lg:block">
+                            <h2 className="mb-4 text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+                                Trip details
+                            </h2>
+                            <BlogFactsStrip
+                                orientation="vertical"
+                                startDate={blog.startDate}
+                                endDate={blog.endDate}
+                                budget={blog.budget}
+                                currency={blog.currency}
+                                tags={blog.tags}
+                            />
+                            <div className="mt-6">
+                                <BlogPlacesList
+                                    places={blog.places}
+                                    variant="compact"
+                                />
+                            </div>
+                        </aside>
                     </div>
-
-                    <Editor initialContent={initialContent} editable={false} />
-
-                    <BlogPlacesList places={blog.places} />
-
-                    <BlogRatingSection blogId={blog._id} />
-
-                    <CommentSection blogId={blog._id} />
                 </div>
             </div>
         </div>

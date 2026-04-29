@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import { requireTripMember } from "../lib/utils";
 import { getOrThrow } from "../lib/helpers";
+import { rateLimit } from "../lib/rateLimit";
 
 export const list = query({
     args: { tripId: v.id("trip") },
@@ -32,7 +33,8 @@ export const add = mutation({
         note: v.optional(v.string()),
     },
     handler: async (ctx, { tripId, dayNumber, ...fields }) => {
-        await requireTripMember(ctx, tripId);
+        const { user } = await requireTripMember(ctx, tripId);
+        await rateLimit(ctx, "addDay", user._id);
 
         const existing = await ctx.db
             .query("day")
@@ -64,7 +66,8 @@ export const upsert = mutation({
         note: v.optional(v.string()),
     },
     handler: async (ctx, { tripId, dayNumber, ...fields }) => {
-        await requireTripMember(ctx, tripId);
+        const { user } = await requireTripMember(ctx, tripId);
+        await rateLimit(ctx, "addDay", user._id);
 
         const existing = await ctx.db
             .query("day")
@@ -92,7 +95,8 @@ export const update = mutation({
     },
     handler: async (ctx, { dayId, ...fields }) => {
         const day = await getOrThrow(ctx, dayId, "Day");
-        await requireTripMember(ctx, day.tripId);
+        const { user } = await requireTripMember(ctx, day.tripId);
+        await rateLimit(ctx, "updateDay", user._id);
         await ctx.db.patch(dayId, fields);
     },
 });
@@ -101,7 +105,8 @@ export const remove = mutation({
     args: { dayId: v.id("day") },
     handler: async (ctx, { dayId }) => {
         const day = await getOrThrow(ctx, dayId, "Day");
-        await requireTripMember(ctx, day.tripId);
+        const { user } = await requireTripMember(ctx, day.tripId);
+        await rateLimit(ctx, "deleteDay", user._id);
 
         const places = await ctx.db
             .query("place")
@@ -122,7 +127,8 @@ export const addPlaceToDay = mutation({
     },
     handler: async (ctx, { dayId, placeId }) => {
         const day = await getOrThrow(ctx, dayId, "Day");
-        await requireTripMember(ctx, day.tripId);
+        const { user } = await requireTripMember(ctx, day.tripId);
+        await rateLimit(ctx, "movePlace", user._id);
 
         const place = await ctx.db.get(placeId);
         if (!place || place.tripId !== day.tripId)
@@ -139,7 +145,8 @@ export const removePlaceFromDay = mutation({
     args: { placeId: v.id("place") },
     handler: async (ctx, { placeId }) => {
         const place = await getOrThrow(ctx, placeId, "Place");
-        await requireTripMember(ctx, place.tripId);
+        const { user } = await requireTripMember(ctx, place.tripId);
+        await rateLimit(ctx, "movePlace", user._id);
         await ctx.db.patch(placeId, { dayId: undefined });
     },
 });
@@ -151,7 +158,8 @@ export const updateNote = mutation({
     },
     handler: async (ctx, { dayId, note }) => {
         const day = await getOrThrow(ctx, dayId, "Day");
-        await requireTripMember(ctx, day.tripId);
+        const { user } = await requireTripMember(ctx, day.tripId);
+        await rateLimit(ctx, "updateDay", user._id);
         await ctx.db.patch(dayId, { note: note || undefined });
     },
 });
@@ -160,7 +168,8 @@ export const removeNote = mutation({
     args: { dayId: v.id("day") },
     handler: async (ctx, { dayId }) => {
         const day = await getOrThrow(ctx, dayId, "Day");
-        await requireTripMember(ctx, day.tripId);
+        const { user } = await requireTripMember(ctx, day.tripId);
+        await rateLimit(ctx, "updateDay", user._id);
         await ctx.db.patch(dayId, { note: undefined });
     },
 });
